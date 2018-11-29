@@ -5,6 +5,8 @@
 #include <esp_log.h>
 #include <esp_event.h>
 
+#include "sdkconfig.h"
+
 #include "Event.h"
 
 /* static */ Event::Reactor * Event::Reactor::reactor(nullptr);
@@ -15,6 +17,8 @@
 	: (reactor = new Reactor());
 }
 
+/// map of event ids to presentable names
+/// scraped from esp_event_legacy.h
 std::map<system_event_id_t, char const *> map {
     {SYSTEM_EVENT_WIFI_READY,		" WIFI READY"},
     {SYSTEM_EVENT_SCAN_DONE,		" SCAN DONE"},
