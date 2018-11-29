@@ -1,0 +1,26 @@
+menu "artlight Configuration"
+
+config FIRMWARE_UPDATE_URL
+    string "firmware update url endpoint"
+    default "https://192.168.1.20:4433/artlight.bin"
+    help
+        URL of server which hosts the firmware image.
+
+config FIRMWARE_UPDATE_PAUSE
+    int "firmware update pause (in milliseconds) between retries"
+    default 10000
+    help
+        Retry firmware update after failure and pause.
+
+config TIME_UPDATE_SERVERS
+    string "time update SNTP servers"
+    default "server.home pool.ntp.org"
+    help
+        Whitespace delimited names of SNTP servers.
+
+config TIME_ZONE
+    string "timezone"
+    default "PST+8PDT,M3.2.0/2,M11.1.0"
+    help
+       https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html
+endmenu

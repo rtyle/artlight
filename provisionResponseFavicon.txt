@@ -1,0 +1,4 @@
+HTTP/1.1 200 OK
+Content-Type: image/x-icon
+Content-Length: 5430
+

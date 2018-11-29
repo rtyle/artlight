@@ -1,0 +1,81 @@
+#ifndef Event_h_
+#define Event_h_
+
+#include <functional>
+#include <map>
+
+#include <esp_event_loop.h>
+
+// the default event loop, created by
+//	esp_event_loop_init
+// starts a FreeRTOS task ("eventTask") with an implementation that runs forever.
+// this task reacts to
+//	system_event_t
+// objects posted to its queue by
+//	esp_event_send
+// its reaction is to first call
+//	esp_event_process_default
+// with the event and then call
+//	esp_event_post_to_user
+// the return values from these do not affect control;
+// they are only used to ESP_LOGE an error message if they are not ESP_OK.
+//	esp_event_process_default
+// indexes a
+// 	static system_event_handler_t default_event_handlers[SYSTEM_EVENT_MAX]
+// the
+//	typedef enum {..., SYSTEM_EVENT_MAX} system_event_id_t
+// enumeration is defined by the system.
+//	default_event_handlers
+// is populated by
+//	esp_event_set_default_wifi_handlers
+//	esp_event_set_default_eth_handlers
+// which are presumably called by related components.
+//	esp_event_post_to_user
+// calls a
+//	system_event_cb_t s_event_handler_cb
+// that was remembered when
+//	esp_event_loop_init
+// was called or overridden later by
+//	esp_event_loop_set_cb
+//
+// WARNING:
+// this default event loop implementation seems to be in a transition
+// to a specialization of a more general event loop capability.
+
+class Event {
+public:
+    class Observer;
+
+    typedef std::function<esp_err_t(system_event_t const *)> Action;
+    typedef std::map<Observer *, Action> ObserverMap;
+
+    /// Reactor is a singleton class whose only instance
+    /// will reactTo each event dispatched by the system's default event loop.
+    /// Each event's system_event_id_t is, potentially, mapped to
+    /// an ObserverMap for which the Action of each is taken.
+    class Reactor {
+    private:
+	friend class Observer;
+	esp_err_t reactTo(system_event_t const *);
+	static esp_err_t reactToThat(void * that, system_event_t *);
+	std::map<system_event_id_t, ObserverMap *> idMap;
+	Reactor();
+	static Reactor * reactor;
+    public:
+	static Reactor * getReactor();
+	virtual ~Reactor();
+    };
+
+    /// The Action of an Observer will be taken
+    /// (by the Reactor, for events of type id)
+    /// for its lifetime.
+    class Observer {
+    private:
+	system_event_id_t const id;
+    public:
+	Observer(system_event_id_t, Action && action);
+	~Observer();
+    };
+};
+
+#endif
