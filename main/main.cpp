@@ -5,6 +5,8 @@
 // FIXME: should not have to redeclare setenv to make eclipse happy
 extern "C" int setenv(const char *, const char *, int);
 
+#include "sdkconfig.h"
+
 #include <esp_log.h>
 
 #include <nvs_flash.h>
@@ -80,7 +82,7 @@ public:
 		firmwareCert,
 		pdMS_TO_TICKS(CONFIG_FIRMWARE_UPDATE_PAUSE))
 	{
-	    // firmwareUpdateTask.start();
+	    firmwareUpdateTask.start();
 	}
 	~Connected() {
 	    ESP_LOGI(main.name, "~Connected");
@@ -176,11 +178,10 @@ public:
 	// initialize Non-Volatile Storage (used to save wifi provisioning)
 	ESP_ERROR_CHECK(nvs_flash_init());
 
-#if 1
 	wifi.start();
 
 	disconnected.reset(new Disconnected(*this));
-#endif
+
 	luxMonitorTask.start();
 
 	clockArtTask.start();
