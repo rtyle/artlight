@@ -9,7 +9,7 @@
 	# toolchain
 	# https://docs.espressif.com/projects/esp-idf/en/latest/get-started/linux-setup.html
 
-		sudo dnf install gcc git wget make ncurses-devel flex bison gperf python pyserial future python2-cryptography
+		sudo dnf install gcc git wget make ncurses-devel flex bison gperf python pyserial future python2-cryptography pyparsing
 		cd ~/esp
 		wget https://dl.espressif.com/dl/xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
 		tar xzf xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
@@ -22,36 +22,6 @@
 			vi sdkconfig
 				#CONFIG_TOOLPREFIX="xtensa-esp32-elf-"
 				CONFIG_TOOLPREFIX="xtensa-linux-gnu-"
-
-	# IoT Development Framework
-	# https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html
-
-		cd ~/esp
-		git clone --recursive https://github.com/espressif/esp-idf.git
-
-		# update later
-
-			git checkout master
-			git pull
-			git submodule update --init --recursive
-
-PATH=$PATH:~/esp/xtensa-esp32-elf/bin IDF_PATH=~/esp/esp-idf 
-
-	# copy simple_ota_example for starting template
-
-		cp -r $IDF_PATH/examples/system/ota/simple_ota_example/* .
-
-	# create firmware server certificate with unencrypted key. CN must match the host part in the URL
-
-		(cd certificates; openssl req -x509 -nodes -newkey rsa:2048 -keyout firmware_ca_key.pem -out firmware_ca_cert.pem -days 10000)
-
-	# start server
-
-		(cd build; openssl s_server -WWW -key ../certificates/firmware_ca_key.pem -cert ../certificates/firmware_ca_cert.pem)
-
-	# create provision server certificate with unencrypted key. CN must match the host part in the URL (192.168.4.1)
-
-		(cd certificates; openssl req -x509 -nodes -newkey rsa:2048 -keyout provision_ca_key.pem -out provision_ca_cert.pem -days 10000)
 
 # eclipse
 
@@ -72,7 +42,7 @@ PATH=$PATH:~/esp/xtensa-esp32-elf/bin IDF_PATH=~/esp/esp-idf
 			Add to all configurations:	Name:		Value:
 #			X				BATCH_BUILD	1
 			X				IDF_PATH	${HOME}/esp/esp-idf
-			X				PATH		<orig>:${IDF_PATH}/../xtensa-esp32-elf/bin
+			X				PATH		<orig>:${HOME}/esp/xtensa-esp32-elf/bin
 
 			# BATCH_BUILD=1 is a flag to the makefiles to inhibit interactive behavior
 			# instead, we run these targets in an interactive gnome-terminal (below)
@@ -122,3 +92,14 @@ PATH=$PATH:~/esp/xtensa-esp32-elf/bin IDF_PATH=~/esp/esp-idf
 
 				Import Settings...
 					includePaths.xml
+
+# ESP IoT Development Framework as git submodule to current git project
+# https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html
+
+	git submodule add https://github.com/espressif/esp-idf.git
+
+	# update later
+
+		git checkout master
+		git pull
+		git submodule update --init --recursive

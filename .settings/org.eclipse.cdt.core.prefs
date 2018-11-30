@@ -1,9 +1,9 @@
 eclipse.preferences.version=1
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1511740095/IDF_PATH/delimiter=\:
-environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1511740095/IDF_PATH/operation=append
-environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1511740095/IDF_PATH/value=${HOME}/esp/esp-idf
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1511740095/IDF_PATH/operation=replace
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1511740095/IDF_PATH/value=${ProjDirPath}/esp-idf
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1511740095/PATH/delimiter=\:
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1511740095/PATH/operation=replace
-environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1511740095/PATH/value=/bin\:/usr/share/Modules/bin\:/usr/lib64/ccache\:/usr/local/bin\:/usr/local/sbin\:/usr/bin\:/usr/sbin\:/home/ross/.local/bin\:/home/ross/bin\:${IDF_PATH}/../xtensa-esp32-elf/bin
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1511740095/PATH/value=/bin\:/usr/share/Modules/bin\:/usr/lib64/ccache\:/usr/local/bin\:/usr/local/sbin\:/usr/bin\:/usr/sbin\:${HOME}/esp/xtensa-esp32-elf/bin
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1511740095/append=true
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1511740095/appendContributed=true
