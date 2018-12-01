@@ -146,6 +146,35 @@ public:
 	    part.blue	^ operand.part.blue);
     }
 
+    template <typename t> LED minByPart(LED<t> const & that) const {
+	return LED(
+	    part.red	< that.part.red		? part.red	: that.part.red,
+	    part.green	< that.part.green	? part.green	: that.part.green,
+	    part.blue	< that.part.blue	? part.blue	: that.part.blue);
+    }
+
+    template <typename t> LED maxByPart(LED<t> const & that) const {
+	return LED(
+	    part.red	> that.part.red		? part.red	: that.part.red,
+	    part.green	> that.part.green	? part.green	: that.part.green,
+	    part.blue	> that.part.blue	? part.blue	: that.part.blue);
+    }
+
+    template <typename t> LED minByAverage(LED<t> const & that) const {
+	return LED(*this < that ? *this : that);
+    }
+
+    template <typename t> LED maxByAverage(LED<t> const & that) const {
+	return LED(*this > that ? *this : that);
+    }
+
+    template <typename t> LED average(LED<t> const & that) const {
+	return LED(
+	    (part.red	+ that.part.red)	/ 2,
+	    (part.green	+ that.part.green)	/ 2,
+	    (part.blue	+ that.part.blue)	/ 2);
+    }
+
     operator uint32_t ();
 };
 

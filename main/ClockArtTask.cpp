@@ -248,21 +248,25 @@ public:
 		*++up = hf(ud += 1) * dim;
 		*--dp = hf(dd -= 1) * dim;
 	    }
-	    // fold/collapse hour rendering, prefer greater values on fold
+	    // fold/collapse hour rendering, mixing folded values
 	    uint32_t const * source = target;
 	    uint32_t const * fold = target + hpd - 1;
 	    uint32_t const * next = target + rayLength - 1;
 	    for (size_t i = rayCount; i--;) {
 		*target++ = *source++;
 		for (size_t i = rayFoldLength; i--; ++source, --fold) {
-		    *target++ = LED<>(*source) < LED<>(*fold)
-			? *fold : *source;
+		    *target++ = LED<>(*source).maxByPart(LED<>(*fold));
 		}
 		fold = next;
 		next += rayLength;
 		for (size_t i = rayArcLength; i--;)
 		    *target++ = *source++;
 		source += rayFoldLength;
+	    }
+	    // mix in background glow
+	    LED<> background = LED<>(4, 4, 4) * dim;
+	    for (auto & e: unfolded) {
+		e = LED<>(e).maxByPart(background);
 	    }
 	    // transfer folded rendering into message
 	    std::memcpy(message.encodings, unfolded, sizeof unfolded);
@@ -307,10 +311,10 @@ public:
 	    float dd = ud;
 	    c += arcIndex[arc];
 	    Wrap<uint32_t> up(target, mph, c), dp(up);
-	    *up = (LED<int>(*up) + (LED<int>(sf(ud))) * dim) / 2;
+	    *up = LED<int>(*up).maxByPart(LED<int>(sf(ud)) * dim);
 	    for (size_t z = 4; z--;) {
-		++up; *up = LED<int>(*up) ^ (LED<int>(sf(ud += 1) * dim));
-		--dp; *dp = LED<int>(*dp) ^ (LED<int>(sf(dd -= 1) * dim));
+		++up; *up = LED<int>(*up).maxByPart(LED<int>(sf(ud += 1)) * dim);
+		--dp; *dp = LED<int>(*dp).maxByPart(LED<int>(sf(dd -= 1)) * dim);
 	    }
 	}
 
