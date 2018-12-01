@@ -13,7 +13,6 @@
 
 class ProvisionTask : public AsioTask {
 private:
-    StackType_t			stack[8192] = {};
     unsigned char const * const	cert;
     size_t const		certSize;
     unsigned char const * const	key;

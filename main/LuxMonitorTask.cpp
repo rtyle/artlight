@@ -6,7 +6,7 @@
 
 LuxMonitorTask::LuxMonitorTask(I2C::Master const * i2cMaster)
 :
-    AsioTask("luxMonitorTask", 5, stack, sizeof stack),
+    AsioTask("luxMonitorTask", 5, 4096, 0),
     tsl2561(i2cMaster, TSL2561::I2cAddress::floating),
     lux{0}
 {}

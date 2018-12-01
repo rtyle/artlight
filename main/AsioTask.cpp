@@ -17,11 +17,10 @@
 AsioTask::AsioTask(
     char const *	name,
     UBaseType_t		priority,
-    StackType_t *	stack,
     size_t		stackSize,
     BaseType_t		core)
 :
-    StoppableTask(name, priority, stack, stackSize, core),
+    StoppableTask(name, priority, stackSize, core),
     joinableIo(),
     work(joinableIo),
     io()

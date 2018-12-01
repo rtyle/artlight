@@ -10,7 +10,6 @@
 
 class ClockArtTask : public AsioTask {
 private:
-    StackType_t				stack[16384] = {};
     SPI::Device const			spiDevice1;
     SPI::Device const			spiDevice2;
     std::function<float()> const	getLux;

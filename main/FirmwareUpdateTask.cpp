@@ -11,7 +11,7 @@ FirmwareUpdateTask::FirmwareUpdateTask(
     char const *	cert_,
     TickType_t		pause_)
 :
-    AsioTask("firmwareUpdateTask", 5, stack, sizeof stack),
+    AsioTask("firmwareUpdateTask", 5, 4096, 0),
     url(url_),
     cert(cert_),
     pause(pause_)

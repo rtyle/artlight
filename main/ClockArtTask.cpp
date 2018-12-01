@@ -498,7 +498,7 @@ ClockArtTask::ClockArtTask(
     SPI::Bus const *		spiBus2,
     std::function<float()>	getLux_)
 :
-    AsioTask	("clockArtTask", 5, stack, sizeof stack),
+    AsioTask	("clockArtTask", 5, 8192, 1),
 
     spiDevice1	(spiBus1, SPI::Device::Config()
 		    .mode_(APA102::spiMode)

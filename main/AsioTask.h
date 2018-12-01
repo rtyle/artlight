@@ -17,7 +17,6 @@ public:
     AsioTask(
 	char const *	name,
 	UBaseType_t	priority,
-	StackType_t *	stack,
 	size_t		stackSize,
 	BaseType_t	core = tskNO_AFFINITY);
 

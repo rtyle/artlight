@@ -8,7 +8,6 @@
 /// an Over The Air (OTA) firmware update using secure HTTP
 class FirmwareUpdateTask : public AsioTask {
 private:
-    StackType_t		stack[4096] = {};
     char const * const	url;
     char const * const	cert;
     TickType_t const	pause;

@@ -11,7 +11,6 @@
 /// and provide the latest measurement.
 class LuxMonitorTask : public AsioTask {
 private:
-    StackType_t		stack[4096] = {};
     TSL2561		tsl2561;
     std::atomic<float>	lux;
 

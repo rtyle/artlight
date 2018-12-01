@@ -328,7 +328,7 @@ ProvisionTask::ProvisionTask(
     char const *		responseFavicon_,
     size_t			responseFaviconSize_)
 :
-    AsioTask("provisionTask", 5, stack, sizeof stack),
+    AsioTask("provisionTask", 5, 8192, 0),
     cert(cert_),
     certSize(certSize_),
     key(key_),

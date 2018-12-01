@@ -15,11 +15,9 @@ private:
 protected:
     char const *		name;
     UBaseType_t const		priority;
-    StackType_t * const		stack;
     size_t const		stackSize;
     BaseType_t const		core;
 
-    StaticTask_t		taskStatic;
     TaskHandle_t		taskHandle;
 
     /// Derivations should override run
@@ -29,7 +27,6 @@ public:
     Task(
 	char const *	name,
 	UBaseType_t	priority,
-	StackType_t *	stack,
 	size_t		stackSize,
 	BaseType_t	core = tskNO_AFFINITY);
 
@@ -46,9 +43,8 @@ public:
     StoppableTask(
 	char const *	name,
 	UBaseType_t	priority,
-	StackType_t *	stack,
 	size_t		stackSize,
-	BaseType_t	core);
+	BaseType_t	core = tskNO_AFFINITY);
 
     StoppableTask();
 
