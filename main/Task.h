@@ -17,6 +17,7 @@ protected:
     UBaseType_t const		priority;
     StackType_t * const		stack;
     size_t const		stackSize;
+    BaseType_t const		core;
 
     StaticTask_t		taskStatic;
     TaskHandle_t		taskHandle;
@@ -29,7 +30,8 @@ public:
 	char const *	name,
 	UBaseType_t	priority,
 	StackType_t *	stack,
-	size_t		stackSize);
+	size_t		stackSize,
+	BaseType_t	core = tskNO_AFFINITY);
 
     Task();
 
@@ -45,7 +47,8 @@ public:
 	char const *	name,
 	UBaseType_t	priority,
 	StackType_t *	stack,
-	size_t		stackSize);
+	size_t		stackSize,
+	BaseType_t	core);
 
     StoppableTask();
 
