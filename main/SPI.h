@@ -1,9 +1,9 @@
 #ifndef SPI_h__
 #define SPI_h__
 
-#include <cstring>
-#include <memory>
+#include <cstdint>
 
+#include <driver/spi_common.h>
 #include <driver/spi_master.h>
 
 namespace SPI {
@@ -23,7 +23,7 @@ public:
     public:
 	Config(spi_bus_config_t const & that);
 	Config();
-	#define setter(name) Config & name##_(decltype(name) s);
+	#define setter(name) Config & name##_(decltype(name));
 	setter(mosi_io_num)
 	setter(miso_io_num)
 	setter(sclk_io_num)
@@ -31,6 +31,7 @@ public:
 	setter(quadhd_io_num)
 	setter(max_transfer_sz)
 	setter(flags)
+	setter(intr_flags)
 	#undef setter
     };
 
@@ -52,7 +53,7 @@ private:
 public:
     struct Config : public spi_device_interface_config_t {
 	Config();
-	#define setter(name) Config & name##_(decltype(name) s);
+	#define setter(name) Config & name##_(decltype(name));
 	setter(command_bits)
 	setter(address_bits)
 	setter(dummy_bits)
@@ -84,7 +85,7 @@ public:
     struct Config : public spi_transaction_t {
     public:
 	Config();
-	#define setter(name) Config & name##_(decltype(name) s);
+	#define setter(name) Config & name##_(decltype(name));
 	setter(flags)
 	setter(cmd)
 	setter(addr)
@@ -94,7 +95,7 @@ public:
 	setter(tx_buffer)
 	setter(rx_buffer)
 	#undef setter
-	#define setter(name) Config & name##_(decltype(name) s, size_t z);
+	#define setter(name) Config & name##_(decltype(name), size_t);
 	setter(tx_data)
 	setter(rx_data)
 	#undef setter

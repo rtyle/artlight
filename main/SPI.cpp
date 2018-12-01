@@ -1,3 +1,13 @@
+#include <cassert>
+#include <cstdint>
+#include <cstring>
+#include <memory>
+
+#include <freertos/FreeRTOS.h>
+#include <freertos/portmacro.h>
+
+#include <esp_err.h>
+
 #include "SPI.h"
 
 namespace SPI {
@@ -10,6 +20,7 @@ namespace SPI {
     -1,	// quadhd_io_num
      0,	// max_transfer_sz (0 => 4094)
      0,	// flags
+     0,	// intr_flags
 };
 
 /* static */ spi_bus_config_t const Bus::HspiConfig {
@@ -20,6 +31,7 @@ namespace SPI {
      4,	// quadhd_io_num
      0,	// max_transfer_sz (0 => 4094)
      0,	// flags
+     0,	// intr_flags
 };
 
 /* static */ spi_bus_config_t const Bus::VspiConfig {
@@ -30,6 +42,7 @@ namespace SPI {
     21,	// quadhd_io_num
      0,	// max_transfer_sz (0 => 4094)
      0,	// flags
+     0,	// intr_flags
 };
 
 Bus::Config::Config(spi_bus_config_t const & that) : spi_bus_config_t(that) {}
@@ -43,6 +56,7 @@ setter(quadwp_io_num)
 setter(quadhd_io_num)
 setter(max_transfer_sz)
 setter(flags)
+setter(intr_flags)
 #undef setter
 
 Bus::Bus(
