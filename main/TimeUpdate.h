@@ -12,7 +12,6 @@
 class TimeUpdate {
 private:
     char const * const name;
-    void logTime();
 
 public:
     TimeUpdate(

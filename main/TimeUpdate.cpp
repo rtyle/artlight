@@ -6,13 +6,6 @@
 
 #include "TimeUpdate.h"
 
-void TimeUpdate::logTime() {
-    std::time_t now = std::time(nullptr);
-    char show[64];
-    std::strftime(show, sizeof show, "%c", std::localtime(&now));
-    ESP_LOGI(name, "%s", show);
-}
-
 TimeUpdate::TimeUpdate(
     char const * name_,
     std::vector<std::string> & timeUpdateServers)	// SNTP will reference
@@ -20,7 +13,6 @@ TimeUpdate::TimeUpdate(
     name(name_)
 {
     ESP_LOGI(name, "start");
-    logTime();
     sntp_setoperatingmode(SNTP_OPMODE_POLL);
     size_t index = 0;
     for (std::string & server: timeUpdateServers) {
@@ -38,7 +30,6 @@ TimeUpdate::TimeUpdate(
 }
 
 TimeUpdate::~TimeUpdate() {
-    logTime();
     ESP_LOGI(name, "stop");
     sntp_stop();
 }
