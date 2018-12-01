@@ -42,7 +42,6 @@
 									<listOptionValue builtIn="false" value="&quot;${IDF_PATH}/components/newlib/platform_include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${IDF_PATH}/components/asio/asio/asio/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/artlight/build/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${IDF_PATH}/components/http_server/include&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.697834659" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -67,7 +66,6 @@
 									<listOptionValue builtIn="false" value="&quot;${IDF_PATH}/components/newlib/platform_include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${IDF_PATH}/components/asio/asio/asio/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/artlight/build/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${IDF_PATH}/components/http_server/include&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.741454171" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
