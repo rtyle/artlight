@@ -268,9 +268,10 @@ public:
 	    for (auto & e: unfolded) {
 		e = LED<>(e).maxByPart(background);
 	    }
-	    // transfer folded rendering into message
-	    std::memcpy(message.encodings, unfolded, sizeof unfolded);
-	    target = message.encodings + (target - unfolded);
+	    // transfer folded part of rendering into message
+	    size_t foldedSize = target - unfolded;
+	    std::memcpy(message.encodings, unfolded, foldedSize * sizeof *target);
+	    target = message.encodings + foldedSize;
 	}
 
 	// clear shared rendering for minutes and seconds
