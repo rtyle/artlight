@@ -1,7 +1,13 @@
 #ifndef ProvisionTask_h_
 #define ProvisionTask_h_
 
+#include <memory>
+
+#include "sdkconfig.h"
+
 #include <openssl/ssl.h>
+
+#include <asio/ip/tcp.hpp>
 
 #include "AsioTask.h"
 

@@ -1,6 +1,8 @@
 #ifndef Task_h_
 #define Task_h_
 
+#include <cstdlib>
+
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 

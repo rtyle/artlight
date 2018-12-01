@@ -3,8 +3,6 @@
 
 #include <functional>
 
-#include <sdkconfig.h>
-
 #include <freertos/FreeRTOS.h>
 #include <freertos/timers.h>
 

@@ -4,6 +4,7 @@
 #include <functional>
 #include <map>
 
+#include <esp_event_legacy.h>
 #include <esp_event_loop.h>
 
 // the default event loop, created by

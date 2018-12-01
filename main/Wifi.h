@@ -1,6 +1,8 @@
 #ifndef Wifi_h_
 #define Wifi_h_
 
+#include <cstring>
+
 #include <freertos/FreeRTOS.h>
 #include <freertos/event_groups.h>
 

@@ -1,6 +1,11 @@
 #ifndef I2C_h_
 #define I2C_h_
 
+#include <cstdint>
+#include <cstdlib>
+
+#include <freertos/FreeRTOS.h>
+
 #include <driver/i2c.h>
 
 namespace I2C {
