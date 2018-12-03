@@ -59,14 +59,14 @@ esp_err_t Event::Reactor::reactTo(system_event_t const * event) {
     ESP_LOGI("Event", "Reactor reactTo %d%s", id, name);
     {
 	std::lock_guard<std::mutex> lock(mutex);
-	auto idIt = idMap.find(id);
-	if (idIt == idMap.end()) {
+	auto observers = observersFor.find(id);
+	if (observers == observersFor.end()) {
 	    return ESP_OK;
 	} else {
 	    ESP_LOGI("Event", "Reactor reactTo %d%s actions", id, name);
-	    ObserverMap * observerMap = idIt->second;
+	    ActionFor * actionFor = observers->second;
 	    esp_err_t result = ESP_OK;
-	    for (std::pair<Observer *, Action> element: *observerMap) {
+	    for (std::pair<Observer *, Action> element: *actionFor) {
 		ESP_LOGI("Event", "Reactor reactTo %d%s action", id, name);
 		esp_err_t err = element.second(event);
 		if (result < err) result = err;
@@ -102,14 +102,14 @@ Event::Observer::Observer(system_event_id_t id_, Action && action)
     {
 	std::lock_guard<std::mutex> lock(mutex);
 	Reactor * reactor = Reactor::getReactor();
-	auto idIt = reactor->idMap.find(id);
-	ObserverMap * observerMap;
-	if (idIt != reactor->idMap.end()) {
-	    observerMap = idIt->second;
+	auto observers = reactor->observersFor.find(id);
+	ActionFor * actionFor;
+	if (observers != reactor->observersFor.end()) {
+	    actionFor = observers->second;
 	} else {
-	    reactor->idMap[id] = observerMap = new ObserverMap();
+	    reactor->observersFor[id] = actionFor = new ActionFor();
 	}
-	(*observerMap)[this] = std::move(action);
+	(*actionFor)[this] = std::move(action);
     }
 }
 
@@ -118,15 +118,15 @@ Event::Observer::~Observer() {
     {
 	std::lock_guard<std::mutex> lock(mutex);
 	Reactor * reactor = Reactor::getReactor();
-	auto idIt = reactor->idMap.find(id);
-	if (idIt != reactor->idMap.end()) {
-	    ObserverMap * observerMap = idIt->second;
-	    auto observerIt = observerMap->find(this);
-	    if (observerIt != observerMap->end()) {
-		observerMap->erase(observerIt);
-		if (!observerMap->size()) {
-		    reactor->idMap.erase(id);
-		    delete observerMap;
+	auto observers = reactor->observersFor.find(id);
+	if (observers != reactor->observersFor.end()) {
+	    ActionFor * actionFor = observers->second;
+	    auto observerIt = actionFor->find(this);
+	    if (observerIt != actionFor->end()) {
+		actionFor->erase(observerIt);
+		if (!actionFor->size()) {
+		    reactor->observersFor.erase(id);
+		    delete actionFor;
 		}
 	    }
 	}

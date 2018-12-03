@@ -47,7 +47,7 @@ public:
     class Observer;
 
     typedef std::function<esp_err_t(system_event_t const *)> Action;
-    typedef std::map<Observer *, Action> ObserverMap;
+    typedef std::map<Observer *, Action> ActionFor;
 
     /// Reactor is a singleton class whose only instance
     /// will reactTo each event dispatched by the system's default event loop.
@@ -58,7 +58,7 @@ public:
 	friend class Observer;
 	esp_err_t reactTo(system_event_t const *);
 	static esp_err_t reactToThat(void * that, system_event_t *);
-	std::map<system_event_id_t, ObserverMap *> idMap;
+	std::map<system_event_id_t, ActionFor *> observersFor;
 	Reactor();
 	static Reactor * reactor;
 	static Reactor * getReactor();
