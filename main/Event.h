@@ -3,7 +3,6 @@
 
 #include <functional>
 #include <map>
-
 #include <esp_event_legacy.h>
 #include <esp_event_loop.h>
 
@@ -62,7 +61,6 @@ public:
 	std::map<system_event_id_t, ObserverMap *> idMap;
 	Reactor();
 	static Reactor * reactor;
-    public:
 	static Reactor * getReactor();
 	virtual ~Reactor();
     };

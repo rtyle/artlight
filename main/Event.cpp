@@ -1,6 +1,6 @@
 #include <algorithm>
-#include <map>
 #include <memory>
+#include <mutex>
 
 #include <esp_log.h>
 #include <esp_event.h>
@@ -17,9 +17,11 @@
 	: (reactor = new Reactor());
 }
 
+static std::mutex mutex;
+
 /// map of event ids to presentable names
 /// scraped from esp_event_legacy.h
-std::map<system_event_id_t, char const *> map {
+static std::map<system_event_id_t, char const *> map {
     {SYSTEM_EVENT_WIFI_READY,		" WIFI READY"},
     {SYSTEM_EVENT_SCAN_DONE,		" SCAN DONE"},
     {SYSTEM_EVENT_STA_START,		" STA START"},
@@ -55,19 +57,22 @@ esp_err_t Event::Reactor::reactTo(system_event_t const * event) {
 	name = it->second;
     }
     ESP_LOGI("Event", "Reactor reactTo %d%s", id, name);
-    auto idIt = idMap.find(id);
-    if (idIt == idMap.end()) {
-	return ESP_OK;
-    } else {
-	ESP_LOGI("Event", "Reactor reactTo %d%s actions", id, name);
-	ObserverMap * observerMap = idIt->second;
-	esp_err_t result = ESP_OK;
-	for (std::pair<Observer *, Action> element: *observerMap) {
-	    ESP_LOGI("Event", "Reactor reactTo %d%s action", id, name);
-	    esp_err_t err = element.second(event);
-	    if (result < err) result = err;
+    {
+	std::lock_guard<std::mutex> lock(mutex);
+	auto idIt = idMap.find(id);
+	if (idIt == idMap.end()) {
+	    return ESP_OK;
+	} else {
+	    ESP_LOGI("Event", "Reactor reactTo %d%s actions", id, name);
+	    ObserverMap * observerMap = idIt->second;
+	    esp_err_t result = ESP_OK;
+	    for (std::pair<Observer *, Action> element: *observerMap) {
+		ESP_LOGI("Event", "Reactor reactTo %d%s action", id, name);
+		esp_err_t err = element.second(event);
+		if (result < err) result = err;
+	    }
+	    return result;
 	}
-	return result;
     }
 }
 
@@ -94,29 +99,35 @@ Event::Observer::Observer(system_event_id_t id_, Action && action)
     id(id_)
 {
     ESP_LOGI("Event", "Observer %d", id);
-    Reactor * reactor = Reactor::getReactor();
-    auto idIt = reactor->idMap.find(id);
-    ObserverMap * observerMap;
-    if (idIt != reactor->idMap.end()) {
-	observerMap = idIt->second;
-    } else {
-	reactor->idMap[id] = observerMap = new ObserverMap();
+    {
+	std::lock_guard<std::mutex> lock(mutex);
+	Reactor * reactor = Reactor::getReactor();
+	auto idIt = reactor->idMap.find(id);
+	ObserverMap * observerMap;
+	if (idIt != reactor->idMap.end()) {
+	    observerMap = idIt->second;
+	} else {
+	    reactor->idMap[id] = observerMap = new ObserverMap();
+	}
+	(*observerMap)[this] = std::move(action);
     }
-    (*observerMap)[this] = std::move(action);
 }
 
 Event::Observer::~Observer() {
     ESP_LOGE("Event", "~Observer %d", id);
-    Reactor * reactor = Reactor::getReactor();
-    auto idIt = reactor->idMap.find(id);
-    if (idIt != reactor->idMap.end()) {
-	ObserverMap * observerMap = idIt->second;
-	auto observerIt = observerMap->find(this);
-	if (observerIt != observerMap->end()) {
-	    observerMap->erase(observerIt);
-	    if (!observerMap->size()) {
-		reactor->idMap.erase(id);
-		delete observerMap;
+    {
+	std::lock_guard<std::mutex> lock(mutex);
+	Reactor * reactor = Reactor::getReactor();
+	auto idIt = reactor->idMap.find(id);
+	if (idIt != reactor->idMap.end()) {
+	    ObserverMap * observerMap = idIt->second;
+	    auto observerIt = observerMap->find(this);
+	    if (observerIt != observerMap->end()) {
+		observerMap->erase(observerIt);
+		if (!observerMap->size()) {
+		    reactor->idMap.erase(id);
+		    delete observerMap;
+		}
 	    }
 	}
     }
