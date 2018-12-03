@@ -3,6 +3,8 @@
 
 #include <functional>
 #include <map>
+#include <set>
+
 #include <esp_event_legacy.h>
 #include <esp_event_loop.h>
 
@@ -44,10 +46,15 @@
 
 class Event {
 public:
-    class Observer;
-
-    typedef std::function<esp_err_t(system_event_t const *)> Action;
-    typedef std::map<Observer *, Action> ActionFor;
+    class Observer {
+    public:
+	typedef std::function<esp_err_t(system_event_t const *)> Observe;
+	system_event_id_t	const	id;
+	Observe const		observe;
+	Observer(system_event_id_t, Observe && observe);
+	esp_err_t operator()(system_event_t const *) const;
+	~Observer();
+    };
 
     /// Reactor is a singleton class whose only instance
     /// will reactTo each event dispatched by the system's default event loop.
@@ -56,25 +63,20 @@ public:
     class Reactor {
     private:
 	friend class Observer;
+
 	esp_err_t reactTo(system_event_t const *);
 	static esp_err_t reactToThat(void * that, system_event_t *);
-	std::map<system_event_id_t, ActionFor *> observersFor;
+
+	typedef std::set<Observer const *> Observers;
+	std::map<system_event_id_t, Observers *> observersFor;
+
 	Reactor();
 	static Reactor * reactor;
 	static Reactor * getReactor();
 	virtual ~Reactor();
     };
 
-    /// The Action of an Observer will be taken
-    /// (by the Reactor, for events of type id)
-    /// for its lifetime.
-    class Observer {
-    private:
-	system_event_id_t const id;
-    public:
-	Observer(system_event_id_t, Action && action);
-	~Observer();
-    };
+
 };
 
 #endif
