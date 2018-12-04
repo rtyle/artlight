@@ -1,5 +1,4 @@
 #include <sstream>
-
 #include <string.h>
 
 #include <esp_log.h>
