@@ -14,8 +14,6 @@ extern "C" int setenv(char const *, char const *, int);
 #include "ClockArtTask.h"
 #include "Timer.h"
 
-#include "dump.h"
-
 using APA102::LED;
 
 static auto constexpr millisecondsPerSecond	= 1000U;

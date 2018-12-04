@@ -8,8 +8,6 @@
 
 #include "ProvisionTask.h"
 
-#include "dump.h"
-
 // decode a hex nibble if we can from c (0-15); otherwise, -1
 int8_t nibble(char c) {
     if (std::isdigit(c)) {
@@ -107,7 +105,7 @@ void ProvisionTask::respond(
     char const *	response,
     size_t		length)
 {
-    dump(name, "response", response, length);
+    ESP_LOG_BUFFER_HEXDUMP(name, response, length, ESP_LOG_INFO);
     ssize_t errorOrLength = SSL_write(ssl.get(), response, length);
     switch (int error = SSL_get_error(ssl.get(), errorOrLength)) {
     case SSL_ERROR_SYSCALL:

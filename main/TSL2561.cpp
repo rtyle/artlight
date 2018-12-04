@@ -4,8 +4,6 @@
 
 #include "TSL2561.h"
 
-#include "dump.h"
-
 enum Register: uint8_t {
     control		= 0x0,
     timing		= 0x1,

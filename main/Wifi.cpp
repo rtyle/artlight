@@ -5,8 +5,6 @@
 
 #include "Wifi.h"
 
-#include "dump.h"
-
 /* static */ wifi_init_config_t const Wifi::InitConfig::wifi_init_config_default
     = WIFI_INIT_CONFIG_DEFAULT();
 
