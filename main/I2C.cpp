@@ -5,10 +5,10 @@
 namespace I2C {
 
 template<typename T = esp_err_t>
-static inline T throwUnless(T t) {if (t) throw t; return t;}
+static inline T throwIf(T t) {if (t) throw t; return t;}
 
-template<typename T = esp_err_t, T same = -1>
-static inline T throwIf(T t) {if (same == t) throw t; return t;}
+template<typename T = esp_err_t, T is = -1>
+static inline T throwIfIs(T t) {if (is == t) throw t; return t;}
 
 Config::Config() : i2c_config_t {} {}
 #define setter(name) Config & Config::name##_(decltype(name) s) \
@@ -38,8 +38,8 @@ Driver::Driver(
 :
     port(port_)
 {
-    throwUnless(i2c_param_config(port, &config));
-    throwUnless(i2c_driver_install(
+    throwIf(i2c_param_config(port, &config));
+    throwIf(i2c_driver_install(
 	port,
 	config.mode,
 	slaveModeReceiveBufferLength,
@@ -50,7 +50,7 @@ Driver::Driver(
 Driver::operator i2c_port_t() const {return port;}
 
 Driver::~Driver() {
-    throwUnless(i2c_driver_delete(port));
+    throwIf(i2c_driver_delete(port));
 }
 
 Master::Commands::operator i2c_cmd_handle_t() const {return command;}
@@ -71,7 +71,7 @@ Master::Commands::Commands(
 }
 
 Master::Commands & Master::Commands::start(bool read, bool ack) {
-    throwUnless(i2c_master_start(*this));
+    throwIf(i2c_master_start(*this));
     writeByte(address << 1 | read, ack);
     return *this;
 }
@@ -82,34 +82,34 @@ Master::Commands & Master::Commands::startRead(bool ack) {
 
 Master::Commands & Master::Commands::writeByte(
 	uint8_t data, bool ack) {
-    throwUnless(i2c_master_write_byte(*this, data, ack));
+    throwIf(i2c_master_write_byte(*this, data, ack));
     return *this;
 }
 
 Master::Commands & Master::Commands::writeBytes(
 	void * data, size_t size, bool ack) {
-    throwUnless(i2c_master_write(
+    throwIf(i2c_master_write(
 	*this, static_cast<uint8_t *>(data), size, ack));
     return *this;
 }
 
 Master::Commands & Master::Commands::readByte(
 	uint8_t * data, i2c_ack_type_t ack) {
-    throwUnless(i2c_master_read_byte(*this, data, ack));
+    throwIf(i2c_master_read_byte(*this, data, ack));
     return *this;
 }
 
 Master::Commands & Master::Commands::readBytes(
 	void * data, size_t size, i2c_ack_type_t ack) {
-    throwUnless(i2c_master_read(
+    throwIf(i2c_master_read(
 	*this, static_cast<uint8_t *>(data), size, ack));
     return *this;
 }
 
 Master::Commands::~Commands() noexcept(false) {
     try {
-	throwUnless(i2c_master_stop(*this));
-	throwUnless(i2c_master_cmd_begin(master, *this, wait));
+	throwIf(i2c_master_stop(*this));
+	throwIf(i2c_master_cmd_begin(master, *this, wait));
 	i2c_cmd_link_delete(*this);
     } catch (...) {
 	i2c_cmd_link_delete(*this);
@@ -156,11 +156,11 @@ Slave::Slave(
 {}
 
 size_t Slave::writeBytes(uint8_t * data, size_t size, TickType_t wait) {
-    return throwIf(i2c_slave_write_buffer(*this, data, size, wait));
+    return throwIfIs(i2c_slave_write_buffer(*this, data, size, wait));
 }
 
 size_t Slave::readBytes(uint8_t * data, size_t size, TickType_t wait) {
-    return throwIf(i2c_slave_read_buffer(*this, data, size, wait));
+    return throwIfIs(i2c_slave_read_buffer(*this, data, size, wait));
 }
 
 }

@@ -24,14 +24,17 @@
 // We could get this to work if
 //	1. A task vTaskSuspend'ed itself on exit (becomes no longer running)
 //	2. vTaskDelete is called from the Task destructor in a different task
-//	3. The task was constructed as not pinned to a any core OR
+//	3. The task does not use the FPU
+//		and was constructed as not pinned to a any core OR
 //	4. The task was constructed as pinned to the core the destructor runs in
+// Using the FPU (3) will cause an otherwise unpinned task to become pinned
+// the core it is running on.
 // 3 and 4 are unreasonable restrictions.
 //
 // So ...  we do not create a "static" task.
 
 template<typename T>
-static inline T throwUnless(T t) {if (t) throw t; return t;}
+static inline T throwIf(T t) {if (t) throw t; return t;}
 
 /* static */ void Task::runThat(void * that) {
     Task * thatTask = static_cast<Task *>(that);
@@ -77,7 +80,7 @@ Task::Task()
 void Task::start() {
     ESP_LOGI(name, "%d %s Task::start",
 	xPortGetCoreID(), pcTaskGetTaskName(nullptr));
-    throwUnless(pdPASS != xTaskCreatePinnedToCore(
+    throwIf(pdPASS != xTaskCreatePinnedToCore(
 	runThat, name, stackSize, this, priority, &taskHandle, core));
 }
 
