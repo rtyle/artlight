@@ -29,7 +29,7 @@ TimeUpdate::TimeUpdate(
 	    for (auto e: timeServers) free(e);
 	    timeServers.clear();
 
-	    // parse and copy whitespace-delimited timeServers
+	    // parse, copy and reference whitespace-delimited timeServers
 	    std::istringstream timeServersStream(timeServers_);
 	    size_t index = 0;
 	    while (true) {
@@ -41,6 +41,8 @@ TimeUpdate::TimeUpdate(
 		ESP_LOGI(name, "server %d %s", index, timeServer);
 		sntp_setservername(index++, timeServer);
 	    }
+
+	    // forget remaining (freed) references
 	    while (index < SNTP_MAX_SERVERS) {
 		ESP_LOGI(name, "server %d -", index);
 		sntp_setservername(index++, nullptr);
