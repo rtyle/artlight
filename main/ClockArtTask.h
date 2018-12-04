@@ -6,6 +6,7 @@
 #include <list>
 
 #include "AsioTask.h"
+#include "KeyValueBroker.h"
 #include "SPI.h"
 
 class ClockArtTask : public AsioTask {
@@ -13,6 +14,7 @@ private:
     SPI::Device const			spiDevice1;
     SPI::Device const			spiDevice2;
     std::function<float()> const	getLux;
+    KeyValueBroker::Observer const	timezoneObserver;
 
     class SmoothTime {
     private:
@@ -34,7 +36,8 @@ public:
     ClockArtTask(
 	SPI::Bus const *	spiBus1,
 	SPI::Bus const *	spiBus2,
-	std::function<float()>	getLux);
+	std::function<float()>	getLux,
+	KeyValueBroker &	keyValueBroker);
 
     /* virtual */ void run() override;
 

@@ -1,10 +1,6 @@
 #include <sstream>
 #include <vector>
 
-#include <stdlib.h>
-// FIXME: should not have to redeclare setenv to make eclipse happy
-extern "C" int setenv(const char *, const char *, int);
-
 #include "sdkconfig.h"
 
 #include <esp_log.h>
@@ -17,6 +13,7 @@ extern "C" int setenv(const char *, const char *, int);
 #include "FirmwareUpdateTask.h"
 #include "I2C.h"
 #include "LuxMonitorTask.h"
+#include "NVSKeyValueBroker.h"
 #include "ProvisionTask.h"
 #include "SPI.h"
 #include "TimeUpdate.h"
@@ -44,8 +41,9 @@ extern char const firmwareCert[]
 
 class Main : public AsioTask {
 public:
-    std::vector<std::string> timeUpdateServers;
     asio::io_context::work work;
+
+    NVSKeyValueBroker keyValueBroker;
 
     class Disconnected {
     public:
@@ -102,11 +100,15 @@ public:
     SPI::Bus const spiBus2;
     ClockArtTask clockArtTask;
 
+    std::vector<std::string> timeUpdateServers;
+
     Main()
     :
 	AsioTask(),	// this task
 
 	work(io),
+
+	keyValueBroker("keyValueBroker"),
 
 	disconnected(nullptr),
 	connected(nullptr),
@@ -157,10 +159,10 @@ public:
 		.sclk_io_num_(SPI::Bus::VspiConfig.sclk_io_num),
 	    2),
 	clockArtTask(&spiBus1, &spiBus2,
-	    [this](){return luxMonitorTask.getLux();})
+	    [this](){return luxMonitorTask.getLux();},
+	    keyValueBroker)
     {
 	std::setlocale(LC_ALL, "en_US.utf8");
-	setenv("TZ", CONFIG_TIME_ZONE, 1);
 
 	// parse whitespace-delimited timeUpdateServers
 	// these will be given to a TimeUpdate and must persist for its lifetime
@@ -174,9 +176,6 @@ public:
 
 	// create LwIP task
 	tcpip_adapter_init();
-
-	// initialize Non-Volatile Storage (used to save wifi provisioning)
-	ESP_ERROR_CHECK(nvs_flash_init());
 
 	wifi.start();
 
@@ -192,5 +191,11 @@ public:
 
 extern "C"
 void app_main() {
+    // initialize Non-Volatile Storage.
+    // this is used to save
+    //	* Wi-Fi provisioning information
+    //	* Application preferences
+    ESP_ERROR_CHECK(nvs_flash_init());
+
     Main().run();
 }

@@ -1,5 +1,9 @@
 #include <algorithm>
 #include <cmath>
+#include <string>
+
+#include <stdlib.h>
+extern "C" int setenv(char const *, char const *, int);
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -501,7 +505,8 @@ void ClockArtTask::update() {
 ClockArtTask::ClockArtTask(
     SPI::Bus const *		spiBus1,
     SPI::Bus const *		spiBus2,
-    std::function<float()>	getLux_)
+    std::function<float()>	getLux_,
+    KeyValueBroker &		keyValueBroker)
 :
     AsioTask	("clockArtTask", 5, 8192, 1),
 
@@ -520,8 +525,21 @@ ClockArtTask::ClockArtTask(
 
     getLux	(getLux_),
 
+    // timezone affects our notion of the localtime we present
+    // forward a copy of any update to our task to make a synchronous change
+    timezoneObserver(keyValueBroker, "timezone", CONFIG_TIME_ZONE,
+	[this](char const * timezone){
+	    std::string timezoneCopy(timezone);
+	    io.post([this, timezoneCopy](){
+		ESP_LOGI(name, "timezone %s", timezoneCopy.c_str());
+		setenv("TZ", timezoneCopy.c_str(), true);
+	    });
+	}),
+
     smoothTime	("smoothTime", 4096)
-{}
+{
+    setenv("TZ", CONFIG_TIME_ZONE, true);
+}
 
 /* virtual */ void ClockArtTask::run() {
     // asio timers are not supported
