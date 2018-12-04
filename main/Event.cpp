@@ -16,7 +16,8 @@
 	: (reactor = new Reactor());
 }
 
-static char const * nameFor(system_event_id_t id) {/// map of event ids to presentable names
+static char const * nameFor(system_event_id_t id) {
+    /// map of event ids to presentable names
     /// scraped from esp_event_legacy.h
     static std::map<system_event_id_t, char const *> map {
         {SYSTEM_EVENT_WIFI_READY,		" WIFI READY"},
