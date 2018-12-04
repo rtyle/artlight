@@ -537,9 +537,7 @@ ClockArtTask::ClockArtTask(
 	}),
 
     smoothTime	("smoothTime", 4096)
-{
-    setenv("TZ", CONFIG_TIME_ZONE, true);
-}
+{}
 
 /* virtual */ void ClockArtTask::run() {
     // asio timers are not supported

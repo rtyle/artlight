@@ -5,8 +5,7 @@ static inline T throwIf(T t) {if (t) throw t; return t;}
 
 NVSKeyValueBroker::NVSKeyValueBroker(char const * name_)
 :
-    KeyValueBroker	(),
-    name		(name_),
+    KeyValueBroker	(name_),
     nvs			([this](){
 	    nvs_handle result;
 	    throwIf(nvs_open(name, NVS_READWRITE, &result));

@@ -29,13 +29,19 @@ public:
     };
     friend class Observer;
 
-    KeyValueBroker();
+    KeyValueBroker(char const * name);
+
     virtual ~KeyValueBroker();
 
     void publish(
 	char const *	key,
 	char const *	value,
 	bool		set = true);
+
+protected:
+    char const * const name;
+    virtual void set(char const * key, char const * value) = 0;
+    virtual bool get(char const * key, std::string & value) = 0;
 
 private:
     std::recursive_mutex mutex;
@@ -44,10 +50,6 @@ private:
 
     void subscribe(Observer const & observer);
     void unsubscribe(Observer const & observer);
-
-protected:
-    virtual void set(char const * key, char const * value) = 0;
-    virtual bool get(char const * key, std::string & value) = 0;
 };
 
 

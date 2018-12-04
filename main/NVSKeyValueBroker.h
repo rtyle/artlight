@@ -9,7 +9,6 @@
 
 class NVSKeyValueBroker : public KeyValueBroker {
 private:
-    char const *	name;
     nvs_handle		nvs;
 
 protected:

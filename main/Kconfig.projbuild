@@ -12,9 +12,9 @@ config FIRMWARE_UPDATE_PAUSE
     help
         Retry firmware update after failure and pause.
 
-config TIME_UPDATE_SERVERS
-    string "time update SNTP servers"
-    default "server.home pool.ntp.org"
+config TIME_SERVERS
+    string "SNTP time servers"
+    default "pool.ntp.org"
     help
         Whitespace delimited names of SNTP servers.
 

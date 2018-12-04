@@ -1,8 +1,3 @@
-#include <sstream>
-#include <vector>
-
-#include "sdkconfig.h"
-
 #include <esp_log.h>
 
 #include <nvs_flash.h>
@@ -74,7 +69,7 @@ public:
 	Connected(Main & main_)
 	:
 	    main(main_),
-	    timeUpdate("timeUpdate", main.timeUpdateServers),
+	    timeUpdate("timeUpdate", main.keyValueBroker),
 	    firmwareUpdateTask(
 		CONFIG_FIRMWARE_UPDATE_URL,
 		firmwareCert,
@@ -99,8 +94,6 @@ public:
     SPI::Bus const spiBus1;
     SPI::Bus const spiBus2;
     ClockArtTask clockArtTask;
-
-    std::vector<std::string> timeUpdateServers;
 
     Main()
     :
@@ -163,16 +156,6 @@ public:
 	    keyValueBroker)
     {
 	std::setlocale(LC_ALL, "en_US.utf8");
-
-	// parse whitespace-delimited timeUpdateServers
-	// these will be given to a TimeUpdate and must persist for its lifetime
-	std::istringstream timeUpdateServersStream(CONFIG_TIME_UPDATE_SERVERS);
-	while (true) {
-	    std::string server;
-	    timeUpdateServersStream >> server;
-	    if (!timeUpdateServersStream) break;
-	    timeUpdateServers.push_back(server);
-	}
 
 	// create LwIP task
 	tcpip_adapter_init();

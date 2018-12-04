@@ -1,7 +1,10 @@
+#include <esp_log.h>
+
 #include "KeyValueBroker.h"
 
-KeyValueBroker::KeyValueBroker()
+KeyValueBroker::KeyValueBroker(char const * name_)
 :
+    name	(name_),
     observersFor()
 {}
 
@@ -19,6 +22,7 @@ void KeyValueBroker::publish(
     auto observers = observersFor.find(key);
     if (observers != observersFor.end()) {
 	for (auto observer: *observers->second) {
+	    ESP_LOGI(name, "publish %s %s", observer->key, value);
 	    (*observer)(value);
 	}
     }
@@ -26,15 +30,12 @@ void KeyValueBroker::publish(
 
 void KeyValueBroker::subscribe(Observer const & observer) {
     std::lock_guard<std::recursive_mutex> lock(mutex);
+    bool haveValue;
     std::string value;
-    if (get(observer.key, value)) {
+    if ((haveValue = get(observer.key, value))) {
 	// observe the previously published/set value
+	ESP_LOGI(name, "subscribe %s %s", observer.key, value.c_str());
 	observer(value.c_str());
-    } else {
-	if (observer.value) {
-	    // publish (and set) the observer's value
-	    publish(observer.key, observer.value, true);
-	}
     }
     // remember this subscription
     auto observersIt = observersFor.find(observer.key);
@@ -45,6 +46,10 @@ void KeyValueBroker::subscribe(Observer const & observer) {
 	observersFor[observer.key] = observers = new Observers();
     }
     observers->insert(&observer);
+    if (!haveValue && observer.value) {
+	// publish (and set) the observer's value
+	publish(observer.key, observer.value, true);
+    }
 }
 
 void KeyValueBroker::unsubscribe(Observer const & observer) {
