@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <memory>
-#include <mutex>
 
 #include <esp_log.h>
 #include <esp_event.h>
@@ -16,8 +15,6 @@
 	? reactor
 	: (reactor = new Reactor());
 }
-
-static std::mutex mutex;
 
 static char const * nameFor(system_event_id_t id) {/// map of event ids to presentable names
     /// scraped from esp_event_legacy.h
@@ -95,44 +92,46 @@ Event::Reactor::~Reactor() {
     esp_event_loop_set_cb(nullptr, nullptr);
 }
 
+void Event::Reactor::subscribe(Observer const & observer) {
+    std::lock_guard<std::mutex> lock(mutex);
+    auto observersIt = observersFor.find(observer.id);
+    Observers * observers;
+    if (observersIt != observersFor.end()) {
+	observers = observersIt->second;
+    } else {
+	observersFor[observer.id] = observers = new Observers();
+    }
+    observers->insert(&observer);
+}
+
+void Event::Reactor::unsubscribe(Observer const & observer) {
+    std::lock_guard<std::mutex> lock(mutex);
+    auto observersIt = observersFor.find(observer.id);
+    if (observersIt != observersFor.end()) {
+	Observers * observers = observersIt->second;
+	auto observerIt = observers->find(&observer);
+	if (observerIt != observers->end()) {
+	    observers->erase(observerIt);
+	    if (!observers->size()) {
+		observersFor.erase(observer.id);
+		delete observers;
+	    }
+	}
+    }
+}
+
 Event::Observer::Observer(system_event_id_t id_, Observe && observe_)
 :
     id		(id_),
     observe	(std::move(observe_))
 {
     ESP_LOGI("Event", "Observer %d%s", id, nameFor(id));
-    {
-	std::lock_guard<std::mutex> lock(mutex);
-	Reactor * reactor = Reactor::getReactor();
-	auto observersIt = reactor->observersFor.find(id);
-	Reactor::Observers * observers;
-	if (observersIt != reactor->observersFor.end()) {
-	    observers = observersIt->second;
-	} else {
-	    reactor->observersFor[id] = observers = new Reactor::Observers();
-	}
-	observers->insert(this);
-    }
+    Reactor::getReactor()->subscribe(*this);
 }
 
 Event::Observer::~Observer() {
     ESP_LOGE("Event", "~Observer %d%s", id, nameFor(id));
-    {
-	std::lock_guard<std::mutex> lock(mutex);
-	Reactor * reactor = Reactor::getReactor();
-	auto observersIt = reactor->observersFor.find(id);
-	if (observersIt != reactor->observersFor.end()) {
-	    Reactor::Observers * observers = observersIt->second;
-	    auto observerIt = observers->find(this);
-	    if (observerIt != observers->end()) {
-		observers->erase(observerIt);
-		if (!observers->size()) {
-		    reactor->observersFor.erase(id);
-		    delete observers;
-		}
-	    }
-	}
-    }
+    Reactor::getReactor()->unsubscribe(*this);
 }
 
 esp_err_t Event::Observer::operator() (system_event_t const * event) const {

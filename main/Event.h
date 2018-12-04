@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <map>
+#include <mutex>
 #include <set>
 
 #include <esp_event_legacy.h>
@@ -49,7 +50,7 @@ public:
     class Observer {
     public:
 	typedef std::function<esp_err_t(system_event_t const *)> Observe;
-	system_event_id_t	const	id;
+	system_event_id_t const	id;
 	Observe const		observe;
 	Observer(system_event_id_t, Observe && observe);
 	esp_err_t operator()(system_event_t const *) const;
@@ -67,6 +68,7 @@ public:
 	esp_err_t reactTo(system_event_t const *);
 	static esp_err_t reactToThat(void * that, system_event_t *);
 
+	std::mutex mutex;
 	typedef std::set<Observer const *> Observers;
 	std::map<system_event_id_t, Observers *> observersFor;
 
@@ -74,6 +76,9 @@ public:
 	static Reactor * reactor;
 	static Reactor * getReactor();
 	virtual ~Reactor();
+
+	void subscribe(Observer const & observer);
+	void unsubscribe(Observer const & observer);
     };
 
 
