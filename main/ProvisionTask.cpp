@@ -8,38 +8,7 @@
 
 #include "ProvisionTask.h"
 
-// decode a hex nibble if we can from c (0-15); otherwise, -1
-int8_t nibble(char c) {
-    if (std::isdigit(c)) {
-	return c - '0';
-    } else if (std::isxdigit(c)) {
-	return 10 + (std::tolower(c) - 'a');
-    } else {
-	return -1;
-    }
-}
-
-/// decode a percent encoded string
-/// https://en.wikipedia.org/wiki/Percent-encoding
-/// from source into target,
-/// returning a pointer to the first character not decoded in source.
-/// decoding stops when target is full or
-/// on the first null, '&', ' ' or undecodable '%' in the source
-char const * decode(unsigned char * t, char const * s, size_t n) {
-    while (n-- && *s && !('&' == *s || ' ' == *s)) {
-	if ('%' == *s) {
-	    int8_t a, b;
-	    if (0 > (a = nibble(s[1])) || 0 > (b = nibble(s[2]))) {
-		return s;
-	    }
-	    *t++ = a << 4 | b;
-	    s += 3;
-	} else {
-	    *t++ = *s++;
-	}
-    }
-    return s;
-}
+#include "percentDecode.h"
 
 // WARNING:
 // in order for HTTP/1.1 persistent connections to work,
@@ -168,18 +137,18 @@ bool ProvisionTask::readRequest() {
 			wifi_config_t wifi_config;
 			ESP_ERROR_CHECK(esp_wifi_get_config(
 			    ESP_IF_WIFI_STA, &wifi_config));
-			unsigned char * t;
+			char * t;
 			size_t z;
 
 			static char constexpr ssid[] = "ssid=";
 			if (0 == strncmp(s, ssid, sizeof ssid - 1)) {
 			    s += sizeof ssid - 1;
 
-			    t = wifi_config.sta.ssid;
+			    t = reinterpret_cast<char *>
+				(wifi_config.sta.ssid);
 			    z = sizeof wifi_config.sta.ssid;
 			    memset(t, 0, z);
-			    s = decode(t, s, z);
-			    // ESP_LOGD(name, "ssid=%s", t);
+			    percentDecode(t, s, '&', z);
 
 			    ++s;
 
@@ -187,11 +156,11 @@ bool ProvisionTask::readRequest() {
 			    if (0 == strncmp(s, pw, sizeof pw - 1)) {
 				s += sizeof pw - 1;
 
-				t = wifi_config.sta.password;
+				t = reinterpret_cast<char *>
+				    (wifi_config.sta.password);
 				z = sizeof wifi_config.sta.password;
 				memset(t, 0, z);
-				s = decode(t, s, z);
-				// ESP_LOGD(name, "password=%s", t);
+				percentDecode(t, s, '&', z);
 
 				ESP_LOGI(name, "readRequest reconnect");
 				ESP_ERROR_CHECK(esp_wifi_set_config(
