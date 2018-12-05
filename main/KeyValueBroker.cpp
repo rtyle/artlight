@@ -1,3 +1,6 @@
+#include <iomanip>
+#include <sstream>
+
 #include <esp_log.h>
 
 #include "KeyValueBroker.h"
@@ -5,10 +8,79 @@
 KeyValueBroker::KeyValueBroker(char const * name_)
 :
     name	(name_),
-    observersFor()
+    observersFor(),
+    valueFor	()
 {}
 
 KeyValueBroker::~KeyValueBroker() {}
+
+/* virtual */ void KeyValueBroker::set(char const * key, char const * value) {
+    valueFor[key] = value;
+}
+
+/* virtual */ bool KeyValueBroker::get(char const * key, std::string & value) {
+    auto valueIt = valueFor.find(key);
+    if (valueIt == valueFor.end()) return false;
+    value = valueIt->second;
+    return true;
+}
+
+std::ostream & operator<<(std::ostream & stream, std::string & value) {
+    // https://en.cppreference.com/w/cpp/language/escape
+    // https://tools.ietf.org/html/rfc7159
+    // warning: this may not work well with non-ascii UTF8 encodings
+    for (auto c: value) {
+	if (std::iscntrl(c)) {
+	    switch (c) {
+	    case '\b':
+		stream << "\\b"; break;
+	    case '\f':
+		stream << "\\f"; break;
+	    case '\n':
+		stream << "\\n"; break;
+	    case '\r':
+		stream << "\\r"; break;
+	    case '\t':
+		stream << "\\t"; break;
+	    default:
+		stream << "\\u"
+		    << std::hex
+		    << std::setw(4)
+		    << std::setfill('0')
+		    << c;
+	    }
+	} else {
+	    switch (c) {
+	    case '\\':
+	    case '"':
+		stream << '\\';
+		// no break
+	    default:
+		stream << c;
+	    }
+	}
+    }
+    return stream;
+}
+
+std::string KeyValueBroker::serialize() {
+    std::ostringstream stream;
+    size_t count = 0;
+    stream << '{';
+    for (auto &e: valueFor) {
+	if (count++) {
+	    stream << ',';
+	}
+	stream
+	    << '"'
+	    << e.first
+	    << R"----(":")----"
+	    << e.second
+	    << '"';
+    }
+    stream << '}';
+    return stream.str();
+}
 
 void KeyValueBroker::publish(
     char const *	key,

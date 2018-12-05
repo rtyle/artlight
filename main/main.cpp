@@ -10,6 +10,7 @@
 #include "LuxMonitorTask.h"
 #include "NVSKeyValueBroker.h"
 #include "ProvisionTask.h"
+#include "Preferences.h"
 #include "SPI.h"
 #include "TimeUpdate.h"
 #include "Wifi.h"
@@ -33,6 +34,8 @@ extern char const provisionResponseFavicon1[]
 // COMPONENT_EMBED_TXTFILES (null terminator added)
 extern char const firmwareCert[]
 			asm("_binary_firmware_ca_cert_pem_start");
+extern char const preferencesHtml[]
+			asm("_binary_preferences_html_start");
 
 class Main : public AsioTask {
 public:
@@ -66,6 +69,7 @@ public:
 	Main & main;
 	TimeUpdate timeUpdate;
 	FirmwareUpdateTask firmwareUpdateTask;
+	Preferences preferences;
 	Connected(Main & main_)
 	:
 	    main(main_),
@@ -73,7 +77,8 @@ public:
 	    firmwareUpdateTask(
 		CONFIG_FIRMWARE_UPDATE_URL,
 		firmwareCert,
-		pdMS_TO_TICKS(CONFIG_FIRMWARE_UPDATE_PAUSE))
+		pdMS_TO_TICKS(CONFIG_FIRMWARE_UPDATE_PAUSE)),
+	    preferences(preferencesHtml, main.keyValueBroker)
 	{
 	    firmwareUpdateTask.start();
 	}

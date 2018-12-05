@@ -38,15 +38,18 @@ public:
 	char const *	value,
 	bool		set = true);
 
+    std::string serialize();
+
 protected:
     char const * const name;
-    virtual void set(char const * key, char const * value) = 0;
-    virtual bool get(char const * key, std::string & value) = 0;
+    virtual void set(char const * key, char const * value);
+    virtual bool get(char const * key, std::string & value);
 
 private:
     std::recursive_mutex mutex;
     typedef std::set<Observer const *> Observers;
     std::map<std::string, Observers *> observersFor;
+    std::map<std::string, std::string> valueFor;
 
     void subscribe(Observer const & observer);
     void unsubscribe(Observer const & observer);
