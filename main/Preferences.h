@@ -9,12 +9,13 @@
 //	* keyValueBroker.serialize at data
 //	* keyValueBroker.serializeDefault at dataDefault
 //
-// Form submissions from the html will be published through the keyValueBroker.
+// A Preferences object will publish the fields (through its keyValueBroker)
+// of the query string in the URL generated on a form submit by the html.
 // It is important that the name attribute values used for form input elements
 // correspond to the keys used in the keyValueBroker.
 //
 // AJAX scripts from the html can be used to populate the input elements
-// of a form from the Preference object's data.
+// of a form from the Preference object's keyValueBroker data.
 // For example, the following jQuery script will use AJAX to get the JSON data
 // (an object of key/name/id, value pairs), locate each identified DOM element
 // and set the value of its "value" attribute.

@@ -6,9 +6,9 @@
 		<script src="http://code.jquery.com/jquery-3.3.1.js"></script>
 		
 		<script>
-		$(document).ready(function(){
+		function fill(url) {
 			$.ajax({
-				url: 		'data',
+				url: 		url,
 				type:		'GET',
 				dataType:	'json',
 				cache:		false,
@@ -24,6 +24,13 @@
 					console.log('status: ' + status);
 					console.dir(xhr);
 				})
+			
+		}
+
+		$(document).ready(function(){
+			fill('data');
+			$('#data'	)	.click(function() {fill('data'		)});
+			$('#dataDefault')	.click(function() {fill('dataDefault'	)});
 		});
 		</script>
 	
@@ -41,8 +48,13 @@
 			</div>
 			
 			<div>
-				<button>Submit</button>
+				<input type='submit'/>
 			</div>
 		</form>
+
+		<div>
+			<button id='data'	>Fill with Current Values</button>
+			<button id='dataDefault'>Fill with Default Values</button>
+		</div>
 		</body>
 </html>
