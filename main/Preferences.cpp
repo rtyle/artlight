@@ -34,7 +34,7 @@ Preferences::Preferences(char const * html_, KeyValueBroker & keyValueBroker_)
 		if ('=' != *s++) break;
 		*t++ = 0;
 		char const * v = t; percentDecode(t, s, '&');
-		if (!*s || '&' != *s++) break;
+		if (*s && '&' != *s++) break;
 		*t++ = 0;
 		keyValueBroker.publish(k, v);
 	    }

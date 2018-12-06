@@ -1,26 +1,48 @@
 <!DOCTYPE html>
 <html>
-<head>
-</head>
-<body>
-<form>
-
-<div>
-<label for='timezone'>Time Zone</label>
-<input value='' type='text' id='timezone' name='timezone' minlength='5' maxlength='32' placeholder='GNU timezone specification'/>
-<a href="https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html">Help</a>
-</div>
-
-<div>
-<label for='timeServers'>NTP Time Servers</label>
-<input value='' type='text' id='timeServers' name='timeServers' minlength='8' maxlength='64' placeholder='whitespace delimited list'/>
-<a href="https://www.ntppool.org/en/use.html">Help</a>
-</div>
-
-<div>
-<button>Submit</button>
-</div>
-
-</form>
-</body>
+	<head>
+	</head>
+	<body>
+		<script src="http://code.jquery.com/jquery-3.3.1.js"></script>
+		
+		<script>
+		$(document).ready(function(){
+			$.ajax({
+				url: 		'data',
+				type:		'GET',
+				dataType:	'json',
+				cache:		false,
+			})
+				.done(function(idValues) {
+					for (const [id, value] of Object.entries(idValues)) {
+						$('#' + id).attr('value', value);
+					}
+				})
+				.fail(function(xhr, status, error){
+					alert('Unable to load values into form');
+					console.log('error: '  + error);
+					console.log('status: ' + status);
+					console.dir(xhr);
+				})
+		});
+		</script>
+	
+		<form>
+			<div>
+				<label for='timezone'>Time Zone</label>
+				<input value='' type='text' id='timezone' name='timezone' minlength='5' maxlength='32' placeholder='GNU timezone specification'/>
+				<a href="https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html">Help</a>
+			</div>
+			
+			<div>
+				<label for='timeServers'>NTP Time Servers</label>
+				<input value='' type='text' id='timeServers' name='timeServers' minlength='8' maxlength='64' placeholder='whitespace delimited list'/>
+				<a href="https://www.ntppool.org/en/use.html">Help</a>
+			</div>
+			
+			<div>
+				<button>Submit</button>
+			</div>
+		</form>
+		</body>
 </html>
