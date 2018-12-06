@@ -239,7 +239,7 @@ public:
 	    for (auto i = target + hpd; i > target;) *--i = off;
 	    float c;
 	    float ud = - std::modf(hp(D.part) * hpd, &c);
-	    if (-0.5 > ud) {
+	    if (-0.5f > ud) {
 		c += 1;
 		ud += 1;
 	    }
@@ -287,7 +287,7 @@ public:
 	    size_t arc = c / arcIndex.maxRowSize;
 	    c -= arc * arcIndex.maxRowSize;
 	    float ud = - std::modf(c * arcIndex.size(arc) / arcIndex.maxRowSize, &c);
-	    if (-0.5 > ud) {
+	    if (-0.5f > ud) {
 		c += 1;
 		ud += 1;
 	    }
@@ -307,7 +307,7 @@ public:
 	    size_t arc = c / arcIndex.maxRowSize;
 	    c -= arc * arcIndex.maxRowSize;
 	    float ud = - std::modf(c * arcIndex.size(arc) / arcIndex.maxRowSize, &c);
-	    if (-0.5 > ud) {
+	    if (-0.5f > ud) {
 		c += 1;
 		ud += 1;
 	    }
@@ -350,17 +350,17 @@ std::function<C(A)> compose(
 /* static */ std::function<LED<int>(float)> Rendering::hf(compose(
     std::function<LED<int>(float)>(
 	Ramp<LED<int>>(LED<int>(0, 0, 0), LED<int>(255, 0, 0))),
-    Bell<float>(2.7, 0, 1)
+    Bell<float>(2.7f, 0.0f, 1.0f)
 ));
 /* static */ std::function<LED<int>(float)> Rendering::mf(compose(
     std::function<LED<int>(float)>(
 	Ramp<LED<int>>(LED<int>(0, 0, 0), LED<int>(0, 0, 255))),
-    Bell<float>(2.7, 0, 1)
+    Bell<float>(2.7f, 0.0f, 1.0f)
 ));
 /* static */ std::function<LED<int>(float)> Rendering::sf(compose(
     std::function<LED<int>(float)>(
 	Ramp<LED<int>>(LED<int>(0, 0, 0), LED<int>(255, 255, 0))),
-    Bell<float>(1.4, 0, 1)
+    Bell<float>(1.4f, 0.0f, 1.0f)
 ));
 
 // we want to get (and present) local time of day at a subsecond resolution.
@@ -434,7 +434,7 @@ int64_t ClockArtTask::SmoothTime::microsecondsSinceEpoch() {
 	// remove full turns to get within one turn centered on thisBootTime.
 	static auto constexpr turn = 12 * 60 * 60 * 1000000ull;
 	static auto constexpr halfTurn = turn / 2;
-	if (0 < stepProduct) {
+	if (0.0f < stepProduct) {
 	    stepProduct -= (
 		(static_cast<uint64_t>( stepProduct) + halfTurn) / turn) * turn;
 	} else {
@@ -445,8 +445,8 @@ int64_t ClockArtTask::SmoothTime::microsecondsSinceEpoch() {
 	if (stepProduct) {
 	    stepLeft = stepCount;
 	    float halfStepCount
-		= std::log2(0 < stepProduct ? stepProduct : -stepProduct);
-	    stepFactor = std::exp2(-1 * halfStepCount / stepCount);
+		= std::log2(0.0f < stepProduct ? stepProduct : -stepProduct);
+	    stepFactor = std::exp2(-1.0f * halfStepCount / stepCount);
 //	    ESP_LOGI(name, "thisBootTime=%lld stepProduct=%f halfStepCount=%f stepCount=%zu stepFactor=%f",
 //		thisBootTime, stepProduct, halfStepCount, stepCount, stepFactor);
 	}
