@@ -228,13 +228,13 @@ void TSL2561::setTiming(
 	.writeByte(Timing(integrationTime, gainTimes16, manualStart));
 }
 
-static float normalIntegrationTime = 402.0;
+static float normalIntegrationTime = 402.0f;
 
 // scales with respect to normalIntegrationTime
 static float constexpr normalizeFrom[] = {
-    322.0 / 11.0,	// 0, fastest
-    322.0 / 81.0,	// 1, faster
-    1.0			// 2, normal
+    322.0f / 11.0f,	// 0, fastest
+    322.0f / 81.0f,	// 1, faster
+    1.0f			// 2, normal
 };
 
 unsigned TSL2561::getIntegrationTime() {
@@ -290,7 +290,7 @@ TSL2561::Channels<float> TSL2561::getNormalizedChannels(
     float normalize = manual == integrationTime
 	? normalIntegrationTime / manualTime
 	: normalizeFrom[integrationTime];
-    if (!gainTimes16) normalize *= 16;
+    if (!gainTimes16) normalize *= 16.0f;
     for (auto i = 0; i < sizeof normalized._ / sizeof *normalized._; i++) {
 	normalized._[i] = normalize * unnormalized._[i];
     }
@@ -299,22 +299,22 @@ TSL2561::Channels<float> TSL2561::getNormalizedChannels(
 
 float TSL2561::getLux(unsigned manualTime) const {
     Channels<float> ch = getNormalizedChannels(manualTime);
-    if (!ch._[0]) return 0;
+    if (!ch._[0]) return 0.0f;
     float ratio = ch._[1] / ch._[0];
     return
     #if 0
     // TSL2561 CS package
-      0.52 >= ratio ? 0.03150 * ch._[0] - 0.05930 * ch._[0] * std::pow(ratio, 1.4)
-    : 0.65 >= ratio ? 0.02290 * ch._[0] - 0.02910 * ch._[1]
-    : 0.80 >= ratio ? 0.01570 * ch._[0] - 0.01800 * ch._[1]
-    : 1.30 >= ratio ? 0.00338 * ch._[0] - 0.00260 * ch._[1]
+      0.52f >= ratio ? 0.03150f * ch._[0] - 0.05930f * ch._[0] * std::pow(ratio, 1.4f)
+    : 0.65f >= ratio ? 0.02290f * ch._[0] - 0.02910f * ch._[1]
+    : 0.80f >= ratio ? 0.01570f * ch._[0] - 0.01800f * ch._[1]
+    : 1.30f >= ratio ? 0.00338f * ch._[0] - 0.00260f * ch._[1]
     :                 0.0
     #else
     // TSL2561 T, FN or CL package
-      0.50 >= ratio ? 0.03040 * ch._[0] - 0.06200 * ch._[0] * std::pow(ratio, 1.4)
-    : 0.61 >= ratio ? 0.02240 * ch._[0] - 0.03100 * ch._[1]
-    : 0.80 >= ratio ? 0.01280 * ch._[0] - 0.01530 * ch._[1]
-    : 1.30 >= ratio ? 0.00146 * ch._[0] - 0.00112 * ch._[1]
+      0.50f >= ratio ? 0.03040f * ch._[0] - 0.06200f * ch._[0] * std::pow(ratio, 1.4f)
+    : 0.61f >= ratio ? 0.02240f * ch._[0] - 0.03100f * ch._[1]
+    : 0.80f >= ratio ? 0.01280f * ch._[0] - 0.01530f * ch._[1]
+    : 1.30f >= ratio ? 0.00146f * ch._[0] - 0.00112f * ch._[1]
     :                 0.0
     #endif
     ;
