@@ -4,8 +4,10 @@
 #include "Httpd.h"
 #include "KeyValueBroker.h"
 
-// A Preferences object starts an HTTP server that serves its html at its root
-// and a JSON serialized representation of its keyValueBroker content at data.
+// A Preferences object starts an HTTP server that serves
+//	* html at its root
+//	* keyValueBroker.serialize at data
+//	* keyValueBroker.serializeDefault at dataDefault
 //
 // Form submissions from the html will be published through the keyValueBroker.
 // It is important that the name attribute values used for form input elements
@@ -48,6 +50,7 @@ private:
     KeyValueBroker &	keyValueBroker;
     Httpd::Uri const	uri;
     Httpd::Uri const	dataUri;
+    Httpd::Uri const	dataDefaultUri;
 public:
     Preferences(char const * html, KeyValueBroker &);
 };

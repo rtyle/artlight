@@ -63,11 +63,11 @@ std::ostream & operator<<(std::ostream & stream, std::string & value) {
     return stream;
 }
 
-std::string KeyValueBroker::serialize() {
+static std::string serialize(std::map<std::string, std::string> const & map) {
     std::ostringstream stream;
     size_t count = 0;
     stream << '{';
-    for (auto &e: valueFor) {
+    for (auto &e: map) {
 	if (count++) {
 	    stream << ',';
 	}
@@ -82,15 +82,20 @@ std::string KeyValueBroker::serialize() {
     return stream.str();
 }
 
+std::string KeyValueBroker::serialize() {
+    return ::serialize(valueFor);
+}
+
+std::string KeyValueBroker::serializeDefault() {
+    return ::serialize(defaultValueFor);
+}
+
 void KeyValueBroker::publish(
     char const *	key,
-    char const *	value,
-    bool		set_)
+    char const *	value)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex);
-    if (set_) {
-	set(key, value);
-    }
+    set(key, value);
     auto observers = observersFor.find(key);
     if (observers != observersFor.end()) {
 	for (auto observer: *observers->second) {
@@ -105,7 +110,7 @@ void KeyValueBroker::subscribe(Observer const & observer) {
     bool haveValue;
     std::string value;
     if ((haveValue = get(observer.key, value))) {
-	// observe the previously published/set value
+	// observe the previously published value
 	ESP_LOGI(name, "subscribe %s %s", observer.key, value.c_str());
 	observer(value.c_str());
     }
@@ -118,9 +123,12 @@ void KeyValueBroker::subscribe(Observer const & observer) {
 	observersFor[observer.key] = observers = new Observers();
     }
     observers->insert(&observer);
-    if (!haveValue && observer.value) {
-	// publish (and set) the observer's value
-	publish(observer.key, observer.value, true);
+    if (observer.defaultValue) {
+	defaultValueFor[observer.key] = observer.defaultValue;
+	if (!haveValue) {
+	    // publish the observer's defaultValue
+	    publish(observer.key, observer.defaultValue);
+	}
     }
 }
 
@@ -143,12 +151,12 @@ void KeyValueBroker::unsubscribe(Observer const & observer) {
 KeyValueBroker::Observer::Observer(
     KeyValueBroker &	keyValueBroker_,
     char const *	key_,
-    char const *	value_,
+    char const *	defaultValue_,
     Observe &&		observe_)
 :
     keyValueBroker	(keyValueBroker_),
     key			(key_),
-    value		(value_),
+    defaultValue	(defaultValue_),
     observe		(std::move(observe_))
 {
     keyValueBroker.subscribe(*this);

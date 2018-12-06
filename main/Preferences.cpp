@@ -22,7 +22,7 @@ Preferences::Preferences(char const * html_, KeyValueBroker & keyValueBroker_)
 
     keyValueBroker	(keyValueBroker_),
 
-    uri(*this, "/", HTTP_GET, [this](httpd_req_t * req){
+    uri(*this, "/", HTTP_GET, [this](httpd_req_t * req) {
 	// publish all key, value pairs from URL query
 	if (size_t size = httpd_req_get_url_query_len(req)) {
 	    std::unique_ptr<char> query(new char[++size]);
@@ -43,8 +43,16 @@ Preferences::Preferences(char const * html_, KeyValueBroker & keyValueBroker_)
 	return ESP_OK;
     }),
 
-    dataUri(*this, "/data", HTTP_GET, [this](httpd_req_t * req){
+    dataUri(*this, "/data", HTTP_GET, [this](httpd_req_t * req) {
+	httpd_resp_set_hdr(req, "Content-type", "application/json");
 	std::string keyValues = keyValueBroker.serialize();
+	httpd_resp_send(req, keyValues.c_str(), keyValues.length());
+	return ESP_OK;
+    }),
+
+    dataDefaultUri(*this, "/dataDefault", HTTP_GET, [this](httpd_req_t * req) {
+	httpd_resp_set_hdr(req, "Content-type", "application/json");
+	std::string keyValues = keyValueBroker.serializeDefault();
 	httpd_resp_send(req, keyValues.c_str(), keyValues.length());
 	return ESP_OK;
     })

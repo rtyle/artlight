@@ -14,13 +14,13 @@ public:
 
 	KeyValueBroker &	keyValueBroker;
 	char const * const	key;
-	char const * const	value;
+	char const * const	defaultValue;
 	Observe const		observe;
 
 	Observer(
 	    KeyValueBroker &	keyValueBroker,
 	    char const *	key,
-	    char const *	value,
+	    char const *	defaultValue,
 	    Observe &&		observe);
 
 	void operator()(char const * value) const;
@@ -35,10 +35,10 @@ public:
 
     void publish(
 	char const *	key,
-	char const *	value,
-	bool		set = true);
+	char const *	value);
 
     std::string serialize();
+    std::string serializeDefault();
 
 protected:
     char const * const name;
@@ -50,6 +50,7 @@ private:
     typedef std::set<Observer const *> Observers;
     std::map<std::string, Observers *> observersFor;
     std::map<std::string, std::string> valueFor;
+    std::map<std::string, std::string> defaultValueFor;
 
     void subscribe(Observer const & observer);
     void unsubscribe(Observer const & observer);
