@@ -16,14 +16,20 @@ static int8_t nibble(char c) {
 
 void percentDecode(char * & t, char const * & s, char d, size_t n) {
     while (n-- && *s && !(' ' == * s || d == *s)) {
-	if ('%' == *s) {
+	switch (*s) {
+	case '%':
 	    int8_t a, b;
 	    if (0 > (a = nibble(s[1])) || 0 > (b = nibble(s[2]))) {
 		return;
 	    }
 	    *t++ = a << 4 | b;
 	    s += 3;
-	} else {
+	    break;
+	case '+':
+	    *t++ = ' ';
+	    ++s;
+	    break;
+	default:
 	    *t++ = *s++;
 	}
     }
