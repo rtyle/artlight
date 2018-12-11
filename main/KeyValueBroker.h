@@ -42,7 +42,11 @@ public:
 
 protected:
     char const * const name;
-    virtual void set(char const * key, char const * value);
+
+    // return true if new/different value was set
+    virtual bool set(char const * key, char const * value);
+
+    // return true (with value) if we could get it
     virtual bool get(char const * key, std::string & value);
 
 private:

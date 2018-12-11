@@ -13,12 +13,15 @@ NVSKeyValueBroker::NVSKeyValueBroker(char const * name_)
 	}())
 {}
 
-/* virtual */ void NVSKeyValueBroker::set(char const * key, char const * value) {
+/* virtual */ bool NVSKeyValueBroker::set(char const * key, char const * value) {
     // cache this
-    KeyValueBroker::set(key, value);
-    // store this
-    nvs_set_str(nvs, key, value);
-    nvs_commit(nvs);
+    if (KeyValueBroker::set(key, value)) {
+	// store this
+	nvs_set_str(nvs, key, value);
+	nvs_commit(nvs);
+	return true;
+    }
+    return false;
 }
 
 /* virtual */ bool NVSKeyValueBroker::get(char const * key, std::string & value) {

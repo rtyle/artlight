@@ -14,8 +14,13 @@ KeyValueBroker::KeyValueBroker(char const * name_)
 
 KeyValueBroker::~KeyValueBroker() {}
 
-/* virtual */ void KeyValueBroker::set(char const * key, char const * value) {
+/* virtual */ bool KeyValueBroker::set(char const * key, char const * value) {
+    auto valueIt = valueFor.find(key);
+    if (valueIt != valueFor.end() && 0 == valueIt->second.compare(value)) {
+	return false;
+    }
     valueFor[key] = value;
+    return true;
 }
 
 /* virtual */ bool KeyValueBroker::get(char const * key, std::string & value) {
@@ -95,12 +100,13 @@ void KeyValueBroker::publish(
     char const *	value)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex);
-    set(key, value);
-    auto observers = observersFor.find(key);
-    if (observers != observersFor.end()) {
-	for (auto observer: *observers->second) {
-	    ESP_LOGI(name, "publish %s %s", observer->key, value);
-	    (*observer)(value);
+    if (set(key, value)) {
+	auto observers = observersFor.find(key);
+	if (observers != observersFor.end()) {
+	    for (auto observer: *observers->second) {
+		ESP_LOGI(name, "publish %s %s", observer->key, value);
+		(*observer)(value);
+	    }
 	}
     }
 }

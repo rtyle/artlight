@@ -12,7 +12,7 @@ private:
     nvs_handle		nvs;
 
 protected:
-    virtual void set(char const * key, char const * value);
+    virtual bool set(char const * key, char const * value);
     virtual bool get(char const * key, std::string & value);
 
 public:
