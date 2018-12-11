@@ -1,28 +1,28 @@
-#ifndef FirmwareUpdateTask_h_
-#define FirmwareUpdateTask_h_
+#ifndef OtaTask_h_
+#define OtaTask_h_
 
 #include "AsioTask.h"
 
-/// FirmwareUpdateTask is a StoppableTask
+/// OtaTask is a StoppableTask
 /// whose run method continually tries to perform
 /// an Over The Air (OTA) firmware update using secure HTTP
-class FirmwareUpdateTask : public AsioTask {
+class OtaTask : public AsioTask {
 private:
     char const * const	url;
     char const * const	cert;
-    TickType_t const	pause;
+    unsigned const	retry;
 
 public:
-    FirmwareUpdateTask(
+    OtaTask(
 	char const *	url,
 	char const *	cert,
-	TickType_t	pause);
+	unsigned	retry);
 
     void update();
 
     /* virtual */ void run() override;
 
-    /* virtual */ ~FirmwareUpdateTask() override;
+    /* virtual */ ~OtaTask() override;
 };
 
 #endif

@@ -3,21 +3,21 @@
 #include <esp_log.h>
 #include <esp_https_ota.h>
 
-#include "FirmwareUpdateTask.h"
+#include "OtaTask.h"
 #include "Timer.h"
 
-FirmwareUpdateTask::FirmwareUpdateTask(
+OtaTask::OtaTask(
     char const *	url_,
     char const *	cert_,
-    TickType_t		pause_)
+    TickType_t		retry_)
 :
-    AsioTask("firmwareUpdateTask", 5, 4096, 0),
+    AsioTask("otaTask", 5, 4096, 0),
     url(url_),
     cert(cert_),
-    pause(pause_)
+    retry(retry_)
 {}
 
-void FirmwareUpdateTask::update() {
+void OtaTask::update() {
     ESP_LOGI(name, "esp_https_ota %s", url);
     esp_http_client_config_t config {};
     config.url = url;
@@ -28,10 +28,10 @@ void FirmwareUpdateTask::update() {
     }
 }
 
-/* virtual */ void FirmwareUpdateTask::run() {
+/* virtual */ void OtaTask::run() {
     // asio timers are not supported
     // adapt a FreeRTOS timer to post timeout to this task.
-    Timer updateTimer(name, pause, true, [this](){
+    Timer updateTimer(name, pdMS_TO_TICKS(retry * 60 * 1000), true, [this](){
 	io.post([this](){
 	    this->update();
 	});
@@ -42,6 +42,6 @@ void FirmwareUpdateTask::update() {
     AsioTask::run();
 }
 
-/* virtual */ FirmwareUpdateTask::~FirmwareUpdateTask() {
+/* virtual */ OtaTask::~OtaTask() {
     stop();
 }

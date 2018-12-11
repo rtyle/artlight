@@ -5,10 +5,10 @@
 #include "AsioTask.h"
 #include "ClockArtTask.h"
 #include "Event.h"
-#include "FirmwareUpdateTask.h"
 #include "I2C.h"
 #include "LuxMonitorTask.h"
 #include "NVSKeyValueBroker.h"
+#include "OtaTask.h"
 #include "ProvisionTask.h"
 #include "Preferences.h"
 #include "SPI.h"
@@ -32,8 +32,8 @@ extern char const provisionResponseFavicon1[]
 			asm("_binary_provisionResponseFavicon_end");
 
 // COMPONENT_EMBED_TXTFILES (null terminator added)
-extern char const firmwareCert[]
-			asm("_binary_firmware_ca_cert_pem_start");
+extern char const otaCert[]
+			asm("_binary_ota_ca_cert_pem_start");
 extern char const preferencesHtml[]
 			asm("_binary_preferences_html_start");
 
@@ -68,19 +68,16 @@ public:
     public:
 	Main & main;
 	TimeUpdate timeUpdate;
-	FirmwareUpdateTask firmwareUpdateTask;
+	OtaTask otaTask;
 	Preferences preferences;
 	Connected(Main & main_)
 	:
 	    main(main_),
 	    timeUpdate("timeUpdate", main.keyValueBroker),
-	    firmwareUpdateTask(
-		CONFIG_FIRMWARE_UPDATE_URL,
-		firmwareCert,
-		pdMS_TO_TICKS(CONFIG_FIRMWARE_UPDATE_PAUSE)),
+	    otaTask(CONFIG_OTA_URL, otaCert, CONFIG_OTA_RETRY),
 	    preferences(preferencesHtml, main.keyValueBroker)
 	{
-	    firmwareUpdateTask.start();
+	    otaTask.start();
 	}
 	~Connected() {
 	    ESP_LOGI(main.name, "~Connected");

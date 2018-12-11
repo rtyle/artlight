@@ -1,16 +1,16 @@
 menu "artlight Configuration"
 
-config FIRMWARE_UPDATE_URL
-    string "firmware update url endpoint"
+config OTA_URL
+    string "Over the Air (OTA) update url endpoint"
     default "https://artlightserver:4433/artlight.bin"
     help
         URL of server which hosts the firmware image.
 
-config FIRMWARE_UPDATE_PAUSE
-    int "firmware update pause (in milliseconds) between retries"
-    default 600000
+config OTA_RETRY
+    int "Over the Air (OTA) update retry (minutes)"
+    default 10
     help
-        Retry firmware update after failure and pause.
+        Number of minutes after which an OTA update will retried.
 
 config TIME_SERVERS
     string "SNTP time servers"
