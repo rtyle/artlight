@@ -41,7 +41,7 @@
 		<project>: Properties: C/C++ Build: Environment: Add...
 			Add to all configurations:	Name:		Value:
 #			X				BATCH_BUILD	1
-			X				IDF_PATH	${HOME}/esp/esp-idf
+			X				IDF_PATH	${ProjDirPath}/esp-idf
 			X				PATH		<orig>:${HOME}/esp/xtensa-esp32-elf/bin
 
 			# BATCH_BUILD=1 is a flag to the makefiles to inhibit interactive behavior
