@@ -49,12 +49,19 @@ class Preferences : public Httpd {
 private:
     char const *	html;
     KeyValueBroker &	keyValueBroker;
+    char const * const	favicon;
+    size_t const	faviconSize;
     Httpd::Uri const	uri;
     Httpd::Uri const	uriPost;
     Httpd::Uri const	dataUri;
     Httpd::Uri const	dataDefaultUri;
+    Httpd::Uri const	faviconUri;
 public:
-    Preferences(char const * html, KeyValueBroker &);
+    Preferences(
+	char const *		html,
+	KeyValueBroker &	keyValueBroker,
+	char const *		favicon,
+	size_t			faviconSize);
 };
 
 #endif

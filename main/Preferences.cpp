@@ -10,7 +10,11 @@
 template<typename T = esp_err_t>
 static inline T throwIf(T t) {if (t) throw t; return t;}
 
-Preferences::Preferences(char const * html_, KeyValueBroker & keyValueBroker_)
+Preferences::Preferences(
+    char const *	html_,
+    KeyValueBroker &	keyValueBroker_,
+    char const *	favicon_,
+    size_t		faviconSize_)
 :
     Httpd		("preferences", Httpd::Config()
 			    .task_priority_(5)
@@ -20,6 +24,9 @@ Preferences::Preferences(char const * html_, KeyValueBroker & keyValueBroker_)
     html		(html_),
 
     keyValueBroker	(keyValueBroker_),
+
+    favicon		(favicon_),
+    faviconSize		(faviconSize_),
 
     uri(*this, "/", HTTP_GET, [this](httpd_req_t * req) {
 	httpd_resp_send(req, html, strlen(html));
@@ -74,6 +81,12 @@ Preferences::Preferences(char const * html_, KeyValueBroker & keyValueBroker_)
 	httpd_resp_set_hdr(req, "Content-type", "application/json");
 	std::string keyValues = keyValueBroker.serializeDefault();
 	httpd_resp_send(req, keyValues.c_str(), keyValues.length());
+	return ESP_OK;
+    }),
+
+    faviconUri(*this, "/favicon.ico", HTTP_GET, [this](httpd_req_t * req) {
+	httpd_resp_set_hdr(req, "Content-type", "application/json");
+	httpd_resp_send(req, favicon, faviconSize);
 	return ESP_OK;
     })
 {}

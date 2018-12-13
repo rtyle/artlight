@@ -16,6 +16,8 @@
 #include "Wifi.h"
 
 // COMPONENT_EMBED_FILES start
+extern char const preferencesFavicon0[]
+			asm("_binary_preferencesFavicon_ico_start");
 extern unsigned char const provisionCert0[]
 			asm("_binary_provision_ca_cert_pem_start");
 extern unsigned char const provisionKey0[]
@@ -24,6 +26,8 @@ extern char const provisionResponseFavicon0[]
 			asm("_binary_provisionResponseFavicon_start");
 
 // COMPONENT_EMBED_FILES end (no null terminator added)
+extern char const preferencesFavicon1[]
+			asm("_binary_preferencesFavicon_ico_end");
 extern unsigned char const provisionCert1[]
 			asm("_binary_provision_ca_cert_pem_end");
 extern unsigned char const provisionKey1[]
@@ -78,7 +82,9 @@ public:
 	    otaTask(CONFIG_OTA_URL, otaCertificate, CONFIG_OTA_RETRY,
 		main.keyValueBroker),
 	    preferences(preferencesHtml,
-		main.keyValueBroker)
+		main.keyValueBroker,
+		preferencesFavicon0,
+		    preferencesFavicon1 - preferencesFavicon0)
 	{
 	    otaTask.start();
 	}
