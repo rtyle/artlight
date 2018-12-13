@@ -32,7 +32,7 @@ extern char const provisionResponseFavicon1[]
 			asm("_binary_provisionResponseFavicon_end");
 
 // COMPONENT_EMBED_TXTFILES (null terminator added)
-extern char const otaCert[]
+extern char const otaCertificate[]
 			asm("_binary_ota_ca_cert_pem_start");
 extern char const preferencesHtml[]
 			asm("_binary_preferences_html_start");
@@ -73,9 +73,12 @@ public:
 	Connected(Main & main_)
 	:
 	    main(main_),
-	    timeUpdate("timeUpdate", main.keyValueBroker),
-	    otaTask(CONFIG_OTA_URL, otaCert, CONFIG_OTA_RETRY),
-	    preferences(preferencesHtml, main.keyValueBroker)
+	    timeUpdate("timeUpdate",
+		main.keyValueBroker),
+	    otaTask(CONFIG_OTA_URL, otaCertificate, CONFIG_OTA_RETRY,
+		main.keyValueBroker),
+	    preferences(preferencesHtml,
+		main.keyValueBroker)
 	{
 	    otaTask.start();
 	}

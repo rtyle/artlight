@@ -1,60 +1,142 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<meta charset='UTF-8'>
+		<style>
+			fieldset, div {
+				margin-top:	4px;
+				margin-bottom:	4px;
+			}
+			.tab0 {
+				display:	inline-block;
+				width:		8em;
+				text-align:	right;
+			}
+			input[type='text'] {
+				width:		32em;
+			}
+		</style>
 	</head>
 	<body>
-		<script src="http://code.jquery.com/jquery-3.3.1.js"></script>
+		<script src='http://code.jquery.com/jquery-3.3.1.js'></script>
 		
 		<script>
-		function fill(url) {
-			$.ajax({
-				url: 		url,
-				type:		'GET',
-				dataType:	'json',
-				cache:		false,
-			})
-				.done(function(idValues) {
-					for (const [id, value] of Object.entries(idValues)) {
-						$('#' + id).attr('value', value);
-					}
-				})
-				.fail(function(xhr, status, error){
-					alert('Unable to load values into form');
-					console.log('error: '  + error);
-					console.log('status: ' + status);
-					console.dir(xhr);
-				})
-			
-		}
-
-		$(document).ready(function(){
-			fill('data');
-			$('#data'	)	.click(function() {fill('data'		)});
-			$('#dataDefault')	.click(function() {fill('dataDefault'	)});
-		});
-		</script>
+			$.fn.otherwise = function() {
+				return this.end().not(this);
+			}
 	
-		<form>
-			<div>
-				<label for='timezone'>Time Zone</label>
-				<input value='' type='text' id='timezone' name='timezone' minlength='5' maxlength='32' placeholder='GNU timezone specification'/>
-				<a href="https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html">Help</a>
-			</div>
-			
-			<div>
-				<label for='timeServers'>NTP Time Servers</label>
-				<input value='' type='text' id='timeServers' name='timeServers' minlength='8' maxlength='64' placeholder='whitespace delimited list'/>
-				<a href="https://www.ntppool.org/en/use.html">Help</a>
-			</div>
-			
+			function fill(url) {
+				$.ajax({
+					url: 		url,
+					type:		'GET',
+					dataType:	'json',
+					cache:		false,
+				})
+					.done(function(idValues) {
+						for (const [id, value] of Object.entries(idValues)) {
+							console.log(id + '=' + value);
+							$('#' + id)
+								.filter('input[type="checkbox"]')
+									.prop('checked', parseInt(value, 10))
+									.next().val(parseInt(value, 10)).end()
+								.otherwise()
+									.val(value);
+						}
+					})
+					.fail(function(xhr, status, error){
+						// alert('Unable to load values into form');
+						console.log('error: '  + error);
+						console.log('status: ' + status);
+						console.dir(xhr);
+					})
+			}
+	
+			$(document).ready(function() {
+				fill('data');
+				$('#data'	)	.click(function() {fill('data'		)});
+				$('#dataDefault')	.click(function() {fill('dataDefault'	)});
+				$('input[type="checkbox"]').on('change', function(e) {$(this).next().val(0 + $(this).prop('checked'))});
+			});
+		</script>
+
+		<H1>Preferences</H1>
+		<div>
+			<button id='dataDefault'>Fill with Default Values</button>
+			<button id='data'	>Fill with Current Values</button>
+		</div>
+		<form method='post'>
+			<fieldset>
+				<legend>Time Acquisition</legend>
+				<div>
+					<label class='tab0' for='timezone'>Time Zone</label>
+					<input type='text' id='timezone' name='timezone' minlength='5' maxlength='32' placeholder='GNU timezone specification'/>
+					<a href='https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html'>🛈</a>
+				</div>
+				<div>
+					<label class='tab0' for='timeServers'>NTP Time Servers</label>
+					<input type='text' id='timeServers' name='timeServers' minlength='8' maxlength='64' placeholder='whitespace delimited list'/>
+					<a href='https://www.ntppool.org/en/use.html'>🛈</a>
+				</div>
+			</fieldset>
+<!--
+			<fieldset>
+				<legend>Clock Presentation</legend>
+					<div>
+						<span class='tab0'>Hour</span>
+						<label for='hourShape'>Shape</label>
+						<input type='number' id='hourShape' name='hourShape' min='1.0' max='10.0' step='0.1'/>
+						<a href='https://en.wikipedia.org/wiki/Standard_deviation'>🛈</a>
+						<label for='hourColorMean'>Center</label>
+						<input type='color' id='hourColorMean' name='hourColorMean'/>
+						<label for='hourColorEdge'>Edges</label>
+						<input type='color' id='hourColorEdge' name='hourColorEdge'/>
+					</div>
+					<div>
+						<span class='tab0'>Minute</span>
+						<label for='minuteShape'>Shape</label>
+						<input type='number' id='minuteShape' name='minuteShape' min='1.0' max='10.0' step='0.1'/>
+						<a href='https://en.wikipedia.org/wiki/Standard_deviation'>🛈</a>
+						<label for='minuteColorMean'>Center</label>
+						<input type='color' id='minuteColorMean' name='minuteColorMean'/>
+						<label for='minuteColorEdge'>Edges</label>
+						<input type='color' id='minuteColorEdge' name='minuteColorEdge'/>
+					</div>
+					<div>
+						<span class='tab0'>Second</span>
+						<label for='secondShape'>Shape</label>
+						<input type='number' id='secondShape' name='secondShape' min='1.0' max='10.0' step='0.1'/>
+						<a href='https://en.wikipedia.org/wiki/Standard_deviation'>🛈</a>
+						<label for='secondColorMean'>Center</label>
+						<input type='color' id='secondColorMean' name='secondColorMean'/>
+						<label for='secondColorEdge'>Edges</label>
+						<input type='color' id='secondColorEdge' name='secondColorEdge'/>
+					</div>
+			</fieldset>
+-->
+			<fieldset>
+				<legend>Over the Air (OTA) Software Update</legend>
+				<span>On/at the host/path referenced by URL, with the referenced file and implied trusted authority artifacts (say, key.pem and cert.pem), run the following from a command shell:</span>
+				<div>
+					<span class='tab0'>$</span>
+					<span>openssl s_server -WWW -key key.pem -cert cert.pem</span>
+				</div>
+				<div>
+					<label class='tab0' for='otaUrl'>URL</label>
+					<input type='text' id='otaUrl' name='otaUrl' minlength='7' maxlength='64' placeholder='https://server:port/image.bin'/>
+				</div>
+				<div>
+					<label class='tab0' for='otaRetry'>Retry (minutes)</label>
+					<input type='number' id='otaRetry' name='otaRetry' min='0'/>
+				</div>
+				<div>
+					<label class='tab0' for='otaStart'>Start</label>
+					<input type='checkbox' id='otaStart'/>
+					<input type='hidden' name='otaStart'/>
+				</div>
+			</fieldset>
 			<div>
 				<input type='submit'/>
 			</div>
 		</form>
-
-		<div>
-			<button id='data'	>Fill with Current Values</button>
-			<button id='dataDefault'>Fill with Default Values</button>
-		</div>
 		</body>
 </html>

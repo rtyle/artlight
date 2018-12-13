@@ -50,6 +50,7 @@ private:
     char const *	html;
     KeyValueBroker &	keyValueBroker;
     Httpd::Uri const	uri;
+    Httpd::Uri const	uriPost;
     Httpd::Uri const	dataUri;
     Httpd::Uri const	dataDefaultUri;
 public:
