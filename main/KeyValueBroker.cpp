@@ -30,7 +30,10 @@ KeyValueBroker::~KeyValueBroker() {}
     return true;
 }
 
-std::ostream & operator<<(std::ostream & stream, std::string & value) {
+static std::ostream & operator<<(
+    std::ostream &	stream,
+    std::string const &	value)
+{
     // https://en.cppreference.com/w/cpp/language/escape
     // https://tools.ietf.org/html/rfc7159
     // warning: this may not work well with non-ascii UTF8 encodings
