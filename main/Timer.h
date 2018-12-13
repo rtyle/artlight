@@ -27,6 +27,9 @@ public:
     void start();
     void stop ();
 
+    void setPeriod(TickType_t);
+    TickType_t getPeriod();
+
     ~Timer();
 };
 
