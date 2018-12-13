@@ -31,13 +31,13 @@
 static char response[] =
 "HTTP/1.1 200 OK\r\n"
 "Content-Type: text/html; charset=UTF-8\r\n"
-"Content-Length: 465\r\n"
+"Content-Length: 479\r\n"
 "\r\n" R"----(<!DOCTYPE html>
 <html>
 <head>
 </head>
 <body>
-<form>
+<form method='post'>
 <div>
 <label for='ssid'>SSID</label>
 <input value='' type='text' id='ssid' name='ssid' minlength='1' maxlength='32' placeholder='SSID, 1 to 32 characters'/>
@@ -56,12 +56,6 @@ static char response[] =
 
 static char responseNotFound[] =
 "HTTP/1.1 404 Not Found\r\n"
-"Content-Length: 0\r\n"
-"\r\n";
-
-static char responseRedirect[] =
-"HTTP/1.1 301 Moved Permanently\r\n"
-"Location: /\r\n"
 "Content-Length: 0\r\n"
 "\r\n";
 
@@ -120,6 +114,7 @@ bool ProvisionTask::readRequest() {
 	    request[readErrorOrLength] = 0;
 	    char const * s = request;
 	    static char constexpr GET[] = "GET ";
+	    static char constexpr POST[] = "POST ";
 	    if (0 == strncmp(s, GET, sizeof GET - 1)) {
 		// GET *
 		s += sizeof GET - 1;
@@ -131,48 +126,6 @@ bool ProvisionTask::readRequest() {
 			ESP_LOGI(name, "readRequest GET /");
 			respond(response, sizeof response - 1);
 			break;
-		    case '?': {
-			// GET /?
-			ESP_LOGI(name, "readRequest GET /?...");
-			wifi_config_t wifi_config;
-			ESP_ERROR_CHECK(esp_wifi_get_config(
-			    ESP_IF_WIFI_STA, &wifi_config));
-			char * t;
-			size_t z;
-
-			static char constexpr ssid[] = "ssid=";
-			if (0 == strncmp(s, ssid, sizeof ssid - 1)) {
-			    s += sizeof ssid - 1;
-
-			    t = reinterpret_cast<char *>
-				(wifi_config.sta.ssid);
-			    z = sizeof wifi_config.sta.ssid;
-			    memset(t, 0, z);
-			    percentDecode(t, s, '&', z);
-
-			    ++s;
-
-			    static char constexpr pw[] = "password=";
-			    if (0 == strncmp(s, pw, sizeof pw - 1)) {
-				s += sizeof pw - 1;
-
-				t = reinterpret_cast<char *>
-				    (wifi_config.sta.password);
-				z = sizeof wifi_config.sta.password;
-				memset(t, 0, z);
-				percentDecode(t, s, '&', z);
-
-				ESP_LOGI(name, "readRequest reconnect");
-				ESP_ERROR_CHECK(esp_wifi_set_config(
-				    ESP_IF_WIFI_STA, &wifi_config));
-				ESP_ERROR_CHECK(esp_wifi_connect());
-			    }
-			}
-			// redirect to /
-			// otherwise the password would be exposed
-			// in the URL
-			respond(responseRedirect, sizeof responseRedirect - 1);
-			break;}
 		    case 'f':
 			{
 			    static char constexpr favicon[] = "favicon.ico ";
@@ -197,6 +150,66 @@ bool ProvisionTask::readRequest() {
 		} else {
 		    // GET *
 		    ESP_LOGE(name, "readRequest GET *");
+		    respond(responseNotFound, sizeof responseNotFound - 1);
+		}
+	    } else if (0 == strncmp(s, POST, sizeof POST - 1)) {
+		// POST *
+		s += sizeof POST - 1;
+		if (*s == '/') {
+		    ++s;
+		    switch (*s++) {
+		    case ' ': {
+			// POST /
+			ESP_LOGI(name, "readRequest POST /");
+			wifi_config_t wifi_config;
+			ESP_ERROR_CHECK(esp_wifi_get_config(
+			    ESP_IF_WIFI_STA, &wifi_config));
+			char * t;
+			size_t z;
+
+			static char constexpr CRLFCRLF[] = "\r\n\r\n";
+			if ((s = std::strstr(s, CRLFCRLF))) {
+			    s += sizeof CRLFCRLF - 1;
+			    static char constexpr ssid[] = "ssid=";
+			    if (0 == strncmp(s, ssid, sizeof ssid - 1)) {
+				s += sizeof ssid - 1;
+
+				t = reinterpret_cast<char *>
+				    (wifi_config.sta.ssid);
+				z = sizeof wifi_config.sta.ssid;
+				memset(t, 0, z);
+				percentDecode(t, s, '&', z);
+
+				++s;
+
+				static char constexpr pw[] = "password=";
+				if (0 == strncmp(s, pw, sizeof pw - 1)) {
+				    s += sizeof pw - 1;
+
+				    t = reinterpret_cast<char *>
+					(wifi_config.sta.password);
+				    z = sizeof wifi_config.sta.password;
+				    memset(t, 0, z);
+				    percentDecode(t, s, '&', z);
+
+				    ESP_LOGI(name, "readRequest reconnect");
+				    ESP_ERROR_CHECK(esp_wifi_set_config(
+					ESP_IF_WIFI_STA, &wifi_config));
+				    ESP_ERROR_CHECK(esp_wifi_connect());
+				}
+			    }
+			}
+			respond(response, sizeof response - 1);
+			break;}
+		    default:
+			// POST /*
+			ESP_LOGE(name, "readRequest POST /*");
+			respond(responseNotFound, sizeof responseNotFound - 1);
+			break;
+		    }
+		} else {
+		    // POST *
+		    ESP_LOGE(name, "readRequest POST *");
 		    respond(responseNotFound, sizeof responseNotFound - 1);
 		}
 	    } else {
