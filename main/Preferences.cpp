@@ -29,6 +29,7 @@ Preferences::Preferences(
     faviconSize		(faviconSize_),
 
     uri(*this, "/", HTTP_GET, [this](httpd_req_t * req) {
+	httpd_resp_set_type(req, "text/html; charset=utf-8");
 	httpd_resp_send(req, html, strlen(html));
 	return ESP_OK;
     }),
@@ -66,26 +67,27 @@ Preferences::Preferences(
 		}
 	    }
 	}
+	httpd_resp_set_type(req, "text/html; charset=utf-8");
 	httpd_resp_send(req, html, strlen(html));
 	return ESP_OK;
     }),
 
     dataUri(*this, "/data", HTTP_GET, [this](httpd_req_t * req) {
-	httpd_resp_set_hdr(req, "Content-type", "application/json");
+	httpd_resp_set_type(req, "application/json");
 	std::string keyValues = keyValueBroker.serialize();
 	httpd_resp_send(req, keyValues.c_str(), keyValues.length());
 	return ESP_OK;
     }),
 
     dataDefaultUri(*this, "/dataDefault", HTTP_GET, [this](httpd_req_t * req) {
-	httpd_resp_set_hdr(req, "Content-type", "application/json");
+	httpd_resp_set_type(req, "application/json");
 	std::string keyValues = keyValueBroker.serializeDefault();
 	httpd_resp_send(req, keyValues.c_str(), keyValues.length());
 	return ESP_OK;
     }),
 
     faviconUri(*this, "/favicon.ico", HTTP_GET, [this](httpd_req_t * req) {
-	httpd_resp_set_hdr(req, "Content-type", "application/json");
+	httpd_resp_set_type(req, "image/x-icon");
 	httpd_resp_send(req, favicon, faviconSize);
 	return ESP_OK;
     })
