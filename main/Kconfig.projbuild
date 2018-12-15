@@ -6,12 +6,6 @@ config OTA_URL
     help
         URL of server which hosts the firmware image.
 
-config OTA_RETRY
-    int "Over the Air (OTA) update retry (minutes)"
-    default 10
-    help
-        Number of minutes after which an OTA update will retried.
-
 config TIME_SERVERS
     string "SNTP time servers"
     default "pool.ntp.org"

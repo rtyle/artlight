@@ -115,7 +115,7 @@
 -->
 			<fieldset>
 				<legend>Over the Air (OTA) Software Update</legend>
-				<span>On/at the host/path referenced by URL, with the referenced file and implied trusted authority artifacts (say, key.pem and cert.pem), run the following from a command shell:</span>
+				<span>On/at the host:port/path referenced by URL, with the referenced file and implied trusted authority artifacts (say, key.pem and cert.pem), run the following from a command shell:</span>
 				<div>
 					<span class='tab0'>$</span>
 					<span>openssl s_server -WWW -key key.pem -cert cert.pem</span>
@@ -123,10 +123,6 @@
 				<div>
 					<label class='tab0' for='otaUrl'>URL</label>
 					<input type='text' id='otaUrl' name='otaUrl' minlength='7' maxlength='64' placeholder='https://server:port/image.bin'/>
-				</div>
-				<div>
-					<label class='tab0' for='otaRetry'>Retry (minutes)</label>
-					<input type='number' id='otaRetry' name='otaRetry' min='0'/>
 				</div>
 				<div>
 					<label class='tab0' for='otaStart'>Start</label>

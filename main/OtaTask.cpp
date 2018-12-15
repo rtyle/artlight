@@ -35,37 +35,17 @@ template <typename T> T from_string(char const * s) {
 OtaTask::OtaTask(
     char const *	url_,
     char const *	certificate_,
-    unsigned		retry,
     KeyValueBroker &	keyValueBroker_)
 :
     AsioTask("otaTask", 5, 4096, 0),
     url				(url_),
     certificate			(certificate_),
-    retryTimer(name, portMAX_DELAY, false,
-	[this](){
-	    io.post([this](){
-		update();
-	    });
-	}),
     keyValueBroker		(keyValueBroker_),
     otaUrlObserver		(keyValueBroker, "otaUrl", url.c_str(),
 	[this](char const * urlObserved){
 	    std::string urlCopy(urlObserved);
 	    io.post([this, urlCopy](){
 		url = urlCopy;
-	    });
-	}),
-    otaRetryObserver		(keyValueBroker, "otaRetry",
-	    to_string(retry).c_str(),
-	[this](char const * retryObserved){
-	    unsigned retry = from_string<unsigned>(retryObserved);
-	    io.post([this, retry](){
-		if (retry) {
-		    retryTimer.setPeriod(pdMS_TO_TICKS(retry * 60 * 1000));
-		} else {
-		    retryTimer.stop();
-		    retryTimer.setPeriod(portMAX_DELAY);
-		}
 	    });
 	}),
     otaStartObserverEntered	(0),
@@ -81,7 +61,6 @@ OtaTask::OtaTask(
 	    }
 	    --otaStartObserverEntered;
 	    io.post([this, start](){
-		retryTimer.stop();
 		if (start) {
 		    update();
 		}
@@ -97,10 +76,6 @@ void OtaTask::update() {
     if (ESP_OK == esp_https_ota(&config)) {
 	ESP_LOGI(name, "restart");
 	esp_restart();
-    } else {
-	if (portMAX_DELAY != retryTimer.getPeriod()) {
-	    retryTimer.start();
-	}
     }
 }
 
