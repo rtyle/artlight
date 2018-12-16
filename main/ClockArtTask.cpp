@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <sstream>
 #include <string>
 
 #include <stdlib.h>
@@ -211,12 +212,18 @@ private:
     static unsigned constexpr spm = circleLength;
 
     static Pulse<> const hp, mp, sp;
-    static std::function<LED<int>(float)> hf, mf, sf;
 
 public:
     APA102::Message<hpd - rayCount * rayFoldLength + circleLength> message;
 
-    Rendering(unsigned now, unsigned tps, float dim) {
+    Rendering(
+	unsigned			now,
+	unsigned			tps,
+	float				dim,
+	std::function<LED<int>(float)>	hf,
+	std::function<LED<int>(float)>	mf,
+	std::function<LED<int>(float)>	sf)
+    {
 	// ticks per clock unit (s, m, h, d)
 	unsigned tpm(tps * SPM);
 	unsigned tph(tpm * MPH);
@@ -338,31 +345,6 @@ public:
 /* static */ Pulse<> const Rendering::mp(MPH);
 /* static */ Pulse<> const Rendering::sp(SPM);
 
-template <typename A, typename B, typename C>
-std::function<C(A)> compose(
-	std::function<C(B)> f, std::function<B(A)> g) {
-    return [f, g](A a) {return f(g(a));};
-}
-
-// color/brightness fades for h, m, s are defined independently.
-// each is a composition of an LED color ramp composed with (applied after)
-// a bell curve rate.
-/* static */ std::function<LED<int>(float)> Rendering::hf(compose(
-    std::function<LED<int>(float)>(
-	Ramp<LED<int>>(LED<int>(0, 0, 0), LED<int>(255, 0, 0))),
-    Bell<float>(2.7f, 0.0f, 1.0f)
-));
-/* static */ std::function<LED<int>(float)> Rendering::mf(compose(
-    std::function<LED<int>(float)>(
-	Ramp<LED<int>>(LED<int>(0, 0, 0), LED<int>(0, 0, 255))),
-    Bell<float>(2.7f, 0.0f, 1.0f)
-));
-/* static */ std::function<LED<int>(float)> Rendering::sf(compose(
-    std::function<LED<int>(float)>(
-	Ramp<LED<int>>(LED<int>(0, 0, 0), LED<int>(255, 255, 0))),
-    Bell<float>(1.4f, 0.0f, 1.0f)
-));
-
 // we want to get (and present) local time of day at a subsecond resolution.
 // the resolution of std::time is a second.
 // the resolution of clock_gettime(CLOCK_REALTIME,...) is a nanosecond.
@@ -481,6 +463,12 @@ uint32_t ClockArtTask::SmoothTime::millisecondsSinceTwelveLocaltime() {
 	+ (tm.tm_hour % 12) * millisecondsPerHour;
 }
 
+template <typename A, typename B, typename C>
+std::function<C(A)> compose(
+	std::function<C(B)> f, std::function<B(A)> g) {
+    return [f, g](A a) {return f(g(a));};
+}
+
 void ClockArtTask::update() {
     // dim factor is calculated as a function of the current ambient lux.
     // this will range from 1/16 to 16/16 with the numerator increasing by
@@ -489,7 +477,22 @@ void ClockArtTask::update() {
     Rendering rendering(
 	smoothTime.millisecondsSinceTwelveLocaltime(),
 	millisecondsPerSecond,
-	dim);
+	dim,
+	compose(
+	    std::function<LED<int>(float)>(
+		Ramp<LED<int>>(LED<int>(hourTail), LED<int>(hourMean))),
+	    Bell<float>(hourShape, 0.0f, 1.0f)
+	),
+	compose(
+	    std::function<LED<int>(float)>(
+		Ramp<LED<int>>(LED<int>(minuteTail), LED<int>(minuteMean))),
+	    Bell<float>(minuteShape, 0.0f, 1.0f)
+	),
+	compose(
+	    std::function<LED<int>(float)>(
+		Ramp<LED<int>>(LED<int>(secondTail), LED<int>(secondMean))),
+	    Bell<float>(secondShape, 0.0f, 1.0f)
+	));
     {
 	SPI::Transaction transaction1(spiDevice1, SPI::Transaction::Config()
 	    .tx_buffer_(&rendering.message)
@@ -500,13 +503,21 @@ void ClockArtTask::update() {
     }
 }
 
+template <typename T>
+static T from_string(char const * s) {
+    std::istringstream stream(s);
+    T t;
+    stream >> t;
+    return t;
+}
+
 ClockArtTask::ClockArtTask(
     SPI::Bus const *		spiBus1,
     SPI::Bus const *		spiBus2,
     std::function<float()>	getLux_,
     KeyValueBroker &		keyValueBroker)
 :
-    AsioTask	("clockArtTask", 5, 8192, 1),
+    AsioTask	("clockArtTask", 5, 16384, 1),
 
     spiDevice1	(spiBus1, SPI::Device::Config()
 		    .mode_(APA102::spiMode)
@@ -531,6 +542,89 @@ ClockArtTask::ClockArtTask(
 	    io.post([this, timezoneCopy](){
 		ESP_LOGI(name, "timezone %s", timezoneCopy.c_str());
 		setenv("TZ", timezoneCopy.c_str(), true);
+	    });
+	}),
+
+    hourShape		(1.0f),
+    hourMean		(0u),
+    hourTail		(0u),
+    hourGlow		(0u),
+    hourShapeObserver(keyValueBroker, "hourShape", "2.7",
+	[this](char const * shapeObserved){
+	    float shape = from_string<float>(shapeObserved);
+	    io.post([this, shape](){
+		hourShape = shape;
+	    });
+	}),
+    hourMeanObserver(keyValueBroker, "hourMean", "#ff0000",
+	[this](char const * color){
+	    LED<> led(color);
+	    io.post([this, led](){
+		hourMean = led;
+	    });
+	}),
+    hourTailObserver(keyValueBroker, "hourTail", "#000000",
+	[this](char const * color){
+	    LED<> led(color);
+	    io.post([this, led](){
+		hourTail = led;
+	    });
+	}),
+    hourGlowObserver(keyValueBroker, "hourGlow", "#000000",
+	[this](char const * color){
+	    LED<> led(color);
+	    io.post([this, led](){
+		hourGlow = led;
+	    });
+	}),
+
+    minuteShape		(1.0f),
+    minuteMean		(0u),
+    minuteTail		(0u),
+    minuteShapeObserver(keyValueBroker, "minuteShape", "2.7",
+	[this](char const * shapeObserved){
+	    float shape = from_string<float>(shapeObserved);
+	    io.post([this, shape](){
+		minuteShape = shape;
+	    });
+	}),
+    minuteMeanObserver(keyValueBroker, "minuteMean", "#0000ff",
+	[this](char const * color){
+	    LED<> led(color);
+	    io.post([this, led](){
+		minuteMean = led;
+	    });
+	}),
+    minuteTailObserver(keyValueBroker, "minuteTail", "#000000",
+	[this](char const * color){
+	    LED<> led(color);
+	    io.post([this, led](){
+		minuteTail = led;
+	    });
+	}),
+
+    secondShape		(1.0f),
+    secondMean		(0u),
+    secondTail		(0u),
+    secondShapeObserver(keyValueBroker, "secondShape", "1.4",
+	[this](char const * shapeObserved){
+	    float shape = from_string<float>(shapeObserved);
+	    io.post([this, shape](){
+		secondShape = shape;
+	    });
+	}),
+    secondMeanObserver(keyValueBroker, "secondMean", "#ffff00",
+	[this](char const * color){
+	    LED<> led(color);
+	    io.post([this, led](){
+		secondMean = led;
+	    });
+	}),
+    secondTailObserver(keyValueBroker, "secondTail", "#000000",
+	[this](char const * color){
+	    LED<> led(color);
+	    io.post([this, led](){
+		secondTail = led;
 	    });
 	}),
 

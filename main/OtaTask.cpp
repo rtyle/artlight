@@ -8,14 +8,17 @@
 
 // we should be able to use std::to_string but
 // https://github.com/espressif/esp-idf/issues/1445
-template <typename T> std::string to_string(T t) {
+template <typename T>
+static std::string to_string(T t) {
     std::ostringstream stream;
     stream << t;
     return stream.str();
 }
 
 template <typename T> T from_string(char const * s);
-template <> bool from_string(char const * s) {
+
+template <>
+bool from_string(char const * s) {
     switch (*s) {
     case 0:
     case '0':
@@ -25,7 +28,8 @@ template <> bool from_string(char const * s) {
     }
     return true;
 }
-template <typename T> T from_string(char const * s) {
+template <typename T>
+static T from_string(char const * s) {
     std::istringstream stream(s);
     T t;
     stream >> t;

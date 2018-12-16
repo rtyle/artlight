@@ -16,6 +16,29 @@ private:
     std::function<float()> const	getLux;
     KeyValueBroker::Observer const	timezoneObserver;
 
+    float				hourShape;
+    uint32_t				hourMean;
+    uint32_t				hourTail;
+    uint32_t				hourGlow;
+    KeyValueBroker::Observer const	hourShapeObserver;
+    KeyValueBroker::Observer const	hourMeanObserver;
+    KeyValueBroker::Observer const	hourTailObserver;
+    KeyValueBroker::Observer const	hourGlowObserver;
+
+    float				minuteShape;
+    uint32_t				minuteMean;
+    uint32_t				minuteTail;
+    KeyValueBroker::Observer const	minuteShapeObserver;
+    KeyValueBroker::Observer const	minuteMeanObserver;
+    KeyValueBroker::Observer const	minuteTailObserver;
+
+    float				secondShape;
+    uint32_t				secondMean;
+    uint32_t				secondTail;
+    KeyValueBroker::Observer const	secondShapeObserver;
+    KeyValueBroker::Observer const	secondMeanObserver;
+    KeyValueBroker::Observer const	secondTailObserver;
+
     class SmoothTime {
     private:
 	char const *	name;

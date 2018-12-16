@@ -101,6 +101,11 @@ public:
 
     LED(uint32_t encoding_);
 
+    LED(char const * c) : LED(
+	(c[1] - '0') * 10 + c[2] - '0',
+	(c[3] - '0') * 10 + c[4] - '0',
+	(c[5] - '0') * 10 + c[6] - '0') {}
+
     T average() const {return (part.red + part.green + part.blue) / 3;}
 
     template <typename t> bool operator < (LED<t> const & that) const {
@@ -175,24 +180,8 @@ public:
 	    (part.blue	+ that.part.blue)	/ 2);
     }
 
-    operator uint32_t ();
+    operator uint32_t () const;
 };
-
-// construct LED<uint8_t> directly from encoding
-template <> LED<uint8_t>::LED(uint32_t encoding_)
-    : encoding(encoding_) {}
-
-// construct other LED<T> variants indirectly
-template <typename T> LED<T>::LED(uint32_t encoding)
-    : LED(LED<uint8_t>(encoding)) {}
-
-// return encoding directly from LED<uint8_t>
-template <> LED<uint8_t>::operator uint32_t ()
-    {return encoding;}
-
-// return encoding indirectly from other LED<T> variants
-template <typename T> LED<T>::operator uint32_t ()
-    {return LED<uint8_t>(*this);}
 
 }
 

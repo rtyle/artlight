@@ -73,12 +73,11 @@
 					<a href='https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html'>❓</a>
 				</div>
 				<div>
-					<label class='tab0' for='timeServers'>NTP Time Servers</label>
+					<label class='tab0' for='timeServers'>Time Servers</label>
 					<input type='text' id='timeServers' name='timeServers' minlength='8' maxlength='64' placeholder='whitespace delimited list'/>
 					<a href='https://www.ntppool.org/en/use.html'>❓</a>
 				</div>
 			</fieldset>
-<!--
 			<fieldset>
 				<legend>Clock Presentation</legend>
 					<div>
@@ -86,33 +85,34 @@
 						<label for='hourShape'>Shape</label>
 						<input type='number' id='hourShape' name='hourShape' min='1.0' max='10.0' step='0.1'/>
 						<a href='https://en.wikipedia.org/wiki/Standard_deviation'>❓</a>
-						<label for='hourColorMean'>Center</label>
-						<input type='color' id='hourColorMean' name='hourColorMean'/>
-						<label for='hourColorEdge'>Edges</label>
-						<input type='color' id='hourColorEdge' name='hourColorEdge'/>
+						<label for='hourMean'>Mean</label>
+						<input type='color' id='hourMean' name='hourMean'/>
+						<label for='hourTail'>Tail</label>
+						<input type='color' id='hourTail' name='hourTail'/>
+						<label for='hourGlow'>Glow</label>
+						<input type='color' id='hourGlow' name='hourGlow'/>
 					</div>
 					<div>
 						<span class='tab0'>Minute</span>
 						<label for='minuteShape'>Shape</label>
 						<input type='number' id='minuteShape' name='minuteShape' min='1.0' max='10.0' step='0.1'/>
 						<a href='https://en.wikipedia.org/wiki/Standard_deviation'>❓</a>
-						<label for='minuteColorMean'>Center</label>
-						<input type='color' id='minuteColorMean' name='minuteColorMean'/>
-						<label for='minuteColorEdge'>Edges</label>
-						<input type='color' id='minuteColorEdge' name='minuteColorEdge'/>
+						<label for='minuteMean'>Mean</label>
+						<input type='color' id='minuteMean' name='minuteMean'/>
+						<label for='minuteTail'>Tail</label>
+						<input type='color' id='minuteTail' name='minuteTail'/>
 					</div>
 					<div>
 						<span class='tab0'>Second</span>
 						<label for='secondShape'>Shape</label>
 						<input type='number' id='secondShape' name='secondShape' min='1.0' max='10.0' step='0.1'/>
 						<a href='https://en.wikipedia.org/wiki/Standard_deviation'>❓</a>
-						<label for='secondColorMean'>Center</label>
-						<input type='color' id='secondColorMean' name='secondColorMean'/>
-						<label for='secondColorEdge'>Edges</label>
-						<input type='color' id='secondColorEdge' name='secondColorEdge'/>
+						<label for='secondMean'>Mean</label>
+						<input type='color' id='secondMean' name='secondMean'/>
+						<label for='secondTail'>Tail</label>
+						<input type='color' id='secondTail' name='secondTail'/>
 					</div>
 			</fieldset>
--->
 			<fieldset>
 				<legend>Over the Air (OTA) Software Update</legend>
 				<span>On/at the host:port/path referenced by URL, with the referenced file and implied trusted authority artifacts (say, key.pem and cert.pem), run the following from a command shell:</span>
