@@ -220,6 +220,7 @@ public:
 	unsigned			now,
 	unsigned			tps,
 	float				dim,
+	LED<>				glow,
 	std::function<LED<int>(float)>	hf,
 	std::function<LED<int>(float)>	mf,
 	std::function<LED<int>(float)>	sf)
@@ -273,7 +274,7 @@ public:
 		source += rayFoldLength;
 	    }
 	    // mix in background glow
-	    LED<> background = LED<>(4, 4, 4) * dim;
+	    LED<> background = glow * dim;
 	    for (auto & e: unfolded) {
 		e = LED<>(e).maxByPart(background);
 	    }
@@ -478,6 +479,7 @@ void ClockArtTask::update() {
 	smoothTime.millisecondsSinceTwelveLocaltime(),
 	millisecondsPerSecond,
 	dim,
+	hourGlow,
 	compose(
 	    std::function<LED<int>(float)>(
 		Ramp<LED<int>>(LED<int>(hourTail), LED<int>(hourMean))),
@@ -515,24 +517,26 @@ ClockArtTask::ClockArtTask(
     SPI::Bus const *		spiBus1,
     SPI::Bus const *		spiBus2,
     std::function<float()>	getLux_,
-    KeyValueBroker &		keyValueBroker)
+    KeyValueBroker &		keyValueBroker_)
 :
-    AsioTask	("clockArtTask", 5, 16384, 1),
+    AsioTask		("clockArtTask", 5, 16384, 1),
 
-    spiDevice1	(spiBus1, SPI::Device::Config()
-		    .mode_(APA102::spiMode)
-		    .clock_speed_hz_(16000000)	// see SPI_MASTER_FREQ_*
-		    .spics_io_num_(-1)		// no chip select
-		    .queue_size_(1)
-		),
-    spiDevice2	(spiBus2, SPI::Device::Config()
-		    .mode_(APA102::spiMode)
-		    .clock_speed_hz_(16000000)	// see SPI_MASTER_FREQ_*
-		    .spics_io_num_(-1)		// no chip select
-		    .queue_size_(1)
-		),
+    spiDevice1		(spiBus1, SPI::Device::Config()
+			    .mode_(APA102::spiMode)
+			    .clock_speed_hz_(16000000)	// see SPI_MASTER_FREQ_*
+			    .spics_io_num_(-1)		// no chip select
+			    .queue_size_(1)
+			),
+    spiDevice2		(spiBus2, SPI::Device::Config()
+			    .mode_(APA102::spiMode)
+			    .clock_speed_hz_(16000000)	// see SPI_MASTER_FREQ_*
+			    .spics_io_num_(-1)		// no chip select
+			    .queue_size_(1)
+			),
 
-    getLux	(getLux_),
+    getLux		(getLux_),
+
+    keyValueBroker	(keyValueBroker_),
 
     // timezone affects our notion of the localtime we present
     // forward a copy of any update to our task to make a synchronous change
@@ -572,10 +576,17 @@ ClockArtTask::ClockArtTask(
 	}),
     hourGlowObserver(keyValueBroker, "hourGlow", "#000000",
 	[this](char const * color){
-	    LED<> led(color);
-	    io.post([this, led](){
-		hourGlow = led;
-	    });
+	    LED<unsigned> led(color);
+	    static unsigned constexpr brightest = 64;
+	    unsigned brightness = led.sum();
+	    if (brightest < brightness) {
+		std::string dimmed(LED<>(led * brightest / brightness));
+		keyValueBroker.publish("hourGlow", dimmed.c_str());
+	    } else {
+		io.post([this, led](){
+		    hourGlow = led;
+		});
+	    }
 	}),
 
     minuteShape		(1.0f),

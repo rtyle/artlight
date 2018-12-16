@@ -14,6 +14,8 @@ private:
     SPI::Device const			spiDevice1;
     SPI::Device const			spiDevice2;
     std::function<float()> const	getLux;
+    KeyValueBroker &			keyValueBroker;
+
     KeyValueBroker::Observer const	timezoneObserver;
 
     float				hourShape;

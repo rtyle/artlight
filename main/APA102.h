@@ -3,8 +3,12 @@
 
 #include <cstdint>
 #include <cstring>
+#include <string>
 
 namespace APA102 {
+
+// decode a hex nibble if we can from c (0-15); otherwise, 0
+uint8_t nibble(char c);
 
 // APA102C protocol used by adafruit dotstar devices
 
@@ -99,14 +103,17 @@ public:
     template <typename t> LED(LED<t> const & that) :
 	part(that.part.red, that.part.green, that.part.blue) {}
 
-    LED(uint32_t encoding_);
+    LED(uint32_t encoding);
 
     LED(char const * c) : LED(
-	(c[1] - '0') * 10 + c[2] - '0',
-	(c[3] - '0') * 10 + c[4] - '0',
-	(c[5] - '0') * 10 + c[6] - '0') {}
+	nibble(c[1]) << 4 | nibble(c[2]),
+	nibble(c[3]) << 4 | nibble(c[4]),
+	nibble(c[5]) << 4 | nibble(c[6]))
+    {}
 
-    T average() const {return (part.red + part.green + part.blue) / 3;}
+    T sum() const {return part.red + part.green + part.blue;}
+
+    T average() const {return sum() / 3;}
 
     template <typename t> bool operator < (LED<t> const & that) const {
 	return average() < that.average();
@@ -181,6 +188,8 @@ public:
     }
 
     operator uint32_t () const;
+
+    operator std::string () const;
 };
 
 }
