@@ -7,9 +7,6 @@
 
 #include "percentDecode.h"
 
-template<typename T = esp_err_t>
-static inline T throwIf(T t) {if (t) throw t; return t;}
-
 Preferences::Preferences(
     char const *	html_,
     KeyValueBroker &	keyValueBroker_,

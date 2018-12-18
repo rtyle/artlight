@@ -1,10 +1,6 @@
 #include "Httpd.h"
 
-template<typename T = esp_err_t>
-static inline T throwIf(T t) {if (t) throw t; return t;}
-
-template<typename T = esp_err_t, T is = -1>
-static inline T throwIfIs(T t) {if (is == t) throw t; return t;}
+#include "Error.h"
 
 Httpd::Config::Config(httpd_config_t const & that) : httpd_config_t(that) {}
 
@@ -57,7 +53,7 @@ Httpd::Httpd(char const * name_, Config const & config)
     name	(name_),
     handle	([this, &config](){
 		    httpd_handle_t result;
-		    throwIf(httpd_start(&result, &config));
+		    Error::throwIf(httpd_start(&result, &config));
 		    return result;
 		}())
 {}

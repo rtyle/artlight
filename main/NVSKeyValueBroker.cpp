@@ -1,14 +1,12 @@
+#include "Error.h"
 #include "NVSKeyValueBroker.h"
-
-template<typename T>
-static inline T throwIf(T t) {if (t) throw t; return t;}
 
 NVSKeyValueBroker::NVSKeyValueBroker(char const * name_)
 :
     KeyValueBroker	(name_),
     nvs			([this](){
 	    nvs_handle result;
-	    throwIf(nvs_open(name, NVS_READWRITE, &result));
+	    Error::throwIf(nvs_open(name, NVS_READWRITE, &result));
 	    return result;
 	}())
 {}
@@ -29,9 +27,9 @@ NVSKeyValueBroker::NVSKeyValueBroker(char const * name_)
     if (KeyValueBroker::get(key, value)) return true;
     try {
 	size_t length;
-	throwIf(nvs_get_str(nvs, key, nullptr, &length));
+	Error::throwIf(nvs_get_str(nvs, key, nullptr, &length));
 	std::unique_ptr<char> copy(new char[length]);
-	throwIf(nvs_get_str(nvs, key, copy.get(), &length));
+	Error::throwIf(nvs_get_str(nvs, key, copy.get(), &length));
 	// cache this
 	KeyValueBroker::set(key, copy.get());
 	value = copy.get();

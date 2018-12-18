@@ -1,5 +1,6 @@
 #include <esp_log.h>
 
+#include "Error.h"
 #include "Task.h"
 
 // We would have liked to created a "static" task:
@@ -32,9 +33,6 @@
 // 3 and 4 are unreasonable restrictions.
 //
 // So ...  we do not create a "static" task.
-
-template<typename T>
-static inline T throwIf(T t) {if (t) throw t; return t;}
 
 /* static */ void Task::runThat(void * that) {
     Task * thatTask = static_cast<Task *>(that);
@@ -80,7 +78,7 @@ Task::Task()
 void Task::start() {
     ESP_LOGI(name, "%d %s Task::start",
 	xPortGetCoreID(), pcTaskGetTaskName(nullptr));
-    throwIf(pdPASS != xTaskCreatePinnedToCore(
+    Error::throwIf(pdPASS != xTaskCreatePinnedToCore(
 	runThat, name, stackSize, this, priority, &taskHandle, core));
 }
 
