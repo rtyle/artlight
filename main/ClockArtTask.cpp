@@ -15,6 +15,8 @@ extern "C" int setenv(char const *, char const *, int);
 #include "ClockArtTask.h"
 #include "Timer.h"
 
+#include "fromString.h"
+
 using APA102::LED;
 
 static auto constexpr millisecondsPerSecond	= 1000U;
@@ -505,14 +507,6 @@ void ClockArtTask::update() {
     }
 }
 
-template <typename T>
-static T from_string(char const * s) {
-    std::istringstream stream(s);
-    T t;
-    stream >> t;
-    return t;
-}
-
 ClockArtTask::ClockArtTask(
     SPI::Bus const *		spiBus1,
     SPI::Bus const *		spiBus2,
@@ -555,7 +549,7 @@ ClockArtTask::ClockArtTask(
     hourGlow		(0u),
     hourShapeObserver(keyValueBroker, "hourShape", "2.7",
 	[this](char const * shapeObserved){
-	    float shape = from_string<float>(shapeObserved);
+	    float shape = fromString<float>(shapeObserved);
 	    io.post([this, shape](){
 		hourShape = shape;
 	    });
@@ -594,7 +588,7 @@ ClockArtTask::ClockArtTask(
     minuteTail		(0u),
     minuteShapeObserver(keyValueBroker, "minuteShape", "2.7",
 	[this](char const * shapeObserved){
-	    float shape = from_string<float>(shapeObserved);
+	    float shape = fromString<float>(shapeObserved);
 	    io.post([this, shape](){
 		minuteShape = shape;
 	    });
@@ -619,7 +613,7 @@ ClockArtTask::ClockArtTask(
     secondTail		(0u),
     secondShapeObserver(keyValueBroker, "secondShape", "1.4",
 	[this](char const * shapeObserved){
-	    float shape = from_string<float>(shapeObserved);
+	    float shape = fromString<float>(shapeObserved);
 	    io.post([this, shape](){
 		secondShape = shape;
 	    });

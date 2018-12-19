@@ -6,35 +6,7 @@
 
 #include "OtaTask.h"
 
-// we should be able to use std::to_string but
-// https://github.com/espressif/esp-idf/issues/1445
-template <typename T>
-static std::string to_string(T t) {
-    std::ostringstream stream;
-    stream << t;
-    return stream.str();
-}
-
-template <typename T> T from_string(char const * s);
-
-template <>
-bool from_string(char const * s) {
-    switch (*s) {
-    case 0:
-    case '0':
-    case 'f':
-    case 'F':
-	return false;
-    }
-    return true;
-}
-template <typename T>
-static T from_string(char const * s) {
-    std::istringstream stream(s);
-    T t;
-    stream >> t;
-    return t;
-}
+#include "fromString.h"
 
 OtaTask::OtaTask(
     char const *	url_,
@@ -57,7 +29,7 @@ OtaTask::OtaTask(
 	[this](char const * startObserved){
 	    if (otaStartObserverEntered) return;
 	    ++otaStartObserverEntered;
-	    bool start = from_string<bool>(startObserved);
+	    bool start = fromString<bool>(startObserved);
 	    if (start) {
 		// acknowledge start.
 		// this will cause us to be reentered, which we guard against
