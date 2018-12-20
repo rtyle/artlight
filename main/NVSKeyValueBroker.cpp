@@ -1,3 +1,5 @@
+#include <memory>
+
 #include "Error.h"
 #include "NVSKeyValueBroker.h"
 

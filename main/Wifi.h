@@ -3,9 +3,6 @@
 
 #include <cstring>
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/event_groups.h>
-
 #include <esp_wifi.h>
 
 #include "Event.h"

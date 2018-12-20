@@ -1,6 +1,3 @@
-#include <algorithm>
-#include <memory>
-
 #include <esp_log.h>
 #include <esp_event.h>
 

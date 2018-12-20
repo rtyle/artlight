@@ -1,7 +1,5 @@
 #include <cassert>
-#include <cstdint>
 #include <cstring>
-#include <memory>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/portmacro.h>

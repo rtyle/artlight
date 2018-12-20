@@ -1,7 +1,7 @@
 #ifndef NVSKeyValueBroker_h_
 #define NVSKeyValueBroker_h_
 
-#include <memory>
+#include <string>
 
 #include <nvs.h>
 

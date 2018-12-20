@@ -1,9 +1,7 @@
 #ifndef ClockArtTask_h_
 #define ClockArtTask_h_
 
-#include <ctime>
 #include <functional>
-#include <list>
 
 #include "AsioTask.h"
 #include "KeyValueBroker.h"
