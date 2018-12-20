@@ -6,9 +6,6 @@
 #include <stdlib.h>
 extern "C" int setenv(char const *, char const *, int);
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-
 #include <esp_log.h>
 
 #include "APA102.h"
@@ -19,11 +16,11 @@ extern "C" int setenv(char const *, char const *, int);
 
 using APA102::LED;
 
-static auto constexpr millisecondsPerSecond	= 1000U;
-static auto constexpr millisecondsPerMinute	= 60 * millisecondsPerSecond;
-static auto constexpr millisecondsPerHour	= 60 * millisecondsPerMinute;
+static auto constexpr millisecondsPerSecond	= 1000u;
+static auto constexpr millisecondsPerMinute	= 60u * millisecondsPerSecond;
+static auto constexpr millisecondsPerHour	= 60u * millisecondsPerMinute;
 
-static auto constexpr microsecondsPerMillisecond = 1000U;
+static auto constexpr microsecondsPerMillisecond = 1000u;
 
 #if __cplusplus >= 201402L
 template <typename T, std::size_t N>
