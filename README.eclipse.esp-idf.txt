@@ -82,8 +82,39 @@
 
 		<project>: Properties: C/C++ General:
 			Paths and Symbols: Includes
-				GNU C
-					${IDF_PATH}/components/freertos/include
+				Includes
+					GNU C
+					GNU C++
+						${IDF_PATH}/components/asio/asio/asio/include
+						${IDF_PATH}/components/asio/port/include
+						${IDF_PATH}/components/driver/include
+						${IDF_PATH}/components/esp32/include
+						${IDF_PATH}/components/esp_event/include
+						${IDF_PATH}/components/esp_http_client/include
+						${IDF_PATH}/components/esp_http_server/include
+						${IDF_PATH}/components/esp_https_ota/include
+						${IDF_PATH}/components/esp_ringbuf/include
+						${IDF_PATH}/components/freertos/include
+						${IDF_PATH}/components/heap/include
+						${IDF_PATH}/components/log/include
+						${IDF_PATH}/components/lwip/include/apps
+						${IDF_PATH}/components/lwip/port/esp32/include
+						${IDF_PATH}/components/lwip/lwip/src/include
+						${IDF_PATH}/components/newlib/platform_include
+						${IDF_PATH}/components/nvs_flash/include
+						${IDF_PATH}/components/nghttp/port/include
+						${IDF_PATH}/components/openssl/include
+						${IDF_PATH}/components/soc/esp32/include
+						${IDF_PATH}/components/soc/include
+						${IDF_PATH}/components/spi_flash/include
+						${IDF_PATH}/components/tcpip_adapter/include
+						${IDF_PATH}/components/vfs/include
+						${ProjDirPath}/build/include
+
+				#Symbols
+					GNU C
+					GNU C++
+						ESP_PLATFORM
 
 				Export Settings...
 					includePaths.xml
