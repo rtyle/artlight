@@ -45,8 +45,8 @@
 // this default event loop implementation seems to be in a transition
 // to a specialization of a more general event loop capability.
 
-class Event {
-public:
+namespace Event {
+
     class Observer {
     public:
 	typedef std::function<esp_err_t(system_event_t const *)> Observe;
@@ -81,7 +81,6 @@ public:
 	void unsubscribe(Observer const & observer);
     };
 
-
-};
+}
 
 #endif

@@ -20,6 +20,10 @@ private:
     void reconnect();
 
 public:
+
+    /// A Wifi::InitConfig is a wifi_init_config_t
+    /// with convenience setter methods that can be chained together.
+    /// The result can be used to call esp_wifi_init().
     struct InitConfig : public wifi_init_config_t {
     public:
 	static wifi_init_config_t const wifi_init_config_default;
@@ -47,6 +51,8 @@ public:
 	#undef setter
     };
 
+    /// A Wifi::InitConfig is a wifi_ap_config_t
+    /// with convenience setter methods that can be chained together.
     struct ApConfig : public wifi_ap_config_t {
     public:
 	ApConfig() : wifi_ap_config_t {} {}
@@ -66,6 +72,8 @@ public:
 	#undef setter
     };
 
+    /// A Wifi::InitConfig is a wifi_sta_config_t
+    /// with convenience setter methods that can be chained together.
     struct StaConfig : public wifi_sta_config_t {
     public:
 	StaConfig() : wifi_sta_config_t {} {}

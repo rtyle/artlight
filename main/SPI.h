@@ -8,6 +8,7 @@ namespace SPI {
 
 class Device;
 
+/// An SPI::Bus has an spi_host_device (on, perhaps, a DMA channel)
 class Bus {
 private:
     spi_host_device_t const host;
@@ -17,6 +18,10 @@ public:
     static spi_bus_config_t const NoConfig;	///< no pins
     static spi_bus_config_t const HspiConfig;	///< HSPI IOMUX pins
     static spi_bus_config_t const VspiConfig;	///< VSPI IOMUX pins
+
+    /// An SPI::Bus::Config is an spi_bus_config_t
+    /// with convenience setter methods that can be chained together.
+    /// The result can be used to construct an SPI::Bus object.
     struct Config : public spi_bus_config_t {
     public:
 	Config(spi_bus_config_t const & that);
@@ -43,12 +48,17 @@ public:
     ~Bus();
 };
 
+/// An SPI::Device has an spi_device_handle_t and is associated with an SPI::Bus
 class Device {
 private:
     Bus const * bus;
     spi_device_handle_t handle;
 
 public:
+
+    /// An SPI::Device::Config is an spi_device_interface_config_t
+    /// with convenience setter methods that can be chained together.
+    /// The result can be used to construct an SPI::Device object.
     struct Config : public spi_device_interface_config_t {
 	Config();
 	#define setter(name) Config & name##_(decltype(name));
@@ -78,8 +88,13 @@ public:
     ~Device();
 };
 
+/// An SPI::Transaction is constructed/configured for an SPI::Device.
 class Transaction {
 public:
+
+    /// An SPI::Transaction::Config is an spi_transaction_t
+    /// with convenience setter methods that can be chained together.
+    /// The result can be used to construct an SPI::Transaction object.
     struct Config : public spi_transaction_t {
     public:
 	Config();

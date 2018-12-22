@@ -6,11 +6,17 @@
 #include <esp_http_server.h>
 #include <http_parser.h>
 
+/// An Httpd instance has an httpd_handle_t to an HTTP server implementation.
 class Httpd {
 protected:
     char const *		name;
     httpd_handle_t const	handle;
+
 public:
+
+    /// An Httpd::Config is an httpd_config_t
+    /// with convenience setter methods that can be chained together.
+    /// The result can be used to construct an Httpd object.
     struct Config : public httpd_config_t {
     public:
 	Config(httpd_config_t const & that);
@@ -36,6 +42,7 @@ public:
 	#undef setter
     };
 
+    /// An Httpd::Uri binds a handler to a uri/method for an Httpd instance.
     struct Uri : public httpd_uri_t {
     public:
 	typedef std::function<esp_err_t(httpd_req_t *)> Handler;

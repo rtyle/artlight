@@ -38,6 +38,8 @@ public:
     virtual ~Task();
 };
 
+/// A StoppableTask is an abstraction for a derivation that can be stopped
+/// and joined.
 class StoppableTask : public Task {
 public:
     StoppableTask(

@@ -11,6 +11,14 @@
 
 #include "AsioTask.h"
 
+/// A ProvisionTask is an AsioTask that implements an HTTPS server
+/// in Wi-Fi Access Point (AP) mode
+/// for the purposes of provisioning in Wi-Fi station (STA) mode.
+/// Once the SSID and password of the target network have been provided,
+/// the ProvisionTask will switch to station mode.
+/// Successful transition to station mode should be detected
+/// and the ProvisionTask should be told to stop.
+/// This implementation predates esp-idf support for an esp_https_server.
 class ProvisionTask : public AsioTask {
 private:
     unsigned char const * const	cert;

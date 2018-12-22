@@ -10,6 +10,10 @@
 
 namespace I2C {
 
+/// An I2C::Config is an i2c_config_t
+/// with convenience setter methods that can be chained together.
+/// The result can be used to construct an I2C::Driver
+/// for an I2C::Master or I2C::Slave.
 struct Config : public i2c_config_t {
 public:
     Config();
@@ -29,6 +33,7 @@ public:
     #undef setter
 };
 
+/// An I2C::Driver has a port that is used by its I2C::Master or I2C::Slave
 class Driver {
 private:
     i2c_port_t const port;
@@ -44,8 +49,15 @@ public:
     ~Driver();
 };
 
+/// An I2C::Master is an I2C::Driver used to communicate as an I2C master
+/// with I2C::Master::Commands
 class Master : public Driver {
 public:
+
+    /// An I2C::Master::Commands is constructed for/by I2C::Master::commands()
+    /// to command an I2C slave.
+    /// The commands are configured by chaining together its Commands methods.
+    /// Communication occurs during Commands destruction.
     class Commands {
     private:
 	Master const &		master;
@@ -92,6 +104,7 @@ public:
 	bool		ack	= true) const;
 };
 
+/// An I2C::Master is an I2C::Driver used to communicate as an I2C slave.
 class Slave : public Driver {
 public:
     Slave(
