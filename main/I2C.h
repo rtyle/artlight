@@ -35,7 +35,7 @@ private:
 protected:
     Driver(
 	Config &	config,
-	i2c_port_t	port_,
+	i2c_port_t	port,
 	size_t		slaveModeReceiveBufferLength,
 	size_t		slaveModeTransmitBufferLength,
 	int		interruptAllocationFlags);
@@ -57,8 +57,8 @@ public:
 
     public:
 	Commands(
-	    Master const &	master_,
-	    uint8_t		address_,
+	    Master const &	master,
+	    uint8_t		address,
 	    TickType_t		wait	= portMAX_DELAY,
 	    bool		read	= false,
 	    bool		ack	= true);

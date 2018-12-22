@@ -34,9 +34,9 @@ public:
     };
 
     Bus(
-	spi_host_device_t	host_,		// HSPI_HOST or VSPI_HOST
+	spi_host_device_t	host,		// HSPI_HOST or VSPI_HOST
 	Config const &		config,
-	int			dmaChannel_	= 0);	// none, 1 or 2
+	int			dmaChannel	= 0);	// none, 1 or 2
 
     operator spi_host_device_t() const;
 
@@ -70,7 +70,7 @@ public:
     };
 
     Device (
-	Bus const *		bus_,
+	Bus const *		bus,
 	Config const &		config);
 
     operator spi_device_handle_t() const;
@@ -105,8 +105,8 @@ private:
 
 public:
     Transaction(
-	Device const &	device_,
-	Config &	config_);
+	Device const &	device,
+	Config &	config);
 
     ~Transaction();
 };
