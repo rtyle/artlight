@@ -59,6 +59,7 @@ private:
 public:
     Message() : start(0) {std::memset(pad, ~0, sizeof pad);}
     size_t length() const {return messageBits(size);}
+    void gamma();
 };
 
 // APA102 expects SPI clock to idle high (CPOL 1)
@@ -190,7 +191,15 @@ public:
     operator uint32_t () const;
 
     operator std::string () const;
+
+    uint32_t gamma() const;
 };
+
+template<size_t size> void Message<size>::gamma() {
+    for (uint32_t & e: encodings) {
+	e = LED<>(e).gamma();
+    }
+}
 
 }
 

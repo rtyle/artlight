@@ -331,6 +331,9 @@ public:
 	target += circleLength;
 
 	assert(target - message.encodings == sizeof message.encodings / sizeof *message.encodings);
+
+	// apply APA102 gamma correction to rendered message
+	message.gamma();
     }
 };
 
@@ -568,7 +571,7 @@ ClockArtTask::ClockArtTask(
     hourGlowObserver(keyValueBroker, "hourGlow", "#000000",
 	[this](char const * color){
 	    LED<unsigned> led(color);
-	    static unsigned constexpr brightest = 64;
+	    static unsigned constexpr brightest = 3 * 128;
 	    unsigned brightness = led.sum();
 	    if (brightest < brightness) {
 		std::string dimmed(LED<>(led * brightest / brightness));
