@@ -60,7 +60,7 @@ public:
 /// parameterized by its standard deviation (sigma) and mean.
 /// By default, the mean value is calculated
 /// so that the total area under the curve (probability) is 1.
-/// This can be overridden to get a curve with the same shape
+/// This can be overridden to get a curve with the same width
 /// but a different mean value.
 template <typename F = float> class Bell : public std::function<F(F)> {
 private:
@@ -485,17 +485,17 @@ void ClockArtTask::update() {
 	compose(
 	    std::function<LED<int>(float)>(
 		Ramp<LED<int>>(LED<int>(hourTail), LED<int>(hourMean))),
-	    Bell<float>(hourShape, 0.0f, 1.0f)
+	    Bell<float>(hourWidth, 0.0f, 1.0f)
 	),
 	compose(
 	    std::function<LED<int>(float)>(
 		Ramp<LED<int>>(LED<int>(minuteTail), LED<int>(minuteMean))),
-	    Bell<float>(minuteShape, 0.0f, 1.0f)
+	    Bell<float>(minuteWidth, 0.0f, 1.0f)
 	),
 	compose(
 	    std::function<LED<int>(float)>(
 		Ramp<LED<int>>(LED<int>(secondTail), LED<int>(secondMean))),
-	    Bell<float>(secondShape, 0.0f, 1.0f)
+	    Bell<float>(secondWidth, 0.0f, 1.0f)
 	));
     {
 	SPI::Transaction transaction1(spiDevice1, SPI::Transaction::Config()
@@ -543,15 +543,15 @@ ClockArtTask::ClockArtTask(
 	    });
 	}),
 
-    hourShape		(1.0f),
+    hourWidth		(1.0f),
     hourMean		(0u),
     hourTail		(0u),
     hourGlow		(0u),
-    hourShapeObserver(keyValueBroker, "hourShape", "2.7",
-	[this](char const * shapeObserved){
-	    float shape = fromString<float>(shapeObserved);
-	    io.post([this, shape](){
-		hourShape = shape;
+    hourWidthObserver(keyValueBroker, "hourWidth", "2.7",
+	[this](char const * widthObserved){
+	    float width = fromString<float>(widthObserved);
+	    io.post([this, width](){
+		hourWidth = width;
 	    });
 	}),
     hourMeanObserver(keyValueBroker, "hourMean", "#ff0000",
@@ -583,14 +583,14 @@ ClockArtTask::ClockArtTask(
 	    }
 	}),
 
-    minuteShape		(1.0f),
+    minuteWidth		(1.0f),
     minuteMean		(0u),
     minuteTail		(0u),
-    minuteShapeObserver(keyValueBroker, "minuteShape", "2.7",
-	[this](char const * shapeObserved){
-	    float shape = fromString<float>(shapeObserved);
-	    io.post([this, shape](){
-		minuteShape = shape;
+    minuteWidthObserver(keyValueBroker, "minuteWidth", "2.7",
+	[this](char const * widthObserved){
+	    float width = fromString<float>(widthObserved);
+	    io.post([this, width](){
+		minuteWidth = width;
 	    });
 	}),
     minuteMeanObserver(keyValueBroker, "minuteMean", "#0000ff",
@@ -608,14 +608,14 @@ ClockArtTask::ClockArtTask(
 	    });
 	}),
 
-    secondShape		(1.0f),
+    secondWidth		(1.0f),
     secondMean		(0u),
     secondTail		(0u),
-    secondShapeObserver(keyValueBroker, "secondShape", "1.4",
-	[this](char const * shapeObserved){
-	    float shape = fromString<float>(shapeObserved);
-	    io.post([this, shape](){
-		secondShape = shape;
+    secondWidthObserver(keyValueBroker, "secondWidth", "1.4",
+	[this](char const * widthObserved){
+	    float width = fromString<float>(widthObserved);
+	    io.post([this, width](){
+		secondWidth = width;
 	    });
 	}),
     secondMeanObserver(keyValueBroker, "secondMean", "#ffff00",
