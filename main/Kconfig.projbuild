@@ -1,19 +1,19 @@
 menu "artlight Configuration"
 
 config OTA_URL
-    string "Over the Air (OTA) update url endpoint"
+    string "Over the Air (OTA) Software Update URL"
     default "https://artlightserver:4433/artlight.bin"
     help
-        URL of server which hosts the firmware image.
+        URL of the service that provides our software update.
 
 config TIME_SERVERS
-    string "SNTP time servers"
+    string "SNTP Time Servers"
     default "pool.ntp.org"
     help
         Whitespace delimited names of SNTP servers.
 
 config TIME_ZONE
-    string "timezone"
+    string "Time Zone"
     default "PST+8PDT,M3.2.0/2,M11.1.0"
     help
        https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html
