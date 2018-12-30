@@ -18,7 +18,9 @@
 		</style>
 	</head>
 	<body>
-		<script src='http://code.jquery.com/jquery-3.3.1.js'></script>
+		<script src='http://code.jquery.com/jquery-3.3.1.js'
+			integrity='sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60='
+			crossorigin="anonymous"></script>
 		
 		<script>
 			$.fn.otherwise = function() {
@@ -56,28 +58,16 @@
 				$('#data'	)	.click(function() {fill('data'		)});
 				$('#dataDefault')	.click(function() {fill('dataDefault'	)});
 				$('input[type="checkbox"]').on('change', function(e) {$(this).next().val(0 + $(this).prop('checked'))});
+				$('input[type="color"]').on('input', function(e) {$.ajax({type:	'POST', data: {[$(this).attr('name')]: $(this).val()}})});
 			});
 		</script>
 
-		<H1>Preferences</H1>
+		<H1>Clock Preferences</H1>
 		<div>
 			<button id='dataDefault'>Fill with Default Values</button>
 			<button id='data'	>Fill with Current Values</button>
 		</div>
 		<form method='post'>
-			<fieldset>
-				<legend>Time Acquisition</legend>
-				<div>
-					<label class='tab0' for='timezone'>Time Zone</label>
-					<input type='text' id='timezone' name='timezone' minlength='5' maxlength='32' placeholder='GNU timezone specification'/>
-					<a href='https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html'>❓</a>
-				</div>
-				<div>
-					<label class='tab0' for='timeServers'>Time Servers</label>
-					<input type='text' id='timeServers' name='timeServers' minlength='8' maxlength='64' placeholder='whitespace delimited list'/>
-					<a href='https://www.ntppool.org/en/use.html'>❓</a>
-				</div>
-			</fieldset>
 			<fieldset>
 				<legend>Clock Presentation</legend>
 					<div>
@@ -112,6 +102,19 @@
 						<label for='secondTail'>Tail</label>
 						<input type='color' id='secondTail' name='secondTail'/>
 					</div>
+			</fieldset>
+			<fieldset>
+				<legend>Time Acquisition</legend>
+				<div>
+					<label class='tab0' for='timezone'>Time Zone</label>
+					<input type='text' id='timezone' name='timezone' minlength='5' maxlength='32' placeholder='GNU timezone specification'/>
+					<a href='https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html'>❓</a>
+				</div>
+				<div>
+					<label class='tab0' for='timeServers'>Time Servers</label>
+					<input type='text' id='timeServers' name='timeServers' minlength='8' maxlength='64' placeholder='whitespace delimited list'/>
+					<a href='https://www.ntppool.org/en/use.html'>❓</a>
+				</div>
 			</fieldset>
 			<fieldset>
 				<legend>Over the Air (OTA) Software Update</legend>
