@@ -220,6 +220,9 @@ public:
 	unsigned			tps,
 	float				dim,
 	LED<>				glow,
+	size_t				hw,
+	size_t				mw,
+	size_t				sw,
 	std::function<LED<int>(float)>	hf,
 	std::function<LED<int>(float)>	mf,
 	std::function<LED<int>(float)>	sf)
@@ -253,7 +256,7 @@ public:
 	    float dd = ud;
 	    Wrap<uint32_t> up(target, hpd, c), dp(up);
 	    *up = hf(ud) * dim;
-	    for (size_t z = 8; z--;) {
+	    for (size_t z = hw; z--;) {
 		*++up = hf(ud += 1) * dim;
 		*--dp = hf(dd -= 1) * dim;
 	    }
@@ -302,7 +305,7 @@ public:
 	    c += arcIndex[arc];
 	    Wrap<uint32_t> up(target, mph, c), dp(up);
 	    *up = mf(ud) * dim;
-	    for (size_t z = 8; z--;) {
+	    for (size_t z = mw; z--;) {
 		*++up = mf(ud += 1) * dim;
 		*--dp = mf(dd -= 1) * dim;
 	    }
@@ -322,7 +325,7 @@ public:
 	    c += arcIndex[arc];
 	    Wrap<uint32_t> up(target, mph, c), dp(up);
 	    *up = LED<int>(*up).maxByPart(LED<int>(sf(ud)) * dim);
-	    for (size_t z = 4; z--;) {
+	    for (size_t z = sw; z--;) {
 		++up; *up = LED<int>(*up).maxByPart(LED<int>(sf(ud += 1)) * dim);
 		--dp; *dp = LED<int>(*dp).maxByPart(LED<int>(sf(dd -= 1)) * dim);
 	    }
@@ -482,6 +485,9 @@ void ClockArtTask::update() {
 	millisecondsPerSecond,
 	dim,
 	hourGlow,
+	2 * hourWidth	+ 0.5f,
+	2 * minuteWidth + 0.5f,
+	2 * secondWidth + 0.5f,
 	compose(
 	    std::function<LED<int>(float)>(
 		Ramp<LED<int>>(LED<int>(hourTail), LED<int>(hourMean))),
