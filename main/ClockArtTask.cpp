@@ -553,7 +553,7 @@ ClockArtTask::ClockArtTask(
     hourMean		(0u),
     hourTail		(0u),
     hourGlow		(0u),
-    hourWidthObserver(keyValueBroker, "hourWidth", "2.7",
+    hourWidthObserver(keyValueBroker, "hourWidth", "4",
 	[this](char const * widthObserved){
 	    float width = fromString<float>(widthObserved);
 	    io.post([this, width](){
@@ -592,7 +592,7 @@ ClockArtTask::ClockArtTask(
     minuteWidth		(1.0f),
     minuteMean		(0u),
     minuteTail		(0u),
-    minuteWidthObserver(keyValueBroker, "minuteWidth", "2.7",
+    minuteWidthObserver(keyValueBroker, "minuteWidth", "4",
 	[this](char const * widthObserved){
 	    float width = fromString<float>(widthObserved);
 	    io.post([this, width](){
@@ -617,7 +617,7 @@ ClockArtTask::ClockArtTask(
     secondWidth		(1.0f),
     secondMean		(0u),
     secondTail		(0u),
-    secondWidthObserver(keyValueBroker, "secondWidth", "1.4",
+    secondWidthObserver(keyValueBroker, "secondWidth", "2",
 	[this](char const * widthObserved){
 	    float width = fromString<float>(widthObserved);
 	    io.post([this, width](){
