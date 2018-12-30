@@ -7,7 +7,12 @@
 LuxMonitorTask::LuxMonitorTask(I2C::Master const * i2cMaster)
 :
     AsioTask("luxMonitorTask", 5, 4096, 0),
-    tsl2561(i2cMaster, TSL2561::I2cAddress::floating),
+    tsl2561(i2cMaster, TSL2561::I2cAddress::floating,
+	// using the fastest integration time
+	// * shortens our reaction time to changing brightness
+	// * lessens the chance for TSL2561 overflow
+	// * reduces accuracy somewhat measuring a constant brightness
+	TSL2561::IntegrationTime::fastest),
     lux{0}
 {}
 

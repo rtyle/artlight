@@ -477,9 +477,12 @@ std::function<C(A)> compose(
 
 void ClockArtTask::update() {
     // dim factor is calculated as a function of the current ambient lux.
-    // this will range from 1/16 to 16/16 with the numerator increasing by
-    // 1 as the lux doubles.
-    float dim = (1.0f + std::min(15.0f, std::log2(1.0f + getLux()))) / 16.0f;
+    // this will range from 3/16 to 16/16 with the numerator increasing by
+    // 1 as the lux doubles up until 2^13 (~full daylight, indirect sun).
+    // an LED value of 128 will be dimmed to 24 in complete darkness (lux 0)
+    // which will be APA102 gamma corrected to 1.
+    float dim = (3.0f + std::min(13.0f, std::log2(1.0f + getLux()))) / 16.0f;
+
     Rendering rendering(
 	smoothTime.millisecondsSinceTwelveLocaltime(),
 	millisecondsPerSecond,
