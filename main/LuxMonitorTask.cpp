@@ -19,6 +19,7 @@ LuxMonitorTask::LuxMonitorTask(I2C::Master const * i2cMaster)
 void LuxMonitorTask::update() {
     try {
 	lux = tsl2561.getLux();
+//	ESP_LOGI(name, "lux %f", static_cast<float>(lux));
     } catch (esp_err_t & e) {
 	ESP_LOGE(name, "error %x", e);
     }
