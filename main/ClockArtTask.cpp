@@ -298,8 +298,8 @@ public:
 	    size_t arc = c / arcIndex.maxRowSize;
 	    c -= arc * arcIndex.maxRowSize;
 	    float ud = - std::modf(c * arcIndex.size(arc) / arcIndex.maxRowSize, &c);
-	    if (-0.5f > ud) {
-		c += 1;
+	    if (-0.5f >= ud) {
+		++c;
 		ud += 1;
 	    }
 	    float dd = ud;
@@ -314,17 +314,17 @@ public:
 
 	// mix seconds over minutes
 	{
-	    float c = mp(M.part) * maxCircleLength;
+	    float c = sp(M.part) * maxCircleLength;
 	    size_t arc = c / arcIndex.maxRowSize;
 	    c -= arc * arcIndex.maxRowSize;
 	    float ud = - std::modf(c * arcIndex.size(arc) / arcIndex.maxRowSize, &c);
-	    if (-0.5f > ud) {
-		c += 1;
+	    if (-0.5f >= ud) {
+		++c;
 		ud += 1;
 	    }
 	    float dd = ud;
 	    c += arcIndex[arc];
-	    Wrap<uint32_t> up(target, mph, c), dp(up);
+	    Wrap<uint32_t> up(target, spm, c), dp(up);
 	    *up = LED<int>(*up).maxByPart(LED<int>(sf(ud)) * dim);
 	    for (size_t z = sw; z--;) {
 		++up; *up = LED<int>(*up).maxByPart(LED<int>(sf(ud += 1)) * dim);
