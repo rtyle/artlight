@@ -112,6 +112,24 @@ public:
 	nibble(c[5]) << 4 | nibble(c[6]))
     {}
 
+    T min() const {return part.red < part.green
+	    ? part.red < part.blue
+		? part.red
+		: part.blue
+	    : part.green < part.blue
+		? part.green
+		: part.blue;
+    }
+
+    T max() const {return part.red > part.green
+	    ? part.red > part.blue
+		? part.red
+		: part.blue
+	    : part.green > part.blue
+		? part.green
+		: part.blue;
+    }
+
     T sum() const {return part.red + part.green + part.blue;}
 
     T average() const {return sum() / 3;}
@@ -196,9 +214,7 @@ public:
 };
 
 template<size_t size> void Message<size>::gamma() {
-    for (uint32_t & e: encodings) {
-	e = LED<>(e).gamma();
-    }
+    for (auto & e: encodings) e = LED<>(e).gamma();
 }
 
 }
