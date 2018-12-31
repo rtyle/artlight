@@ -275,10 +275,11 @@ public:
 		    *target++ = *source++;
 		source += rayFoldLength;
 	    }
-	    // mix in background glow
+	    // add background glow where dimmest
 	    LED<> background = glow * dim;
+	    static uint8_t constexpr dimmest = 24;
 	    for (auto & e: unfolded) {
-		e = LED<>(e).maxByPart(background);
+		if (LED<>(e).max() < dimmest) e = background;
 	    }
 	    // transfer folded part of rendering into message
 	    size_t foldedSize = target - unfolded;
