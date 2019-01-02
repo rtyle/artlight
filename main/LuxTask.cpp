@@ -2,11 +2,11 @@
 
 #include "Timer.h"
 
-#include "LuxMonitorTask.h"
+#include "LuxTask.h"
 
-LuxMonitorTask::LuxMonitorTask(I2C::Master const * i2cMaster)
+LuxTask::LuxTask(I2C::Master const * i2cMaster)
 :
-    AsioTask("luxMonitorTask", 5, 4096, 0),
+    AsioTask("luxTask", 5, 4096, 0),
     tsl2561(i2cMaster, TSL2561::I2cAddress::floating,
 	// using the fastest integration time
 	// * shortens our reaction time to changing brightness
@@ -16,7 +16,7 @@ LuxMonitorTask::LuxMonitorTask(I2C::Master const * i2cMaster)
     lux{0}
 {}
 
-void LuxMonitorTask::update() {
+void LuxTask::update() {
     try {
 	lux = tsl2561.getLux();
 //	ESP_LOGI(name, "lux %f", static_cast<float>(lux));
@@ -25,7 +25,7 @@ void LuxMonitorTask::update() {
     }
 }
 
-/* virtual */ void LuxMonitorTask::run() {
+/* virtual */ void LuxTask::run() {
     // asio timers are not supported
     // adapt a FreeRTOS timer to post timeout to this task.
     Timer updateTimer(name,
@@ -48,4 +48,4 @@ void LuxMonitorTask::update() {
     AsioTask::run();
 }
 
-float LuxMonitorTask::getLux() {return lux;}
+float LuxTask::getLux() {return lux;}

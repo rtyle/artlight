@@ -1,5 +1,5 @@
-#ifndef LuxMonitorTask_h_
-#define LuxMonitorTask_h_
+#ifndef LuxTask_h_
+#define LuxTask_h_
 
 #include <atomic>
 
@@ -9,7 +9,7 @@
 
 /// continually monitor the ambient lux level
 /// and provide the latest measurement.
-class LuxMonitorTask : public AsioTask {
+class LuxTask : public AsioTask {
 private:
     TSL2561		tsl2561;
     std::atomic<float>	lux;
@@ -17,7 +17,7 @@ private:
     void update();
 
 public:
-    LuxMonitorTask(I2C::Master const * i2cMaster);
+    LuxTask(I2C::Master const * i2cMaster);
 
     /* virtual */ void run() override;
 

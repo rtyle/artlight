@@ -6,7 +6,7 @@
 #include "ClockArtTask.h"
 #include "Event.h"
 #include "I2C.h"
-#include "LuxMonitorTask.h"
+#include "LuxTask.h"
 #include "NVSKeyValueBroker.h"
 #include "OtaTask.h"
 #include "ProvisionTask.h"
@@ -97,7 +97,7 @@ public:
     Wifi wifi;
 
     I2C::Master const i2cMaster;
-    LuxMonitorTask luxMonitorTask;
+    LuxTask luxTask;
 
     SPI::Bus const spiBus1;
     SPI::Bus const spiBus2;
@@ -149,7 +149,7 @@ public:
 		.scl_io_num_(GPIO_NUM_22) //.scl_pullup_en_(GPIO_PULLUP_ENABLE)
 		.master_clk_speed_(400000),	// I2C fast mode
 	    I2C_NUM_0, 0),
-	luxMonitorTask(&i2cMaster),
+	luxTask(&i2cMaster),
 
 	spiBus1(HSPI_HOST, SPI::Bus::Config()
 		.mosi_io_num_(SPI::Bus::HspiConfig.mosi_io_num)
@@ -160,7 +160,7 @@ public:
 		.sclk_io_num_(SPI::Bus::VspiConfig.sclk_io_num),
 	    2),
 	clockArtTask(&spiBus1, &spiBus2,
-	    [this](){return luxMonitorTask.getLux();},
+	    [this](){return luxTask.getLux();},
 	    keyValueBroker)
     {
 	std::setlocale(LC_ALL, "en_US.utf8");
@@ -172,7 +172,7 @@ public:
 
 	disconnected.reset(new Disconnected(*this));
 
-	luxMonitorTask.start();
+	luxTask.start();
 
 	clockArtTask.start();
     }
