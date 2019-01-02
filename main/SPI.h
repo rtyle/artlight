@@ -1,5 +1,5 @@
-#ifndef SPI_h__
-#define SPI_h__
+#ifndef SPI_h_
+#define SPI_h_
 
 #include <driver/spi_common.h>
 #include <driver/spi_master.h>

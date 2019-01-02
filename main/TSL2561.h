@@ -1,5 +1,5 @@
-#ifndef TSL2561_h__
-#define TSL2561_h__
+#ifndef TSL2561_h_
+#define TSL2561_h_
 
 #include <cstdint>
 
