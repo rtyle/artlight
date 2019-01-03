@@ -33,9 +33,10 @@ void LuxTask::update() {
     try {
 	// longer integration times and/or brighter light
 	// risk overflowing (wrapping) the TSL2561's counters.
-	// to address this, the brightest light should be addressed with the
+	// to address this, the brightest light should be measured with the
 	// shortest integration time.
-	// manually, using our timer, we can't do better than the automatic
+	// manually, using our timer (10ms tick resolution),
+	// we can not do better than the automatic
 	// TSL2561::IntegrationTime::fastest (13.7ms).
 	// we cycle through all automatic integration times
 	// and trust the largest result.
