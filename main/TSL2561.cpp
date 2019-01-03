@@ -234,7 +234,7 @@ static float normalIntegrationTime = 402.0f;
 static float constexpr normalizeFrom[] = {
     322.0f / 11.0f,	// 0, fastest
     322.0f / 81.0f,	// 1, faster
-    1.0f			// 2, normal
+    1.0f		// 2, normal
 };
 
 unsigned TSL2561::getIntegrationTime() {

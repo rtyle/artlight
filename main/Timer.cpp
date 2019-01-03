@@ -33,7 +33,7 @@ Timer::Timer(
 }
 
 void Timer::start() {
-    ESP_LOGI(name, "Timer::start");
+//  ESP_LOGI(name, "Timer::start");
     xTimerStart(timerHandle, portMAX_DELAY);
 }
 
@@ -43,7 +43,7 @@ void Timer::stop() {
 }
 
 void Timer::setPeriod(TickType_t period) {
-    ESP_LOGI(name, "Timer::change %u", period);
+//  ESP_LOGI(name, "Timer::change %u", period);
     xTimerChangePeriod(timerHandle, period, portMAX_DELAY);
 }
 
