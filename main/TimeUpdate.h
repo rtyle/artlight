@@ -1,5 +1,4 @@
-#ifndef TimeUpdate_h_
-#define TimeUpdate_h_
+#pragma once
 
 #include <vector>
 
@@ -23,5 +22,3 @@ public:
 
     ~TimeUpdate();
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef KeyValueBroker_h_
-#define KeyValueBroker_h_
+#pragma once
 
 #include <map>
 #include <mutex>
@@ -59,6 +58,3 @@ private:
     void subscribe(Observer const & observer);
     void unsubscribe(Observer const & observer);
 };
-
-
-#endif

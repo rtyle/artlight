@@ -1,5 +1,4 @@
-#ifndef percentDecode_h_
-#define percentDecode_h_
+#pragma once
 
 #include <cstdlib>
 
@@ -17,5 +16,3 @@ void percentDecode(
     char const * &	source,
     char		delimeter,
     size_t		size = ~0);
-
-#endif

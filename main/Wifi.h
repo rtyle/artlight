@@ -1,5 +1,4 @@
-#ifndef Wifi_h_
-#define Wifi_h_
+#pragma once
 
 #include <cstring>
 
@@ -100,5 +99,3 @@ public:
 
     void start();
 };
-
-#endif

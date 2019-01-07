@@ -1,5 +1,4 @@
-#ifndef APA102_h_
-#define APA102_h_
+#pragma once
 
 #include <cstdint>
 #include <cstring>
@@ -218,5 +217,3 @@ template<size_t size> void Message<size>::gamma() {
 }
 
 }
-
-#endif

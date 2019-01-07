@@ -1,5 +1,4 @@
-#ifndef ClockArtTask_h_
-#define ClockArtTask_h_
+#pragma once
 
 #include <functional>
 
@@ -66,5 +65,3 @@ public:
 
     /* virtual */ ~ClockArtTask() override;
 };
-
-#endif

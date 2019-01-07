@@ -1,5 +1,4 @@
-#ifndef Timer_h_
-#define Timer_h_
+#pragma once
 
 #include <functional>
 
@@ -32,5 +31,3 @@ public:
 
     ~Timer();
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef Event_h_
-#define Event_h_
+#pragma once
 
 #include <functional>
 #include <map>
@@ -82,5 +81,3 @@ namespace Event {
     };
 
 }
-
-#endif

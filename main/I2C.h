@@ -1,5 +1,4 @@
-#ifndef I2C_h_
-#define I2C_h_
+#pragma once
 
 #include <cstdint>
 #include <cstdlib>
@@ -120,4 +119,3 @@ public:
 };
 
 }
-#endif

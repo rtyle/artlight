@@ -1,5 +1,4 @@
-#ifndef Error_h_
-#define Error_h_
+#pragma once
 
 #include <esp_err.h>
 
@@ -15,5 +14,3 @@ template<typename T = esp_err_t, T is = ESP_FAIL>
 static inline T throwIfIs(T t) {if (is == t) throw t; return t;}
 
 }
-
-#endif

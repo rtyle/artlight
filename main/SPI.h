@@ -1,5 +1,4 @@
-#ifndef SPI_h_
-#define SPI_h_
+#pragma once
 
 #include <driver/spi_common.h>
 #include <driver/spi_master.h>
@@ -127,5 +126,3 @@ public:
 };
 
 }
-
-#endif

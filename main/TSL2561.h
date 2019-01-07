@@ -1,5 +1,4 @@
-#ifndef TSL2561_h_
-#define TSL2561_h_
+#pragma once
 
 #include <cstdint>
 
@@ -74,5 +73,3 @@ public:
 
     virtual ~TSL2561();
 };
-
-#endif

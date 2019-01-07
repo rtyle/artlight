@@ -1,5 +1,4 @@
-#ifndef Preferences_h_
-#define Preferences_h_
+#pragma once
 
 #include "Httpd.h"
 #include "KeyValueBroker.h"
@@ -63,5 +62,3 @@ public:
 	char const *		favicon,
 	size_t			faviconSize);
 };
-
-#endif

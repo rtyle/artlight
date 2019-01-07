@@ -1,5 +1,4 @@
-#ifndef LuxTask_h_
-#define LuxTask_h_
+#pragma once
 
 #include <atomic>
 
@@ -27,5 +26,3 @@ public:
 
     float getLux();
 };
-
-#endif

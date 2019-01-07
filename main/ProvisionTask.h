@@ -1,5 +1,4 @@
-#ifndef ProvisionTask_h_
-#define ProvisionTask_h_
+#pragma once
 
 #include <memory>
 
@@ -49,5 +48,3 @@ public:
 
     /* virtual */ ~ProvisionTask();
 };
-
-#endif

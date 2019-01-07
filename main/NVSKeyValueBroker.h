@@ -1,5 +1,4 @@
-#ifndef NVSKeyValueBroker_h_
-#define NVSKeyValueBroker_h_
+#pragma once
 
 #include <string>
 
@@ -19,5 +18,3 @@ public:
     NVSKeyValueBroker(char const * name);
     ~NVSKeyValueBroker();
 };
-
-#endif

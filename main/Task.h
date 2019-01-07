@@ -1,5 +1,4 @@
-#ifndef Task_h_
-#define Task_h_
+#pragma once
 
 #include <cstdlib>
 
@@ -54,5 +53,3 @@ public:
 
     virtual void stop(bool join = true) = 0;
 };
-
-#endif

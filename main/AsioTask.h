@@ -1,5 +1,4 @@
-#ifndef AsioTask_h_
-#define AsioTask_h_
+#pragma once
 
 #include <asio.hpp>
 
@@ -35,5 +34,3 @@ public:
 
     virtual ~AsioTask();
 };
-
-#endif

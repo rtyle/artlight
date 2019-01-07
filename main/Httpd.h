@@ -1,5 +1,4 @@
-#ifndef Httpd_h_
-#define Httpd_h_
+#pragma once
 
 #include <functional>
 
@@ -66,5 +65,3 @@ public:
 
     virtual ~Httpd();
 };
-
-#endif

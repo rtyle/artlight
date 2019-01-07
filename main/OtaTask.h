@@ -1,5 +1,4 @@
-#ifndef OtaTask_h_
-#define OtaTask_h_
+#pragma once
 
 #include "AsioTask.h"
 #include "KeyValueBroker.h"
@@ -28,5 +27,3 @@ public:
 
     /* virtual */ ~OtaTask() override;
 };
-
-#endif
