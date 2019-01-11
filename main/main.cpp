@@ -2,8 +2,8 @@
 
 #include <nvs_flash.h>
 
+#include "ArtLight.h"
 #include "AsioTask.h"
-#include "ClockArtTask.h"
 #include "Event.h"
 #include "I2C.h"
 #include "LuxTask.h"
@@ -101,7 +101,8 @@ public:
 
     SPI::Bus const spiBus1;
     SPI::Bus const spiBus2;
-    ClockArtTask clockArtTask;
+
+    ArtLight artLight;
 
     Main()
     :
@@ -159,7 +160,7 @@ public:
 		.mosi_io_num_(SPI::Bus::VspiConfig.mosi_io_num)
 		.sclk_io_num_(SPI::Bus::VspiConfig.sclk_io_num),
 	    2),
-	clockArtTask(&spiBus1, &spiBus2,
+	artLight(&spiBus1, &spiBus2,
 	    [this](){return luxTask.getLux();},
 	    keyValueBroker)
     {
@@ -174,7 +175,7 @@ public:
 
 	luxTask.start();
 
-	clockArtTask.start();
+	artLight.artTask->start();
     }
 
     ~Main() {}

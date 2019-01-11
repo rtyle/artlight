@@ -2,17 +2,10 @@
 
 #include <functional>
 
-#include "AsioTask.h"
-#include "KeyValueBroker.h"
-#include "SPI.h"
+#include "ArtTask.h"
 
-class ClockArtTask : public AsioTask {
+class ClockArtTask : public ArtTask {
 private:
-    SPI::Device const			spiDevice1;
-    SPI::Device const			spiDevice2;
-    std::function<float()> const	getLux;
-    KeyValueBroker &			keyValueBroker;
-
     KeyValueBroker::Observer const	timezoneObserver;
 
     float				hourWidth;
