@@ -63,47 +63,13 @@
 			});
 		</script>
 
-		<H1>Clock Preferences</H1>
+		<H1>Preferences</H1>
 		<div>
 			<button id='dataDefault'>Fill with Default Values</button>
 			<button id='data'	>Fill with Current Values</button>
 		</div>
 		<form method='post'>
-			<fieldset>
-				<legend>Clock Presentation</legend>
-					<div>
-						<span class='tab0'>Hour</span>
-						<label for='hourWidth'>Width</label>
-						<input type='number' id='hourWidth' name='hourWidth' min='1.0' max='10.0' step='0.1'/>
-						<a href='https://en.wikipedia.org/wiki/Standard_deviation'>❓</a>
-						<label for='hourMean'>Color</label>
-						<input type='color' id='hourMean' name='hourMean'/>
-						<label for='hourTail'>Fades To</label>
-						<input type='color' id='hourTail' name='hourTail'/>
-						<label for='hourGlow'>Over</label>
-						<input type='color' id='hourGlow' name='hourGlow'/>
-					</div>
-					<div>
-						<span class='tab0'>Minute</span>
-						<label for='minuteWidth'>Width</label>
-						<input type='number' id='minuteWidth' name='minuteWidth' min='1.0' max='10.0' step='0.1'/>
-						<a href='https://en.wikipedia.org/wiki/Standard_deviation'>❓</a>
-						<label for='minuteMean'>Color</label>
-						<input type='color' id='minuteMean' name='minuteMean'/>
-						<label for='minuteTail'>Fades To</label>
-						<input type='color' id='minuteTail' name='minuteTail'/>
-					</div>
-					<div>
-						<span class='tab0'>Second</span>
-						<label for='secondWidth'>Width</label>
-						<input type='number' id='secondWidth' name='secondWidth' min='1.0' max='10.0' step='0.1'/>
-						<a href='https://en.wikipedia.org/wiki/Standard_deviation'>❓</a>
-						<label for='secondMean'>Color</label>
-						<input type='color' id='secondMean' name='secondMean'/>
-						<label for='secondTail'>Fades To</label>
-						<input type='color' id='secondTail' name='secondTail'/>
-					</div>
-			</fieldset>
+include(__file__.clock)dnl
 			<fieldset>
 				<legend>Time Acquisition</legend>
 				<div>
