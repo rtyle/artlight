@@ -1,8 +1,12 @@
 #pragma once
 
-#include <functional>
-
 #include "ArtTask.h"
+
+#ifdef DerivedArtTask
+    #error DerivedArtTask defined
+#else
+    #define DerivedArtTask ClockArtTask
+#endif
 
 class ClockArtTask : public ArtTask {
 private:

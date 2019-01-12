@@ -2,7 +2,7 @@
 
 #include <nvs_flash.h>
 
-#include "ArtLight.h"
+#include "ArtTask.h"
 #include "AsioTask.h"
 #include "Event.h"
 #include "I2C.h"
@@ -14,6 +14,10 @@
 #include "SPI.h"
 #include "TimeUpdate.h"
 #include "Wifi.h"
+
+// DerivedArtTask_h must be defined as the include file that declares
+// the DerivedArtTask class
+#include DerivedArtTask_h
 
 // COMPONENT_EMBED_FILES start
 extern char const preferencesFavicon0[]
@@ -102,7 +106,7 @@ public:
     SPI::Bus const spiBus1;
     SPI::Bus const spiBus2;
 
-    ArtLight artLight;
+    std::unique_ptr<ArtTask> artTask;
 
     Main()
     :
@@ -160,9 +164,9 @@ public:
 		.mosi_io_num_(SPI::Bus::VspiConfig.mosi_io_num)
 		.sclk_io_num_(SPI::Bus::VspiConfig.sclk_io_num),
 	    2),
-	artLight(&spiBus1, &spiBus2,
+	artTask(new DerivedArtTask(&spiBus1, &spiBus2,
 	    [this](){return luxTask.getLux();},
-	    keyValueBroker)
+	    keyValueBroker))
     {
 	std::setlocale(LC_ALL, "en_US.utf8");
 
@@ -175,7 +179,7 @@ public:
 
 	luxTask.start();
 
-	artLight.artTask->start();
+	artTask->start();
     }
 
     ~Main() {}

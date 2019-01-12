@@ -69,7 +69,7 @@
 			<button id='data'	>Fill with Current Values</button>
 		</div>
 		<form method='post'>
-include(__file__.clock)dnl
+include(__file__.ArtLightApplication())dnl
 			<fieldset>
 				<legend>Time Acquisition</legend>
 				<div>
