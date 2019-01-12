@@ -15,9 +15,9 @@
 #include "TimeUpdate.h"
 #include "Wifi.h"
 
-// DerivedArtTask_h must be defined as the include file that declares
+// ArtLightApplication_h must be defined as the include file that declares
 // the DerivedArtTask class
-#include DerivedArtTask_h
+#include ArtLightApplication_h
 
 // COMPONENT_EMBED_FILES start
 extern char const preferencesFavicon0[]

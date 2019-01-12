@@ -9,12 +9,14 @@ extern "C" int setenv(char const *, char const *, int);
 #include <esp_log.h>
 
 #include "APA102.h"
-#include "ClockArtTask.h"
+#include "Clock.h"
 #include "Timer.h"
 
 #include "fromString.h"
 
 using APA102::LED;
+
+namespace Clock {
 
 static auto constexpr millisecondsPerSecond	= 1000u;
 static auto constexpr millisecondsPerMinute	= 60u * millisecondsPerSecond;
@@ -390,7 +392,7 @@ public:
 // so, we will interpret it as such.
 extern "C" int64_t get_boot_time();
 
-ClockArtTask::SmoothTime::SmoothTime(char const * name_, size_t stepCount_)
+ArtTask::SmoothTime::SmoothTime(char const * name_, size_t stepCount_)
 :
     name(name_),
     stepCount(stepCount_),
@@ -400,7 +402,7 @@ ClockArtTask::SmoothTime::SmoothTime(char const * name_, size_t stepCount_)
     lastBootTime(get_boot_time())
 {}
 
-int64_t ClockArtTask::SmoothTime::microsecondsSinceEpoch() {
+int64_t ArtTask::SmoothTime::microsecondsSinceEpoch() {
     uint64_t microseconds = esp_timer_get_time();
     int64_t const thisBootTime = get_boot_time();
     if (thisBootTime != lastBootTime) {
@@ -454,7 +456,7 @@ int64_t ClockArtTask::SmoothTime::microsecondsSinceEpoch() {
     }
 }
 
-uint32_t ClockArtTask::SmoothTime::millisecondsSinceTwelveLocaltime() {
+uint32_t ArtTask::SmoothTime::millisecondsSinceTwelveLocaltime() {
     int64_t milliseconds
 	= microsecondsSinceEpoch() / microsecondsPerMillisecond;
 
@@ -476,7 +478,7 @@ std::function<C(A)> compose(
     return [f, g](A a) {return f(g(a));};
 }
 
-void ClockArtTask::update() {
+void ArtTask::update() {
     // dim factor is calculated as a function of the current ambient lux.
     // this will range from 3/16 to 16/16 with the numerator increasing by
     // 1 as the lux doubles up until 2^13 (~full daylight, indirect sun).
@@ -517,13 +519,13 @@ void ClockArtTask::update() {
     }
 }
 
-ClockArtTask::ClockArtTask(
+ArtTask::ArtTask(
     SPI::Bus const *		spiBus1,
     SPI::Bus const *		spiBus2,
     std::function<float()>	getLux_,
     KeyValueBroker &		keyValueBroker_)
 :
-    ArtTask		("clockArtTask", 5, 16384, 1,
+    ::ArtTask		("clockArtTask", 5, 16384, 1,
 			spiBus1, spiBus2, getLux_, keyValueBroker_),
 
     // timezone affects our notion of the localtime we present
@@ -630,7 +632,7 @@ ClockArtTask::ClockArtTask(
     smoothTime	("smoothTime", 4096)
 {}
 
-/* virtual */ void ClockArtTask::run() {
+/* virtual */ void ArtTask::run() {
     // asio timers are not supported
     // adapt a FreeRTOS timer to post timeout to this task.
     Timer updateTimer(name, 1, true, [this](){
@@ -648,7 +650,9 @@ ClockArtTask::ClockArtTask(
     AsioTask::run();
 }
 
-/* virtual */ ClockArtTask::~ClockArtTask() {
+/* virtual */ ArtTask::~ArtTask() {
     stop();
-    ESP_LOGI(name, "~ClockArtTask");
+    ESP_LOGI(name, "~Clock::ArtTask");
+}
+
 }

@@ -6,7 +6,7 @@
 ArtLightApplication ?= clock
 
 ifeq 'clock' '${ArtLightApplication}'
-	CPPFLAGS += -DDerivedArtTask_h=\"ClockArtTask.h\"
+	CPPFLAGS += -DArtLightApplication_h=\"Clock.h\"
 endif
 
 ${COMPONENT_BUILD_DIR}/%: ${COMPONENT_PATH}/%.m4; m4 -D ArtLightApplication=${ArtLightApplication} $? > $@

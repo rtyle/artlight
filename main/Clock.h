@@ -5,10 +5,12 @@
 #ifdef DerivedArtTask
     #error DerivedArtTask defined
 #else
-    #define DerivedArtTask ClockArtTask
+    #define DerivedArtTask Clock::ArtTask
 #endif
 
-class ClockArtTask : public ArtTask {
+namespace Clock {
+
+class ArtTask : public ::ArtTask {
 private:
     KeyValueBroker::Observer const	timezoneObserver;
 
@@ -52,7 +54,7 @@ private:
     void update();
 
 public:
-    ClockArtTask(
+    ArtTask(
 	SPI::Bus const *	spiBus1,
 	SPI::Bus const *	spiBus2,
 	std::function<float()>	getLux,
@@ -60,5 +62,7 @@ public:
 
     /* virtual */ void run() override;
 
-    /* virtual */ ~ClockArtTask() override;
+    /* virtual */ ~ArtTask() override;
 };
+
+}
