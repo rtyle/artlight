@@ -7,7 +7,6 @@
 
 #include "APA102.h"
 #include "Clock.h"
-#include "SmoothTime.h"
 #include "Timer.h"
 
 #include "fromString.h"
@@ -59,7 +58,7 @@ public:
 /// so that the total area under the curve (probability) is 1.
 /// This can be overridden to get a curve with the same width
 /// but a different mean value.
-template <typename F = float> class Bell : public std::function<F(F)> {
+template <typename F = float> class Bell {
 private:
     F const twoSigmaSquared;
     F const mean;
@@ -70,7 +69,7 @@ public:
 	twoSigmaSquared(2 * sigma * sigma),
 	mean(mean_),
 	meanValue(static_cast<F>(1.0)
-	    / std::sqrt(std::acos(static_cast<F>(-1.0)) /* pi */
+	    / std::sqrt(std::acos(-1.0f) /* pi */
 	    * twoSigmaSquared))
     {}
     Bell(F sigma, F mean_, F meanValue_) :
@@ -349,8 +348,6 @@ public:
 /* static */ Pulse<> const Rendering::mp(MPH);
 /* static */ Pulse<> const Rendering::sp(SPM);
 
-
-
 void ArtTask::update() {
     // dim factor is calculated as a function of the current ambient lux.
     // this will range from 3/16 to 16/16 with the numerator increasing by
@@ -396,99 +393,7 @@ ArtTask::ArtTask(
     KeyValueBroker &		keyValueBroker_)
 :
     ::ArtTask		("clockArtTask", 5, 16384, 1,
-			spiBus1, spiBus2, getLux_, keyValueBroker_),
-
-    hourWidth		(1.0f),
-    hourMean		(0u),
-    hourTail		(0u),
-    hourGlow		(0u),
-    hourWidthObserver(keyValueBroker, "hourWidth", "4",
-	[this](char const * widthObserved){
-	    float width = fromString<float>(widthObserved);
-	    io.post([this, width](){
-		hourWidth = width;
-	    });
-	}),
-    hourMeanObserver(keyValueBroker, "hourMean", "#ff0000",
-	[this](char const * color){
-	    LED<> led(color);
-	    io.post([this, led](){
-		hourMean = led;
-	    });
-	}),
-    hourTailObserver(keyValueBroker, "hourTail", "#000000",
-	[this](char const * color){
-	    LED<> led(color);
-	    io.post([this, led](){
-		hourTail = led;
-	    });
-	}),
-    hourGlowObserver(keyValueBroker, "hourGlow", "#000000",
-	[this](char const * color){
-	    LED<unsigned> led(color);
-	    static unsigned constexpr brightest = 3 * 128;
-	    unsigned brightness = led.sum();
-	    if (brightest < brightness) {
-		std::string dimmed(LED<>(led * brightest / brightness));
-		keyValueBroker.publish("hourGlow", dimmed.c_str());
-	    } else {
-		io.post([this, led](){
-		    hourGlow = led;
-		});
-	    }
-	}),
-
-    minuteWidth		(1.0f),
-    minuteMean		(0u),
-    minuteTail		(0u),
-    minuteWidthObserver(keyValueBroker, "minuteWidth", "4",
-	[this](char const * widthObserved){
-	    float width = fromString<float>(widthObserved);
-	    io.post([this, width](){
-		minuteWidth = width;
-	    });
-	}),
-    minuteMeanObserver(keyValueBroker, "minuteMean", "#0000ff",
-	[this](char const * color){
-	    LED<> led(color);
-	    io.post([this, led](){
-		minuteMean = led;
-	    });
-	}),
-    minuteTailObserver(keyValueBroker, "minuteTail", "#000000",
-	[this](char const * color){
-	    LED<> led(color);
-	    io.post([this, led](){
-		minuteTail = led;
-	    });
-	}),
-
-    secondWidth		(1.0f),
-    secondMean		(0u),
-    secondTail		(0u),
-    secondWidthObserver(keyValueBroker, "secondWidth", "2",
-	[this](char const * widthObserved){
-	    float width = fromString<float>(widthObserved);
-	    io.post([this, width](){
-		secondWidth = width;
-	    });
-	}),
-    secondMeanObserver(keyValueBroker, "secondMean", "#ffff00",
-	[this](char const * color){
-	    LED<> led(color);
-	    io.post([this, led](){
-		secondMean = led;
-	    });
-	}),
-    secondTailObserver(keyValueBroker, "secondTail", "#000000",
-	[this](char const * color){
-	    LED<> led(color);
-	    io.post([this, led](){
-		secondTail = led;
-	    });
-	}),
-
-    smoothTime	("smoothTime", 4096)
+			spiBus1, spiBus2, getLux_, keyValueBroker_)
 {}
 
 /* virtual */ void ArtTask::run() {
