@@ -13,6 +13,7 @@ extern "C" int setenv(char const *, char const *, int);
 #include "Timer.h"
 
 #include "fromString.h"
+#include "function.h"
 
 using APA102::LED;
 
@@ -472,12 +473,6 @@ uint32_t ArtTask::SmoothTime::millisecondsSinceTwelveLocaltime() {
 	+ (tm.tm_hour % 12) * millisecondsPerHour;
 }
 
-template <typename A, typename B, typename C>
-std::function<C(A)> compose(
-	std::function<C(B)> f, std::function<B(A)> g) {
-    return [f, g](A a) {return f(g(a));};
-}
-
 void ArtTask::update() {
     // dim factor is calculated as a function of the current ambient lux.
     // this will range from 3/16 to 16/16 with the numerator increasing by
@@ -494,15 +489,15 @@ void ArtTask::update() {
 	2 * hourWidth	+ 0.5f,
 	2 * minuteWidth + 0.5f,
 	2 * secondWidth + 0.5f,
-	compose<float, float, LED<int>>(
+	function::compose<float, float, LED<int>>(
 	    Ramp<LED<int>>(LED<int>(hourTail), LED<int>(hourMean)),
 	    Bell<float>(hourWidth, 0.0f, 1.0f)
 	),
-	compose<float, float, LED<int>>(
+	function::compose<float, float, LED<int>>(
 	    Ramp<LED<int>>(LED<int>(minuteTail), LED<int>(minuteMean)),
 	    Bell<float>(minuteWidth, 0.0f, 1.0f)
 	),
-	compose<float, float, LED<int>>(
+	function::compose<float, float, LED<int>>(
 	    Ramp<LED<int>>(LED<int>(secondTail), LED<int>(secondMean)),
 	    Bell<float>(secondWidth, 0.0f, 1.0f)
 	));
