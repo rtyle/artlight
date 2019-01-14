@@ -8,7 +8,7 @@ namespace function {
 //	C f(B)
 //	B g(A)
 //	A a
-//	C c = f(g(a));
+//	C c = f(g(a))
 template <typename A, typename B, typename C>
 std::function<C(A)> compose(
 	std::function<C(B)> f, std::function<B(A)> g) {
