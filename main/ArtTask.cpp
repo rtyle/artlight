@@ -1,3 +1,6 @@
+#include <stdlib.h>
+extern "C" int setenv(char const *, char const *, int);
+
 #include "APA102.h"
 #include "ArtTask.h"
 
@@ -29,5 +32,15 @@ ArtTask::ArtTask(
 
     getLux		(getLux_),
 
-    keyValueBroker	(keyValueBroker_)
+    keyValueBroker	(keyValueBroker_),
+
+    // timezone affects our notion of the localtime we present
+    // forward a copy of any update to our task to make a synchronous change
+    timezoneObserver(keyValueBroker, "timezone", CONFIG_TIME_ZONE,
+	    [this](char const * timezone){
+		std::string timezoneCopy(timezone);
+		io.post([timezoneCopy](){
+		    setenv("TZ", timezoneCopy.c_str(), true);
+		});
+	    })
 {}
