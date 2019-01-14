@@ -494,19 +494,16 @@ void ArtTask::update() {
 	2 * hourWidth	+ 0.5f,
 	2 * minuteWidth + 0.5f,
 	2 * secondWidth + 0.5f,
-	compose(
-	    std::function<LED<int>(float)>(
-		Ramp<LED<int>>(LED<int>(hourTail), LED<int>(hourMean))),
+	compose<float, float, LED<int>>(
+	    Ramp<LED<int>>(LED<int>(hourTail), LED<int>(hourMean)),
 	    Bell<float>(hourWidth, 0.0f, 1.0f)
 	),
-	compose(
-	    std::function<LED<int>(float)>(
-		Ramp<LED<int>>(LED<int>(minuteTail), LED<int>(minuteMean))),
+	compose<float, float, LED<int>>(
+	    Ramp<LED<int>>(LED<int>(minuteTail), LED<int>(minuteMean)),
 	    Bell<float>(minuteWidth, 0.0f, 1.0f)
 	),
-	compose(
-	    std::function<LED<int>(float)>(
-		Ramp<LED<int>>(LED<int>(secondTail), LED<int>(secondMean))),
+	compose<float, float, LED<int>>(
+	    Ramp<LED<int>>(LED<int>(secondTail), LED<int>(secondMean)),
 	    Bell<float>(secondWidth, 0.0f, 1.0f)
 	));
     {
