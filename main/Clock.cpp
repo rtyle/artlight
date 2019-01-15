@@ -65,7 +65,6 @@ private:
     F const meanValue;
 public:
     Bell(F sigma = 1, F mean_ = 0) :
-	std::function<F(F)>([this](F x){return (*this)(x);}),
 	twoSigmaSquared(2 * sigma * sigma),
 	mean(mean_),
 	meanValue(static_cast<F>(1.0)
