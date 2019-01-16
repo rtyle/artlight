@@ -11,7 +11,33 @@ using function::combine;
 
 namespace Ring {
 
-static float const pi = std::acos(-1.0f);
+typedef APA102::LED<int> LEDI;
+
+// implicit unsigned integral conversions
+// widen with zero extension and narrow by truncation
+// this explicit narrowing conversion
+// clips to max if larger and min if smaller.
+template <typename T, typename U>
+U clip(T t) {
+    U max = std::numeric_limits<U>::max();
+    if (t > static_cast<T>(max)) return max;
+    U min = std::numeric_limits<U>::min();
+    if (t < static_cast<T>(min)) return min;
+    return t;
+}
+
+template <typename T, typename U = uint8_t>
+LED<U> clip(LED<T> t) {
+    U max = std::numeric_limits<U>::max();
+    U min = std::numeric_limits<U>::min();
+    LED<T> maxT(max, max, max);
+    LED<T> minT(min, min, min);
+    return LED<U>(t.minByPart(maxT).maxByPart(minT));
+}
+
+static auto const pi = std::acos(-1.0f);
+
+static auto constexpr millisecondsPerSecond	= 1000u;
 
 template <typename T>
 class Dim {
@@ -38,7 +64,7 @@ public:
 static Sawtooth inSecondOf(1.0f);
 static Sawtooth inMinuteOf(60.0f);
 static Sawtooth inHourOf  (60.0f * 60.0f);
-static Sawtooth inDayOf   (60.0f * 60.0f * 12.0f);
+static Sawtooth inDayOf   (60.0f * 60.0f * 12.0f);	/// 12 hour clock
 
 /// Ramp is a function (object) that outputs a linear ramp between two output
 /// values of type T as its input goes from 0 to 1.
@@ -117,6 +143,58 @@ public:
     }
 };
 
+class Art {
+public:
+    virtual LEDI operator()(float place) const = 0;
+};
+
+/// Clock is Art that is constructed with the current time and
+/// for each hour, minute and second hand,
+/// the width, and color (of the center and edge).
+/// Subsequently, it may be used as a function object to return an LEDI
+/// for a specified place on a ring.
+class Clock : Art {
+private:
+    float const	hTime;
+    float const	mTime;
+    float const	sTime;
+    Ramp<LEDI>	hColor;
+    Ramp<LEDI>	mColor;
+    Ramp<LEDI>	sColor;
+    Bell	hShape;
+    Bell	mShape;
+    Bell	sShape;
+public:
+    Clock(
+	float		time,
+	float		hWidth,
+	uint32_t	hMeanColor,
+	uint32_t	hTailColor,
+	float		mWidth,
+	uint32_t	mMeanColor,
+	uint32_t	mTailColor,
+	float		sWidth,
+	uint32_t	sMeanColor,
+	uint32_t	sTailColor)
+    :
+	hTime	(inDayOf   (time)),
+	mTime	(inHourOf  (time)),
+	sTime	(inMinuteOf(time)),
+	hColor	(LEDI(hTailColor), LEDI(hMeanColor)),
+	mColor	(LEDI(mTailColor), LEDI(mMeanColor)),
+	sColor	(LEDI(sTailColor), LEDI(sMeanColor)),
+	hShape	(0.0f, 1.0f, hWidth),
+	mShape	(0.0f, 1.0f, mWidth),
+	sShape	(0.0f, 1.0f, sWidth)
+    {}
+    /*virtual */ LEDI operator()(float place) const {
+	return	  hColor(hShape(At(place, hTime)))
+		+ mColor(mShape(At(place, mTime)))
+		+ sColor(sShape(At(place, sTime)))
+	;
+    }
+};
+
 static LED<> gamma(LED<> led) {return led.gamma();}
 
 void ArtTask::update() {
@@ -130,43 +208,20 @@ void ArtTask::update() {
     static size_t constexpr circumference = 144;
     APA102::Message<circumference> message;
 
-    Ramp<LED<unsigned>> isr(LED<int>(0, 0, 0), LED<int>(128, 128, 128));
-    Ramp<LED<unsigned>> imr(LED<int>(0, 0, 0), LED<int>(255, 255,   0));
-    Ramp<LED<unsigned>> ihr(LED<int>(0, 0, 0), LED<int>(  0,   0, 255));
-    Ramp<LED<unsigned>> idr(LED<int>(0, 0, 0), LED<int>(255,   0,   0));
-
-    Bell iss(0.0f, 1.0f, 1.0f / circumference);
-    Bell ims(0.0f, 1.0f, 2.0f / circumference);
-    Bell ihs(0.0f, 1.0f, 4.0f / circumference);
-    Bell ids(0.0f, 1.0f, 8.0f / circumference);
-
-    auto isa([isr, iss](At at){return isr(iss(at));});
-    auto ima([imr, ims](At at){return imr(ims(at));});
-    auto iha([ihr, ihs](At at){return ihr(ihs(at));});
-    auto ida([idr, ids](At at){return idr(ids(at));});
-
-    float time =
-	static_cast<float>(smoothTime.millisecondsSinceTwelveLocaltime()) / 1000.0f
-	// esp_timer_get_time() / 1000000.0f
-    ;
-    float is(inSecondOf(time));
-    float im(inMinuteOf(time));
-    float ih(inHourOf  (time));
-    float id(inDayOf   (time));
+    Clock art(
+	static_cast<float>(smoothTime.millisecondsSinceTwelveLocaltime())
+	    / millisecondsPerSecond,
+	hourWidth   / circumference, hourMean  , hourTail  ,
+	minuteWidth / circumference, minuteMean, minuteTail,
+	secondWidth / circumference, secondMean, secondTail);
 
     size_t i = 0;
     for (auto & e: message.encodings) {
 	float place = static_cast<float>(i) / circumference;
-	e = gamma(dim([place, isa, ima, iha, ida, is, im, ih, id](){
-	    return LED<unsigned>(255, 255, 255).minByPart(
-		  isa(At(place, is))
-		+ ima(At(place, im))
-		+ iha(At(place, ih))
-		+ ida(At(place, id))
-		);
-	}()));
+	e = gamma(dim(clip<unsigned>(art(place))));
 	i++;
     }
+
     {
 	SPI::Transaction transaction1(spiDevice1, SPI::Transaction::Config()
 	    .tx_buffer_(&message)
