@@ -37,7 +37,7 @@ uint8_t nibble(char c);
 // in order to accommodate the delay after each LED,
 // the clock needs to cycle once more for every two LEDs.
 // for a message with one start word and N LED words.
-// the clock needs to cycle (1 + N) * 65 / 2 times.
+// the clock needs to cycle N * 65 / 2 times.
 // this is done by padding the data after the last LED.
 // the padded content does not matter much;
 // it just causes the clock to run longer.
@@ -45,7 +45,7 @@ uint8_t nibble(char c);
 // too little padding will result in data not reaching trailing LEDs.
 // too much padding will be wasted off the end.
 
-size_t constexpr messageBits(size_t size) {return (1 + size) * 65 / 2;}
+size_t constexpr messageBits(size_t size) {return size * 65 / 2;}
 
 template<size_t size>
 struct Message {
