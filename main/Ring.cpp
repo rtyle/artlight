@@ -143,16 +143,16 @@ public:
     }
 };
 
+/// Art is an abstract base class for a function object that can return
+/// and LEDI value for a specified place on a ring.
 class Art {
 public:
     virtual LEDI operator()(float place) const = 0;
 };
 
-/// Clock is Art that is constructed with the current time and
-/// for each hour, minute and second hand,
-/// the width, and color (of the center and edge).
-/// Subsequently, it may be used as a function object to return an LEDI
-/// for a specified place on a ring.
+/// Clock is Art that is constructed with the current time
+/// and the width & color (of the mean and tail(s))
+/// of each hour, minute and second hand.
 class Clock : Art {
 private:
     float const	hTime;
