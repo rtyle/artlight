@@ -205,7 +205,7 @@ void ArtTask::update() {
     // which will be APA102 gamma corrected to 1.
     Dim<LED<>> dim((3.0f + std::min(13.0f, std::log2(1.0f + getLux()))) / 16.0f);
 
-    static size_t constexpr circumference = 144;
+    static size_t constexpr circumference = 72;
     APA102::Message<circumference> message;
 
     Clock art(
