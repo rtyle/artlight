@@ -25,7 +25,6 @@ T constexpr sum(T const (&addends)[N]) {
 }
 #endif
 
-
 /// Pulse is a monotonically increasing function (object)
 /// for a floating type F that, when compared to its Identity function,
 /// pulses count times over a period of 1.
