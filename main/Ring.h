@@ -13,17 +13,8 @@
 
 namespace Ring {
 
-struct PT {
-public:
-    float const	p;
-    float const	t;
-    PT(float p_, float t_) : p(p_), t(t_) {}
-};
-
 class ArtTask : public ::ArtTask {
 private:
-    std::function<APA102::LED<>(PT)> art;
-
     void update();
 
 public:
