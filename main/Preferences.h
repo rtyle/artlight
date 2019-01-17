@@ -2,6 +2,7 @@
 
 #include "Httpd.h"
 #include "KeyValueBroker.h"
+#include "MDNS.h"
 
 // A Preferences object starts an HTTP server that serves
 //	* html at its root
@@ -50,6 +51,7 @@ private:
     KeyValueBroker &	keyValueBroker;
     char const * const	favicon;
     size_t const	faviconSize;
+    MDNS::Service	mdnsService;
     Httpd::Uri const	uri;
     Httpd::Uri const	uriPost;
     Httpd::Uri const	dataUri;

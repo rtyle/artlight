@@ -7,6 +7,7 @@
 #include "Event.h"
 #include "I2C.h"
 #include "LuxTask.h"
+#include "MDNS.h"
 #include "NVSKeyValueBroker.h"
 #include "OtaTask.h"
 #include "ProvisionTask.h"
@@ -75,12 +76,14 @@ public:
     class Connected {
     public:
 	Main & main;
+	MDNS mdns;
 	TimeUpdate timeUpdate;
 	OtaTask otaTask;
 	Preferences preferences;
 	Connected(Main & main_)
 	:
 	    main(main_),
+	    mdns(),
 	    timeUpdate("timeUpdate", main.keyValueBroker),
 	    otaTask(CONFIG_OTA_URL, otaCertificate, main.keyValueBroker),
 	    preferences(preferencesHtml, main.keyValueBroker,

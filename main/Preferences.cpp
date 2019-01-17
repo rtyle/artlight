@@ -24,6 +24,8 @@ Preferences::Preferences(
     favicon		(favicon_),
     faviconSize		(faviconSize_),
 
+    mdnsService		(nullptr, "_http", "_tcp", 80),
+
     uri(*this, "/", HTTP_GET, [this](httpd_req_t * req) {
 	httpd_resp_set_type(req, "text/html; charset=utf-8");
 	httpd_resp_send(req, html, strlen(html));
