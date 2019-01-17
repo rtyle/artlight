@@ -18,7 +18,7 @@ void Wifi::reconnect() {
 
 Wifi::Wifi(char const * name_, TickType_t reconnectTimeout) :
     name(name_),
-    reconnectTimer(name, reconnectTimeout, false, [this](){this->reconnect();}),
+    reconnectTimer(name, reconnectTimeout, true, [this](){this->reconnect();}),
     staStartObserver(SYSTEM_EVENT_STA_START,
 	    [this](system_event_t const * event)->esp_err_t{
         reconnect();

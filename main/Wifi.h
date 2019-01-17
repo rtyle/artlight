@@ -95,7 +95,7 @@ public:
 
     Wifi(
 	char const * name,
-	TickType_t reconnectTimeout = pdMS_TO_TICKS(8 * 60 * 1000));
+	TickType_t reconnectTimeout = pdMS_TO_TICKS(60 * 1000));
 
     void start();
 };
