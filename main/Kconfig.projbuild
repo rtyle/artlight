@@ -8,7 +8,7 @@ config OTA_URL
 
 config TIME_SERVERS
     string "SNTP Time Servers"
-    default "pool.ntp.org"
+    default "0.us.pool.ntp.org 1.us.pool.ntp.org 2.us.pool.ntp.org"
     help
         Whitespace delimited names of SNTP servers.
 
