@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include <esp_log.h>
 
 #include "Ring.h"
@@ -143,6 +145,95 @@ public:
     }
 };
 
+/// https://en.wikipedia.org/wiki/Sinc_function
+template <typename F>
+static F sinc(F x) {
+    if (0.0f == x) return 1.0f;
+    return std::sin(x) / x;
+}
+
+/// Ripple is a Moving (from a center with a speed)
+/// modified sinc(x) (sin(x)/x) curve
+/// whose output ranges from 0 to 1
+/// https://www.desmos.com/calculator/9ndsrd9psf
+class Ripple : public Moving {
+private:
+    float const width;
+public:
+    Ripple(
+	float center	= 0.0f,
+	float speed	= 0.0f,
+	float width_	= 1.0f)
+    :
+	Moving		(center, speed),
+	width		(width_)
+    {}
+    float operator()(At at) const {
+	float place = pi * std::abs(at.center(*this) / width);
+	if (1.0f / 2.0f > place) {
+	    return sinc(place);
+	} else {
+	    return (1.0f + std::sin(place)) / (2.0f * place);
+	}
+    }
+};
+
+/// Unbend is a function object that returns an LEDI
+/// at a, potentially, bent place on a ring.
+/// This base class reflects a perfect circular ring with no bends.
+class Unbend {
+protected:
+    std::function<LEDI(float)> unbent;
+public:
+    Unbend(std::function<LEDI(float)> unbent_) : unbent(unbent_) {}
+    virtual LEDI operator()(float place) const {return unbent(place);}
+};
+
+/// Unfold (as an Unbend) is a function object that returns an LEDI
+/// at a, potentially, folded place in a sector on a ring.
+/// It does this by finding LEDI value(s) at the associated place(s)
+/// in the unfolded sector(s).
+/// In a fold, the values at these unfolded places are combined.
+/// Each sector begins at the center of a fold
+/// and the fold may end before the sector does.
+class Unfold : public Unbend {
+private:
+    size_t const	sectors;	// sectors in ring
+    float const		fold;		// fold ending relative to the sector
+    float const		unfolds;
+    float toUnfolded(float folded) const {return unfolds * folded;}
+    float toRing(float sector) const {return sector / sectors;}
+public:
+    Unfold(
+	std::function<LEDI(float)>	unbent,
+	size_t		sectors_,
+	size_t		a,	// amount     in fold relative to a + b
+	size_t		b)	// amount not in fold relative to a + b
+    :
+	Unbend		(unbent),
+	sectors		(sectors_),
+	fold		(static_cast<float>(a) / (a + b)),
+	unfolds		(static_cast<float>(a + b) / (2 * a + b))
+    {}
+    LEDI operator()(float place) const {
+	float onSector;
+	float inFoldedSector = std::modf(sectors * place, &onSector);
+	float onRing = toRing(onSector);
+	float inUnfoldedRing = toRing(toUnfolded(inFoldedSector));
+	LEDI led = unbent(onRing + inUnfoldedRing);
+	if (inFoldedSector < fold) {
+	    if (0.0f == inUnfoldedRing) {
+		return led * 2;
+	    } else {
+		return led + unbent(
+		    (0.0f == onSector ? 1.0 : onRing) - inUnfoldedRing);
+	    }
+	} else {
+	    return led;
+	}
+    }
+};
+
 /// Art is an abstract base class for a function object that can return
 /// and LEDI value for a specified place on a ring.
 class Art {
@@ -153,6 +244,7 @@ public:
 /// Clock is Art that is constructed with the current time
 /// and the width & color (of the mean and tail(s))
 /// of each hour, minute and second hand.
+template <typename Shape>
 class Clock : Art {
 private:
     float const	hTime;
@@ -161,9 +253,9 @@ private:
     Ramp<LEDI>	hColor;
     Ramp<LEDI>	mColor;
     Ramp<LEDI>	sColor;
-    Bell	hShape;
-    Bell	mShape;
-    Bell	sShape;
+    Shape	hShape;
+    Shape	mShape;
+    Shape	sShape;
 public:
     Clock(
 	float		time,
@@ -195,7 +287,7 @@ public:
     }
 };
 
-static LED<> gamma(LED<> led) {return led.gamma();}
+// static LED<> gamma(LED<> led) {return led.gamma();}
 
 void ArtTask::update() {
     // dim factor is calculated as a function of the current ambient lux.
@@ -205,20 +297,32 @@ void ArtTask::update() {
     // which will be APA102 gamma corrected to 1.
     Dim<LED<>> dim((3.0f + std::min(13.0f, std::log2(1.0f + getLux()))) / 16.0f);
 
-    static size_t constexpr circumference = 72;
+    static size_t constexpr circumference = 144;
     APA102::Message<circumference> message;
 
-    Clock art(
+    Clock<Bell> art(
 	static_cast<float>(smoothTime.millisecondsSinceTwelveLocaltime())
 	    / millisecondsPerSecond,
 	hourWidth   / circumference, hourMean  , hourTail  ,
 	minuteWidth / circumference, minuteMean, minuteTail,
 	secondWidth / circumference, secondMean, secondTail);
 
+    #if 1
+	Unfold artUnbend(art, 12, 12, 0);
+    #else
+	Unbend artUnbend(art);
+    #endif
+
     size_t i = 0;
     for (auto & e: message.encodings) {
 	float place = static_cast<float>(i) / circumference;
-	e = gamma(dim(clip<unsigned>(art(place))));
+	e =
+	//gamma(
+	dim(
+	    clip<unsigned>(artUnbend(place))
+	)
+	//)
+	;
 	i++;
     }
 
