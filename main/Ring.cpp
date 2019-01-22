@@ -50,6 +50,30 @@ public:
     T operator()(T t) {return t * dim;}
 };
 
+/// Pulse is a monotonically increasing function (object)
+/// that, when compared to its Identity function,
+/// pulses count times over a period of 1.
+/// A count of 0 is the identity function.
+/// The function can be made to pulseFirst at 0 or not.
+class Pulse {
+private:
+    float const factor;
+    float const sign;
+public:
+    Pulse(float count = 1, bool pulseFirst = false) :
+	factor(count * 2 * pi),
+	sign(pulseFirst ? 1 : -1)
+    {}
+    float operator () (float x) const {
+	// factor in sin(x * factor) will adjust the frequency as needed.
+	// dividing the result by the same factor will adjust the magnitude
+	// such that the magnitude of the slope will never be less than -1.
+	// when adding this to a curve with a slope of 1 everywhere
+	// (the identity, x) this ensures the result monotonically increases.
+	return factor ? x + sign * std::sin(x * factor) / factor : x;
+    };
+};
+
 /// Sawtooth is a function object defined by its period.
 /// Its output ranges from 0 to <1.
 class Sawtooth {
@@ -178,62 +202,6 @@ public:
     }
 };
 
-/// Unbend is a function object that returns an LEDI
-/// at a, potentially, bent place on a ring.
-/// This base class reflects a perfect circular ring with no bends.
-class Unbend {
-protected:
-    std::function<LEDI(float)> unbent;
-public:
-    Unbend(std::function<LEDI(float)> unbent_) : unbent(unbent_) {}
-    virtual LEDI operator()(float place) const {return unbent(place);}
-};
-
-/// Unfold (as an Unbend) is a function object that returns an LEDI
-/// at a, potentially, folded place in a sector on a ring.
-/// It does this by finding LEDI value(s) at the associated place(s)
-/// in the unfolded sector(s).
-/// In a fold, the values at these unfolded places are combined.
-/// Each sector begins at the center of a fold
-/// and the fold may end before the sector does.
-class Unfold : public Unbend {
-private:
-    size_t const	sectors;	// sectors in ring
-    float const		fold;		// fold ending relative to the sector
-    float const		unfolds;
-    float toUnfolded(float folded) const {return unfolds * folded;}
-    float toRing(float sector) const {return sector / sectors;}
-public:
-    Unfold(
-	std::function<LEDI(float)>	unbent,
-	size_t		sectors_,
-	size_t		a,	// amount     in fold relative to a + b
-	size_t		b)	// amount not in fold relative to a + b
-    :
-	Unbend		(unbent),
-	sectors		(sectors_),
-	fold		(static_cast<float>(a) / (a + b)),
-	unfolds		(static_cast<float>(a + b) / (2 * a + b))
-    {}
-    LEDI operator()(float place) const {
-	float onSector;
-	float inFoldedSector = std::modf(sectors * place, &onSector);
-	float onRing = toRing(onSector);
-	float inUnfoldedRing = toRing(toUnfolded(inFoldedSector));
-	LEDI led = unbent(onRing + inUnfoldedRing);
-	if (inFoldedSector < fold) {
-	    if (0.0f == inUnfoldedRing) {
-		return led * 2;
-	    } else {
-		return led + unbent(
-		    (0.0f == onSector ? 1.0 : onRing) - inUnfoldedRing);
-	    }
-	} else {
-	    return led;
-	}
-    }
-};
-
 /// Art is an abstract base class for a function object that can return
 /// and LEDI value for a specified place on a ring.
 class Art {
@@ -245,7 +213,7 @@ public:
 /// and the width & color (of the mean and tail(s))
 /// of each hour, minute and second hand.
 template <typename Shape>
-class Clock : Art {
+class Clock : public Art {
 private:
     float const	hTime;
     float const	mTime;
@@ -287,6 +255,58 @@ public:
     }
 };
 
+/// UnbendArt has other Art and is/reflects this other Art bent around a perimeter.
+/// It unbends its perimeter for rendering this other art and
+/// resolves the bent rendering.
+/// This is an abstract base class for use by polymorphic derivations.
+class UnbendArt : public Art {
+protected:
+    Art const & art;
+public:
+    UnbendArt(Art const & art_) : art(art_) {}
+    virtual LEDI operator()(float place) const = 0;
+};
+
+/// UnfoldArt is UnbendArt whose shape is bent from a ring into equal sectors
+/// each of which starts with a part folded with the previous sector.
+class UnfoldArt : public UnbendArt {
+private:
+    size_t const	sectors;	// sectors in ring
+    float const		fold;		// fold ending relative to the sector
+    float const		unfolds;
+    float toUnfolded(float folded) const {return unfolds * folded;}
+    float toRing(float sector) const {return sector / sectors;}
+public:
+    UnfoldArt(
+	Art const &	art,
+	size_t		sectors_,
+	size_t		a,	// amount     in fold relative to a + b
+	size_t		b)	// amount not in fold relative to a + b
+    :
+	UnbendArt	(art),
+	sectors		(sectors_),
+	fold		(static_cast<float>(a) / (a + b)),
+	unfolds		(static_cast<float>(a + b) / (2 * a + b))
+    {}
+    LEDI operator()(float place) const {
+	float onSector;
+	float inFoldedSector = std::modf(sectors * place, &onSector);
+	float onRing = toRing(onSector);
+	float inUnfoldedRing = toRing(toUnfolded(inFoldedSector));
+	LEDI led = art(onRing + inUnfoldedRing);
+	if (inFoldedSector < fold) {
+	    if (0.0f == inUnfoldedRing) {
+		return led * 2;
+	    } else {
+		return led + art(
+		    (0.0f == onSector ? 1.0 : onRing) - inUnfoldedRing);
+	    }
+	} else {
+	    return led;
+	}
+    }
+};
+
 // static LED<> gamma(LED<> led) {return led.gamma();}
 
 void ArtTask::update() {
@@ -297,33 +317,43 @@ void ArtTask::update() {
     // which will be APA102 gamma corrected to 1.
     Dim<LED<>> dim((3.0f + std::min(13.0f, std::log2(1.0f + getLux()))) / 16.0f);
 
-    static size_t constexpr circumference = 144;
-    APA102::Message<circumference> message;
+    static size_t constexpr perimeter = 144;
 
-    Clock<Bell> art(
+    Clock<Ripple> art(
 	static_cast<float>(smoothTime.millisecondsSinceTwelveLocaltime())
 	    / millisecondsPerSecond,
-	hourWidth   / circumference, hourMean  , hourTail  ,
-	minuteWidth / circumference, minuteMean, minuteTail,
-	secondWidth / circumference, secondMean, secondTail);
+	hourWidth   / perimeter, hourMean  , hourTail  ,
+	minuteWidth / perimeter, minuteMean, minuteTail,
+	secondWidth / perimeter, secondMean, secondTail);
 
+    UnbendArt * unbendArt;
     #if 1
-	Unfold artUnbend(art, 12, 12, 0);
+	UnfoldArt unfoldArt(art, 12, 12, 0);
+	unbendArt = &unfoldArt;
     #else
-	Unbend artUnbend(art);
+	unbendArt = art;
     #endif
 
+    LEDI leds[perimeter];
+
+    // render bent perimeter with the Art UnbendArt has,
+    // keeping track of the largest led value by part.
+    auto maxRendering = std::numeric_limits<int>::min();
     size_t i = 0;
+    for (auto & led: leds) {
+	led = (*unbendArt)(static_cast<float>(i) / perimeter);
+	maxRendering = std::max(maxRendering, led.max());
+	++i;
+    }
+
+    APA102::Message<perimeter> message;
+
+    // for maximum dynamic range, normalize leds into message.encodings
+    LEDI * led = leds;
+    static auto maxEncoding = std::numeric_limits<uint8_t>::max();
     for (auto & e: message.encodings) {
-	float place = static_cast<float>(i) / circumference;
-	e =
-	//gamma(
-	dim(
-	    clip<unsigned>(artUnbend(place))
-	)
-	//)
-	;
-	i++;
+	e = LED<>(gammaEncode, *led * maxEncoding / maxRendering);
+	++led;
     }
 
     {

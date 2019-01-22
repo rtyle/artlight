@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AsioTask.h"
+#include "GammaEncode.h"
 #include "KeyValueBroker.h"
 #include "SPI.h"
 #include "SmoothTime.h"
@@ -16,6 +17,8 @@ protected:
     SPI::Device const			spiDevice2;
     std::function<float()> const	getLux;
     KeyValueBroker &			keyValueBroker;
+
+    GammaEncode const			gammaEncode;
 
     KeyValueBroker::Observer const	timezoneObserver;
 
