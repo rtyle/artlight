@@ -4,6 +4,8 @@
 #include <cstring>
 #include <string>
 
+#include "GammaEncode.h"
+
 namespace APA102 {
 
 // decode a hex nibble if we can from c (0-15); otherwise, 0
@@ -89,19 +91,24 @@ auto constexpr spiMode = (spiCPOL << 1) | (spiCPHA << 0);
 // thus, the brightness must be encoded fully in the red, green and blue values.
 template <typename T = uint8_t> union LED {
 private:
-    uint32_t const encoding; // union aggregate meaningful only for LED<uint8_t>
+    uint32_t encoding; // union aggregate meaningful only for LED<uint8_t>
 
 public:
     struct Part {
-	T const control, blue, green, red;
+	T control, blue, green, red;
 	Part(T red_, T green_, T blue_) :
 	    control(~0), blue(blue_), green(green_), red(red_) {}
-    } const part;
+    } part;
 
     LED(T red, T green, T blue) : part(red, green, blue) {}
 
+    LED() : LED(0, 0, 0) {}
+
     template <typename t> LED(LED<t> const & that) :
-	part(that.part.red, that.part.green, that.part.blue) {}
+	LED(that.part.red, that.part.green, that.part.blue) {}
+
+    template <typename t> LED(GammaEncode const & g, LED<t> const & that) :
+	LED(g(that.part.red), g(that.part.green), g(that.part.blue)) {}
 
     LED(uint32_t encoding);
 
@@ -208,12 +215,6 @@ public:
     operator uint32_t () const;
 
     operator std::string () const;
-
-    uint32_t gamma() const;
 };
-
-template<size_t size> void Message<size>::gamma() {
-    for (auto & e: encodings) e = LED<>(e).gamma();
-}
 
 }
