@@ -38,7 +38,7 @@ ArtTask::ArtTask(
 
     keyValueBroker	(keyValueBroker_),
 
-    gammaEncode		(2.0f),
+    gammaEncode		(1.2f),
 
     // timezone affects our notion of the localtime we present
     // forward a copy of any update to our task to make a synchronous change
