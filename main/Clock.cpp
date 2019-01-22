@@ -329,9 +329,6 @@ public:
 	target += circleLength;
 
 	assert(target - message.encodings == sizeof message.encodings / sizeof *message.encodings);
-
-	// apply APA102 gamma correction to rendered message
-	message.gamma();
     }
 };
 
