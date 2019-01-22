@@ -209,6 +209,10 @@ public:
     virtual LEDI operator()(float place) const = 0;
 };
 
+static Pulse hourPulse(12);
+static Pulse minutePulse(60);
+static Pulse secondPulse(60);
+
 /// Clock is Art that is constructed with the current time
 /// and the width & color (of the mean and tail(s))
 /// of each hour, minute and second hand.
@@ -237,9 +241,9 @@ public:
 	uint32_t	sMeanColor,
 	uint32_t	sTailColor)
     :
-	hTime	(inDayOf   (time)),
-	mTime	(inHourOf  (time)),
-	sTime	(inMinuteOf(time)),
+	hTime	(hourPulse  (inDayOf   (time))),
+	mTime	(minutePulse(inHourOf  (time))),
+	sTime	(secondPulse(inMinuteOf(time))),
 	hColor	(LEDI(hTailColor), LEDI(hMeanColor)),
 	mColor	(LEDI(mTailColor), LEDI(mMeanColor)),
 	sColor	(LEDI(sTailColor), LEDI(sMeanColor)),
@@ -248,7 +252,7 @@ public:
 	sShape	(0.0f, 1.0f, sWidth)
     {}
     /*virtual */ LEDI operator()(float place) const {
-	return	  hColor(hShape(At(place, hTime)))
+	return	hColor(hShape(At(place, hTime)))
 		+ mColor(mShape(At(place, mTime)))
 		+ sColor(sShape(At(place, sTime)))
 	;
