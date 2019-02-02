@@ -290,14 +290,12 @@ void ArtTask::update() {
     // render bent perimeter with the Art UnbendArt has,
     // keeping track of the largest led value by part.
     auto maxRendering = std::numeric_limits<int>::min();
-    size_t place = 0;
 
     for (auto & led: leds) {
 	for (auto & place: *inRing++) {
 	    led = led + art(place);
 	}
 	maxRendering = std::max(maxRendering, led.max());
-	++place;
     }
 
     APA102::Message<perimeterLength> message;
