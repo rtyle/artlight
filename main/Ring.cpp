@@ -2,6 +2,7 @@
 
 #include <esp_log.h>
 
+#include "InRing.h"
 #include "Ring.h"
 #include "Timer.h"
 
@@ -259,58 +260,6 @@ public:
     }
 };
 
-/// UnbendArt has other Art and is/reflects this other Art bent around a perimeter.
-/// It unbends its perimeter for rendering this other art and
-/// resolves the bent rendering.
-/// This is an abstract base class for use by polymorphic derivations.
-class UnbendArt : public Art {
-protected:
-    Art const & art;
-public:
-    UnbendArt(Art const & art_) : art(art_) {}
-    virtual LEDI operator()(float place) const = 0;
-};
-
-/// UnfoldArt is UnbendArt whose shape is bent from a ring into equal sectors
-/// each of which starts with a part folded with the previous sector.
-class UnfoldArt : public UnbendArt {
-private:
-    size_t const	sectors;	// sectors in ring
-    float const		fold;		// fold ending relative to the sector
-    float const		unfolds;
-    float toUnfolded(float folded) const {return unfolds * folded;}
-    float toRing(float sector) const {return sector / sectors;}
-public:
-    UnfoldArt(
-	Art const &	art,
-	size_t		sectors_,
-	size_t		a,	// amount     in fold relative to a + b
-	size_t		b)	// amount not in fold relative to a + b
-    :
-	UnbendArt	(art),
-	sectors		(sectors_),
-	fold		(static_cast<float>(a) / (a + b)),
-	unfolds		(static_cast<float>(a + b) / (2 * a + b))
-    {}
-    LEDI operator()(float place) const {
-	float onSector;
-	float inFoldedSector = std::modf(sectors * place, &onSector);
-	float onRing = toRing(onSector);
-	float inUnfoldedRing = toRing(toUnfolded(inFoldedSector));
-	LEDI led = art(onRing + inUnfoldedRing);
-	if (inFoldedSector < fold) {
-	    if (0.0f == inUnfoldedRing) {
-		return led * 2;
-	    } else {
-		return led + art(
-		    (0.0f == onSector ? 1.0 : onRing) - inUnfoldedRing);
-	    }
-	} else {
-	    return led;
-	}
-    }
-};
-
 // static LED<> gamma(LED<> led) {return led.gamma();}
 
 void ArtTask::update() {
@@ -321,36 +270,37 @@ void ArtTask::update() {
     // which will be APA102 gamma corrected to 1.
     Dim<LED<>> dim((3.0f + std::min(13.0f, std::log2(1.0f + getLux()))) / 16.0f);
 
-    static size_t constexpr perimeter = 144;
+    static size_t constexpr perimeterLength = 144;
 
     Clock<Ripple> art(
 	static_cast<float>(smoothTime.millisecondsSinceTwelveLocaltime())
 	    / millisecondsPerSecond,
-	hourWidth   / perimeter, hourMean  , hourTail  ,
-	minuteWidth / perimeter, minuteMean, minuteTail,
-	secondWidth / perimeter, secondMean, secondTail);
+	hourWidth   / perimeterLength, hourMean  , hourTail  ,
+	minuteWidth / perimeterLength, minuteMean, minuteTail,
+	secondWidth / perimeterLength, secondMean, secondTail);
 
-    UnbendArt * unbendArt;
     #if 1
-	UnfoldArt unfoldArt(art, 12, 12, 0);
-	unbendArt = &unfoldArt;
+	FoldsInRing inRing(12, 11);
     #else
-	unbendArt = art;
+	OrdinalsInRing inRing(perimeterLength);
     #endif
 
-    LEDI leds[perimeter];
+    LEDI leds[perimeterLength];
 
     // render bent perimeter with the Art UnbendArt has,
     // keeping track of the largest led value by part.
     auto maxRendering = std::numeric_limits<int>::min();
-    size_t i = 0;
+    size_t place = 0;
+
     for (auto & led: leds) {
-	led = (*unbendArt)(static_cast<float>(i) / perimeter);
+	for (auto & place: *inRing++) {
+	    led = led + art(place);
+	}
 	maxRendering = std::max(maxRendering, led.max());
-	++i;
+	++place;
     }
 
-    APA102::Message<perimeter> message;
+    APA102::Message<perimeterLength> message;
 
     // for maximum dynamic range, normalize leds into message.encodings
     LEDI * led = leds;
