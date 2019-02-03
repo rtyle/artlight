@@ -80,8 +80,6 @@
 						<input type='color' id='hourMean' name='hourMean'/>
 						<label for='hourTail'>Fades To</label>
 						<input type='color' id='hourTail' name='hourTail'/>
-						<label for='hourGlow'>Over</label>
-						<input type='color' id='hourGlow' name='hourGlow'/>
 					</div>
 					<div>
 						<span class='tab0'>Minute</span>

@@ -29,7 +29,6 @@ protected:
     KeyValueBroker::Observer const	hourWidthObserver;
     KeyValueBroker::Observer const	hourMeanObserver;
     KeyValueBroker::Observer const	hourTailObserver;
-    KeyValueBroker::Observer const	hourGlowObserver;
 
     float				minuteWidth;
     uint32_t				minuteMean;

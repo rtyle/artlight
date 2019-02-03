@@ -75,20 +75,6 @@ ArtTask::ArtTask(
 		    hourTail = led;
 		});
 	    }),
-	hourGlowObserver(keyValueBroker, "hourGlow", "#000000",
-	    [this](char const * color){
-		LED<unsigned> led(color);
-		static unsigned constexpr brightest = 3 * 128;
-		unsigned brightness = led.sum();
-		if (brightest < brightness) {
-		    std::string dimmed(LED<>(led * brightest / brightness));
-		    keyValueBroker.publish("hourGlow", dimmed.c_str());
-		} else {
-		    io.post([this, led](){
-			hourGlow = led;
-		    });
-		}
-	    }),
 
 	minuteWidth		(1.0f),
 	minuteMean		(0u),
