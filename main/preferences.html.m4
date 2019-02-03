@@ -70,36 +70,36 @@
 		</div>
 		<form method='post'>
 			<fieldset>
-				<legend>Clock Presentation</legend>
+				<legend>Presentation</legend>
 					<div>
-						<span class='tab0'>Hour</span>
-						<label for='hourWidth'>Width</label>
-						<input type='number' id='hourWidth' name='hourWidth' min='1.0' max='10.0' step='0.1'/>
+						<span class='tab0'>A</span>
+						<label for='aWidth'>Width</label>
+						<input type='number' id='aWidth' name='aWidth' min='1.0' max='10.0' step='0.1'/>
 						<a href='https://en.wikipedia.org/wiki/Standard_deviation'>❓</a>
-						<label for='hourMean'>Color</label>
-						<input type='color' id='hourMean' name='hourMean'/>
-						<label for='hourTail'>Fades To</label>
-						<input type='color' id='hourTail' name='hourTail'/>
+						<label for='aMean'>Color</label>
+						<input type='color' id='aMean' name='aMean'/>
+						<label for='aTail'>Fades To</label>
+						<input type='color' id='aTail' name='aTail'/>
 					</div>
 					<div>
-						<span class='tab0'>Minute</span>
-						<label for='minuteWidth'>Width</label>
-						<input type='number' id='minuteWidth' name='minuteWidth' min='1.0' max='10.0' step='0.1'/>
+						<span class='tab0'>B</span>
+						<label for='bWidth'>Width</label>
+						<input type='number' id='bWidth' name='bWidth' min='1.0' max='10.0' step='0.1'/>
 						<a href='https://en.wikipedia.org/wiki/Standard_deviation'>❓</a>
-						<label for='minuteMean'>Color</label>
-						<input type='color' id='minuteMean' name='minuteMean'/>
-						<label for='minuteTail'>Fades To</label>
-						<input type='color' id='minuteTail' name='minuteTail'/>
+						<label for='bMean'>Color</label>
+						<input type='color' id='bMean' name='bMean'/>
+						<label for='bTail'>Fades To</label>
+						<input type='color' id='bTail' name='bTail'/>
 					</div>
 					<div>
-						<span class='tab0'>Second</span>
-						<label for='secondWidth'>Width</label>
-						<input type='number' id='secondWidth' name='secondWidth' min='1.0' max='10.0' step='0.1'/>
+						<span class='tab0'>C</span>
+						<label for='cWidth'>Width</label>
+						<input type='number' id='cWidth' name='cWidth' min='1.0' max='10.0' step='0.1'/>
 						<a href='https://en.wikipedia.org/wiki/Standard_deviation'>❓</a>
-						<label for='secondMean'>Color</label>
-						<input type='color' id='secondMean' name='secondMean'/>
-						<label for='secondTail'>Fades To</label>
-						<input type='color' id='secondTail' name='secondTail'/>
+						<label for='cMean'>Color</label>
+						<input type='color' id='cMean' name='cMean'/>
+						<label for='cTail'>Fades To</label>
+						<input type='color' id='cTail' name='cTail'/>
 					</div>
 			</fieldset>
 			<fieldset>

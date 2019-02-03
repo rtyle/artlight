@@ -50,78 +50,78 @@ ArtTask::ArtTask(
 		});
 	    }),
 
-	hourWidth		(1.0f),
-	hourMean		(0u),
-	hourTail		(0u),
-	hourWidthObserver(keyValueBroker, "hourWidth", "4",
+	aWidth		(1.0f),
+	aMean		(0u),
+	aTail		(0u),
+	aWidthObserver(keyValueBroker, "aWidth", "4",
 	    [this](char const * widthObserved){
 		float width = fromString<float>(widthObserved);
 		io.post([this, width](){
-		    hourWidth = width;
+		    aWidth = width;
 		});
 	    }),
-	hourMeanObserver(keyValueBroker, "hourMean", "#ff0000",
+	aMeanObserver(keyValueBroker, "aMean", "#ff0000",
 	    [this](char const * color){
 		LED<> led(color);
 		io.post([this, led](){
-		    hourMean = led;
+		    aMean = led;
 		});
 	    }),
-	hourTailObserver(keyValueBroker, "hourTail", "#000000",
+	aTailObserver(keyValueBroker, "aTail", "#000000",
 	    [this](char const * color){
 		LED<> led(color);
 		io.post([this, led](){
-		    hourTail = led;
+		    aTail = led;
 		});
 	    }),
 
-	minuteWidth		(1.0f),
-	minuteMean		(0u),
-	minuteTail		(0u),
-	minuteWidthObserver(keyValueBroker, "minuteWidth", "4",
+	bWidth		(1.0f),
+	bMean		(0u),
+	bTail		(0u),
+	bWidthObserver(keyValueBroker, "bWidth", "4",
 	    [this](char const * widthObserved){
 		float width = fromString<float>(widthObserved);
 		io.post([this, width](){
-		    minuteWidth = width;
+		    bWidth = width;
 		});
 	    }),
-	minuteMeanObserver(keyValueBroker, "minuteMean", "#0000ff",
+	bMeanObserver(keyValueBroker, "bMean", "#0000ff",
 	    [this](char const * color){
 		LED<> led(color);
 		io.post([this, led](){
-		    minuteMean = led;
+		    bMean = led;
 		});
 	    }),
-	minuteTailObserver(keyValueBroker, "minuteTail", "#000000",
+	bTailObserver(keyValueBroker, "bTail", "#000000",
 	    [this](char const * color){
 		LED<> led(color);
 		io.post([this, led](){
-		    minuteTail = led;
+		    bTail = led;
 		});
 	    }),
 
-	secondWidth		(1.0f),
-	secondMean		(0u),
-	secondTail		(0u),
-	secondWidthObserver(keyValueBroker, "secondWidth", "2",
+	cWidth		(1.0f),
+	cMean		(0u),
+	cTail		(0u),
+	cWidthObserver(keyValueBroker, "cWidth", "2",
 	    [this](char const * widthObserved){
 		float width = fromString<float>(widthObserved);
 		io.post([this, width](){
-		    secondWidth = width;
+		    cWidth = width;
 		});
 	    }),
-	secondMeanObserver(keyValueBroker, "secondMean", "#ffff00",
+	cMeanObserver(keyValueBroker, "cMean", "#ffff00",
 	    [this](char const * color){
 		LED<> led(color);
 		io.post([this, led](){
-		    secondMean = led;
+		    cMean = led;
 		});
 	    }),
-	secondTailObserver(keyValueBroker, "secondTail", "#000000",
+	cTailObserver(keyValueBroker, "cTail", "#000000",
 	    [this](char const * color){
 		LED<> led(color);
 		io.post([this, led](){
-		    secondTail = led;
+		    cTail = led;
 		});
 	    }),
 

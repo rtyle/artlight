@@ -275,9 +275,9 @@ void ArtTask::update() {
     Clock<Ripple> art(
 	static_cast<float>(smoothTime.millisecondsSinceTwelveLocaltime())
 	    / millisecondsPerSecond,
-	hourWidth   / perimeterLength, hourMean  , hourTail  ,
-	minuteWidth / perimeterLength, minuteMean, minuteTail,
-	secondWidth / perimeterLength, secondMean, secondTail);
+	aWidth / perimeterLength, aMean, aTail,
+	bWidth / perimeterLength, bMean, bTail,
+	cWidth / perimeterLength, cMean, cTail);
 
     #if 1
 	FoldsInRing inRing(12, 11);

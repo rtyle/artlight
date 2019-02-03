@@ -22,26 +22,26 @@ protected:
 
     KeyValueBroker::Observer const	timezoneObserver;
 
-    float				hourWidth;
-    uint32_t				hourMean;
-    uint32_t				hourTail;
-    KeyValueBroker::Observer const	hourWidthObserver;
-    KeyValueBroker::Observer const	hourMeanObserver;
-    KeyValueBroker::Observer const	hourTailObserver;
+    float				aWidth;
+    uint32_t				aMean;
+    uint32_t				aTail;
+    KeyValueBroker::Observer const	aWidthObserver;
+    KeyValueBroker::Observer const	aMeanObserver;
+    KeyValueBroker::Observer const	aTailObserver;
 
-    float				minuteWidth;
-    uint32_t				minuteMean;
-    uint32_t				minuteTail;
-    KeyValueBroker::Observer const	minuteWidthObserver;
-    KeyValueBroker::Observer const	minuteMeanObserver;
-    KeyValueBroker::Observer const	minuteTailObserver;
+    float				bWidth;
+    uint32_t				bMean;
+    uint32_t				bTail;
+    KeyValueBroker::Observer const	bWidthObserver;
+    KeyValueBroker::Observer const	bMeanObserver;
+    KeyValueBroker::Observer const	bTailObserver;
 
-    float				secondWidth;
-    uint32_t				secondMean;
-    uint32_t				secondTail;
-    KeyValueBroker::Observer const	secondWidthObserver;
-    KeyValueBroker::Observer const	secondMeanObserver;
-    KeyValueBroker::Observer const	secondTailObserver;
+    float				cWidth;
+    uint32_t				cMean;
+    uint32_t				cTail;
+    KeyValueBroker::Observer const	cWidthObserver;
+    KeyValueBroker::Observer const	cMeanObserver;
+    KeyValueBroker::Observer const	cTailObserver;
 
     SmoothTime				smoothTime;
 
