@@ -3,14 +3,10 @@
 #
 # (Uses default behaviour of compiling all source files in directory, adding 'include' to include path.)
 
-ArtLightApplication ?= clock
+ArtLightApplication ?= ring
 
-ifeq 'clock' '${ArtLightApplication}'
-	CPPFLAGS += -DArtLightApplication_h=\"Clock.h\"
-else
 ifeq 'ring' '${ArtLightApplication}'
 	CPPFLAGS += -DArtLightApplication_h=\"Ring.h\"
-endif
 endif
 
 ${COMPONENT_BUILD_DIR}/%: ${COMPONENT_PATH}/%.m4; m4 -D ArtLightApplication=${ArtLightApplication} $? > $@
