@@ -53,7 +53,6 @@ ArtTask::ArtTask(
 	hourWidth		(1.0f),
 	hourMean		(0u),
 	hourTail		(0u),
-	hourGlow		(0u),
 	hourWidthObserver(keyValueBroker, "hourWidth", "4",
 	    [this](char const * widthObserved){
 		float width = fromString<float>(widthObserved);

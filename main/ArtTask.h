@@ -25,7 +25,6 @@ protected:
     float				hourWidth;
     uint32_t				hourMean;
     uint32_t				hourTail;
-    uint32_t				hourGlow;
     KeyValueBroker::Observer const	hourWidthObserver;
     KeyValueBroker::Observer const	hourMeanObserver;
     KeyValueBroker::Observer const	hourTailObserver;
