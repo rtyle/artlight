@@ -131,8 +131,8 @@ void Channel::stop(uint32_t idle_level) {
 }
 
 void Channel::set_duty_with_hpoint(uint32_t duty, uint32_t hpoint) {
-    ESP_ERROR_CHECK(ledc_set_duty_with_hpoint(
-	speed_mode, channel, duty, hpoint));
+    ESP_ERROR_CHECK(ledc_set_duty_with_hpoint(speed_mode, channel,
+	duty, hpoint));
 }
 
 int Channel::get_hpoint() {

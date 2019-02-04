@@ -6,10 +6,11 @@
 #include <driver/ledc.h>
 
 /// The LEDC namespace provides wrappers for ESP-IDF LEDC functions.
-/// Timer functions are wrapped through a Timer class
-/// and Channel functions are wrapped through Channel class.
+/// Timer functions are wrapped through the Timer class.
+/// Channel functions are wrapped through the Channel class.
 /// Timer/Channel construction dynamically allocate the next free
-/// timer_num/channel for the speed_mode (std::bad_alloc thrown on exhaustion).
+/// timer_num/channel for the speed_mode requested.
+/// std::bad_alloc is thrown when there are none free.
 /// Timer/Channel destruction returns the timer_num/channel to the free pool.
 namespace LEDC {
 
