@@ -5,6 +5,12 @@
 
 #include <driver/ledc.h>
 
+/// The LEDC namespace provides wrappers for ESP-IDF LEDC functions.
+/// Timer functions are wrapped through a Timer class
+/// and Channel functions are wrapped through Channel class.
+/// Timer/Channel construction dynamically allocate the next free
+/// timer_num/channel for the speed_mode (std::bad_alloc thrown on exhaustion).
+/// Timer/Channel destruction returns the timer_num/channel to the free pool.
 namespace LEDC {
 
 class Channel;
@@ -13,7 +19,8 @@ class Timer {
     friend Channel;
 private:
     static std::forward_list<ledc_timer_t> free[LEDC_SPEED_MODE_MAX];
-    ledc_timer_config_t const config;
+    ledc_mode_t const		speed_mode;
+    ledc_timer_t const		timer_num;
 public:
     /// Construct a Timer associated with the first free one.
     /// If freq_hz is not specified (default, 0),
@@ -34,8 +41,8 @@ public:
 class Channel {
 private:
     static std::forward_list<ledc_channel_t> free[LEDC_SPEED_MODE_MAX];
-    Timer & timer;
-    ledc_channel_config_t const config;
+    ledc_mode_t const		speed_mode;
+    ledc_channel_t const	channel;
 public:
     /// Construct a Channel associated with the first free one.
     Channel(
