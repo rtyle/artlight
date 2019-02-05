@@ -83,8 +83,7 @@ private:
 public:
     Sawtooth(float period_ = 1.0f) : period(period_) {}
     float operator()(float x) {
-	float y = std::modf(x / period, &x);
-	return y;
+	return std::modf(x / period, &x);
     }
 };
 
@@ -116,13 +115,23 @@ public:
 
 /// At describes where something is at (place and time).
 /// With a Moving object, it can tell how far from the Moving.center it is.
+/// Moving objects move around a circle with a perimeter of 1.
+/// The calculated distance to the Moving.center will be between [-0.5, 0.5).
 struct At {
 public:
     float const	place;
     float const	time;
     At(float place_, float time_) : place(place_), time(time_) {}
     float center(Moving const & moving) const {
-	return place - moving.center - time * moving.speed;
+	float distance = place - moving.center - time * moving.speed;
+	float ignore;
+	if (distance < 0.0f) {
+	    distance = 1.0f - std::modf(-distance, &ignore);
+	} else {
+	    distance = std::modf(distance, &ignore);
+	}
+	if (distance >= 0.5f) distance -= 1.0f;
+	return distance;
     }
 };
 
@@ -210,7 +219,7 @@ public:
     virtual LEDI operator()(float place) const = 0;
 };
 
-static Pulse hourPulse(12);
+static Pulse hourPulse	(12);
 static Pulse minutePulse(60);
 static Pulse secondPulse(60);
 
@@ -231,7 +240,7 @@ private:
     Shape	sShape;
 public:
     Clock(
-	float		time,
+	float		time,	// seconds since 12, local time
 	float		hWidth,
 	uint32_t	hMeanColor,
 	uint32_t	hTailColor,
@@ -253,7 +262,7 @@ public:
 	sShape	(0.0f, 1.0f, sWidth)
     {}
     /*virtual */ LEDI operator()(float place) const {
-	return	hColor(hShape(At(place, hTime)))
+	return	  hColor(hShape(At(place, hTime)))
 		+ mColor(mShape(At(place, mTime)))
 		+ sColor(sShape(At(place, sTime)))
 	;
@@ -272,14 +281,14 @@ void ArtTask::update() {
 
     static size_t constexpr perimeterLength = 144;
 
-    Clock<Ripple> art(
+    Clock<Bell> art(
 	static_cast<float>(smoothTime.millisecondsSinceTwelveLocaltime())
 	    / millisecondsPerSecond,
 	aWidth / perimeterLength, aMean, aTail,
 	bWidth / perimeterLength, bMean, bTail,
 	cWidth / perimeterLength, cMean, cTail);
 
-    #if 1
+    #if 0
 	FoldsInRing inRing(12, 11);
     #else
 	OrdinalsInRing inRing(perimeterLength);
@@ -287,14 +296,15 @@ void ArtTask::update() {
 
     LEDI leds[perimeterLength];
 
-    // render bent perimeter with the Art UnbendArt has,
+    // render art from places in the ring,
     // keeping track of the largest led value by part.
     auto maxRendering = std::numeric_limits<int>::min();
 
     for (auto & led: leds) {
-	for (auto & place: *inRing++) {
+	for (auto & place: *inRing) {
 	    led = led + art(place);
 	}
+	++inRing;
 	maxRendering = std::max(maxRendering, led.max());
     }
 

@@ -22,8 +22,7 @@ public:
     InRing(size_t size, size_t inRingSize = 0);
     explicit operator bool() const;
     reference operator*() const;
-    pointer operator->() const;
-    virtual InRing & operator++(int) = 0;
+    virtual InRing & operator++() = 0;
     virtual ~InRing();
 };
 
@@ -33,7 +32,7 @@ public:
 class OrdinalsInRing : public InRing {
 public:
     OrdinalsInRing(size_t size);
-    InRing & operator++(int) override;
+    InRing & operator++() override;
 };
 
 /// FoldsInRing is an input iterator (based on InRing)
@@ -55,7 +54,7 @@ private:
     size_t		downOnRing;
 public:
     FoldsInRing(size_t folds_, size_t foldedSize, size_t unfoldedSize = 0);
-    InRing & operator++(int) override;
+    InRing & operator++() override;
 };
 
 /// SectorsInRing is an input iterator (based on InRing)
@@ -70,5 +69,5 @@ private:
     size_t		onSector;
 public:
     SectorsInRing(size_t sectors, size_t const * sectorSize);
-    InRing & operator++(int);
+    InRing & operator++();
 };
