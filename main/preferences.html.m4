@@ -38,12 +38,15 @@
 					.done(function(idValues) {
 						for (const [id, value] of Object.entries(idValues)) {
 							console.log(id + '=' + value);
-							$('#' + id)
-								.filter('input[type="checkbox"]')
-									.prop('checked', parseInt(value, 10))
-									.next().val(parseInt(value, 10)).end()
-								.otherwise()
-									.val(value);
+							if (value.startsWith('_'))
+								$('#' + id + value).prop('checked', true);
+							else
+								$('#' + id)
+									.filter('input[type="checkbox"]')
+										.prop('checked', parseInt(value, 10))
+										.next().val(parseInt(value, 10)).end()
+									.otherwise()
+										.val(value);
 						}
 					})
 					.fail(function(xhr, status, error){
@@ -58,8 +61,9 @@
 				fill('data');
 				$('#data'	)	.click(function() {fill('data'		)});
 				$('#dataDefault')	.click(function() {fill('dataDefault'	)});
-				$('input[type="checkbox"]').on('change', function(e) {$(this).next().val(0 + $(this).prop('checked'))});
-				$('input[type="color"]').on('input', function(e) {$.ajax({type:	'POST', data: {[$(this).attr('name')]: $(this).val()}})});
+				$('input:checkbox').on('change', function(e) {$(this).next().val(0 + $(this).prop('checked'))});
+				$('input[type="color"]').on('input', function(e) {$.ajax({type: 'POST', data: {[$(this).attr('name')]: $(this).val()}})});
+				$('input[type="range"]').on('input', function(e) {$.ajax({type: 'POST', data: {[$(this).attr('name')]: $(this).val()}})});
 			});
 		</script>
 
@@ -75,7 +79,6 @@
 						<span class='tab0'>A</span>
 						<label for='aWidth'>Width</label>
 						<input type='number' id='aWidth' name='aWidth' min='1.0' max='10.0' step='0.1'/>
-						<a href='https://en.wikipedia.org/wiki/Standard_deviation'>❓</a>
 						<label for='aMean'>Color</label>
 						<input type='color' id='aMean' name='aMean'/>
 						<label for='aTail'>Fades To</label>
@@ -85,7 +88,6 @@
 						<span class='tab0'>B</span>
 						<label for='bWidth'>Width</label>
 						<input type='number' id='bWidth' name='bWidth' min='1.0' max='10.0' step='0.1'/>
-						<a href='https://en.wikipedia.org/wiki/Standard_deviation'>❓</a>
 						<label for='bMean'>Color</label>
 						<input type='color' id='bMean' name='bMean'/>
 						<label for='bTail'>Fades To</label>
@@ -95,11 +97,34 @@
 						<span class='tab0'>C</span>
 						<label for='cWidth'>Width</label>
 						<input type='number' id='cWidth' name='cWidth' min='1.0' max='10.0' step='0.1'/>
-						<a href='https://en.wikipedia.org/wiki/Standard_deviation'>❓</a>
 						<label for='cMean'>Color</label>
 						<input type='color' id='cMean' name='cMean'/>
 						<label for='cTail'>Fades To</label>
 						<input type='color' id='cTail' name='cTail'/>
+					</div>
+			</fieldset>
+			<fieldset>
+				<legend>Brightness</legend>
+					<div>
+						<span class='tab0'>Range</span>
+						<input type='radio' id='range_clip' name='range' value='_clip'/>
+						<label for='range_clip'>Clip</label>
+						<input type='radio' id='range_normalize' name='range' value='_normalize'/>
+						<label for='range_normalize'>Normalize</label>
+					</div>
+					<div>
+						<span class='tab0'>Dim</span>
+						<input type='radio' id='dim_automatic' name='dim' value='_automatic'/>
+						<label for='dim_automatic'>Automatic</label>
+						<input type='radio' id='dim_manual' name='dim' value='_manual'/>
+						<label for='dim_manual'>Manual</label>
+						<input type='range' id='dimLevel' name='dimLevel' min='3' max='16'>
+						<label for='dimLevel'>Level</label>
+					</div>
+					<div>
+						<span class='tab0'>Gamma</span>
+						<label for='gamma'>Correction</label>
+						<input type='range' id='gamma' name='gamma' min='5' max='30'>
 					</div>
 			</fieldset>
 			<fieldset>

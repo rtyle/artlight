@@ -12,6 +12,7 @@ public:
 private:
     uint8_t curve[size];
 public:
-    GammaEncode(float gamma);
+    void gamma(float value);
+    GammaEncode(float value);
     uint8_t operator()(uint8_t value) const {return curve[value];}
 };

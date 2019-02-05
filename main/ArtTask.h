@@ -18,7 +18,6 @@ protected:
     std::function<float()> const	getLux;
     KeyValueBroker &			keyValueBroker;
 
-    GammaEncode const			gammaEncode;
 
     KeyValueBroker::Observer const	timezoneObserver;
 
@@ -42,6 +41,17 @@ protected:
     KeyValueBroker::Observer const	cWidthObserver;
     KeyValueBroker::Observer const	cMeanObserver;
     KeyValueBroker::Observer const	cTailObserver;
+
+    enum struct Range {clip, normalize}	range;
+    KeyValueBroker::Observer const	rangeObserver;
+    enum struct Dim {automatic, manual}	dim;
+    KeyValueBroker::Observer const	dimObserver;
+    unsigned				dimLevel;
+    KeyValueBroker::Observer const	dimLevelObserver;
+
+    GammaEncode				gammaEncode;
+    unsigned				gamma;
+    KeyValueBroker::Observer const	gammaObserver;
 
     SmoothTime				smoothTime;
 

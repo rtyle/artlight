@@ -9,12 +9,14 @@
 #include "function.h"
 
 using APA102::LED;
-using function::compose;
-using function::combine;
 
 namespace Ring {
 
 typedef APA102::LED<int> LEDI;
+
+static auto const pi = std::acos(-1.0f);
+
+static auto constexpr millisecondsPerSecond	= 1000u;
 
 // implicit unsigned integral conversions
 // widen with zero extension and narrow by truncation
@@ -37,19 +39,6 @@ LED<U> clip(LED<T> t) {
     LED<T> minT(min, min, min);
     return LED<U>(t.minByPart(maxT).maxByPart(minT));
 }
-
-static auto const pi = std::acos(-1.0f);
-
-static auto constexpr millisecondsPerSecond	= 1000u;
-
-template <typename T>
-class Dim {
-private:
-    float	dim;
-public:
-    Dim(float dim_) : dim(dim_) {}
-    T operator()(T t) {return t * dim;}
-};
 
 /// Pulse is a monotonically increasing function (object)
 /// that, when compared to its Identity function,
@@ -269,16 +258,7 @@ public:
     }
 };
 
-// static LED<> gamma(LED<> led) {return led.gamma();}
-
 void ArtTask::update() {
-    // dim factor is calculated as a function of the current ambient lux.
-    // this will range from 3/16 to 16/16 with the numerator increasing by
-    // 1 as the lux doubles up until 2^13 (~full daylight, indirect sun).
-    // an LED value of 128 will be dimmed to 24 in complete darkness (lux 0)
-    // which will be APA102 gamma corrected to 1.
-    Dim<LED<>> dim((3.0f + std::min(13.0f, std::log2(1.0f + getLux()))) / 16.0f);
-
     static size_t constexpr perimeterLength = 144;
 
     Clock<Bell> art(
@@ -288,7 +268,7 @@ void ArtTask::update() {
 	bWidth / perimeterLength, bMean, bTail,
 	cWidth / perimeterLength, cMean, cTail);
 
-    #if 0
+    #if 1
 	FoldsInRing inRing(12, 11);
     #else
 	OrdinalsInRing inRing(perimeterLength);
@@ -299,7 +279,6 @@ void ArtTask::update() {
     // render art from places in the ring,
     // keeping track of the largest led value by part.
     auto maxRendering = std::numeric_limits<int>::min();
-
     for (auto & led: leds) {
 	for (auto & place: *inRing) {
 	    led = led + art(place);
@@ -310,12 +289,26 @@ void ArtTask::update() {
 
     APA102::Message<perimeterLength> message;
 
-    // for maximum dynamic range, normalize leds into message.encodings
+    /// adjust brightness
+    float dimming = dim == Dim::manual
+	? dimLevel / 16.0f
+	// automatic dimming as a function of measured ambient lux.
+	// this will range from 3/16 to 16/16 with the numerator increasing by
+	// 1 as the lux doubles up until 2^13 (~full daylight, indirect sun).
+	// an LED value of 128 will be dimmed to 24 in complete darkness (lux 0)
+	: (3.0f + std::min(13.0f, std::log2(1.0f + getLux()))) / 16.0f;
     LEDI * led = leds;
-    static auto maxEncoding = std::numeric_limits<uint8_t>::max();
-    for (auto & e: message.encodings) {
-	e = LED<>(gammaEncode, *led * maxEncoding / maxRendering);
-	++led;
+    if (range == Range::clip) {
+	for (auto & e: message.encodings) {
+	    e = LED<>(gammaEncode,
+		clip(*led++) * dimming);
+	}
+    } else if (range == Range::normalize) {
+	static auto maxEncoding = std::numeric_limits<uint8_t>::max();
+	for (auto & e: message.encodings) {
+	    e = LED<>(gammaEncode,
+		(*led++ * maxEncoding / maxRendering) * dimming);
+	}
     }
 
     {
