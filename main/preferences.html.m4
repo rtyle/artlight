@@ -123,8 +123,9 @@
 					</div>
 					<div>
 						<span class='tab0'>Gamma</span>
-						<label for='gamma'>Correction</label>
 						<input type='range' id='gamma' name='gamma' min='5' max='30'>
+						<label for='gamma'>Correction</label>
+						<a href='https://en.wikipedia.org/wiki/Gamma_correction'>❓</a>
 					</div>
 			</fieldset>
 			<fieldset>
