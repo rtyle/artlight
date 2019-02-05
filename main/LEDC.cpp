@@ -45,7 +45,6 @@ Timer::Timer(
 }
 
 Timer::~Timer() {
-    ESP_ERROR_CHECK(ledc_timer_rst(speed_mode, timer_num));
     free[speed_mode].push_front(timer_num);
 }
 
@@ -55,6 +54,10 @@ void Timer::set_freq(uint32_t freq_hz) {
 
 uint32_t Timer::get_freq() {
     return ledc_get_freq(speed_mode, timer_num);
+}
+
+void Timer::rst() {
+    ESP_ERROR_CHECK(ledc_timer_rst(speed_mode, timer_num));
 }
 
 void Timer::pause() {
@@ -89,7 +92,7 @@ std::forward_list<ledc_channel_t> Channel::free[] {
 };
 
 Channel::Channel(
-    Timer &		timer,
+    Timer const &	timer,
     int			gpio_num,
     ledc_intr_type_t	intr_type,
     uint32_t		duty,
@@ -121,6 +124,10 @@ Channel::~Channel() {
     free[speed_mode].push_front(channel);
 }
 
+void Channel::bind_timer(Timer const & timer) {
+    ESP_ERROR_CHECK(ledc_bind_channel_timer(speed_mode, channel,
+	timer.timer_num));
+}
 
 void Channel::update_duty() {
     ESP_ERROR_CHECK(ledc_update_duty(speed_mode, channel));
