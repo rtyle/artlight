@@ -6,6 +6,7 @@
 #include "AsioTask.h"
 #include "Event.h"
 #include "I2C.h"
+#include "LEDC.h"
 #include "LuxTask.h"
 #include "MDNS.h"
 #include "NVSKeyValueBroker.h"
@@ -109,6 +110,10 @@ public:
     SPI::Bus const spiBus1;
     SPI::Bus const spiBus2;
 
+    LEDC::Fader		ledFader;
+    LEDC::Timer		ledTimer;
+    LEDC::Channel	ledChannel[2][3];
+
     std::unique_ptr<ArtTask> artTask;
 
     Main()
@@ -167,6 +172,22 @@ public:
 		.mosi_io_num_(SPI::Bus::VspiConfig.mosi_io_num)
 		.sclk_io_num_(SPI::Bus::VspiConfig.sclk_io_num),
 	    2),
+
+	ledFader(),
+	ledTimer(LEDC_HIGH_SPEED_MODE, LEDC_TIMER_8_BIT, 10000),
+	ledChannel {
+	    {
+		LEDC::Channel(ledTimer, GPIO_NUM_19, 0),
+		LEDC::Channel(ledTimer, GPIO_NUM_16, 0),
+		LEDC::Channel(ledTimer, GPIO_NUM_17, 0),
+	    },
+	    {
+		LEDC::Channel(ledTimer, GPIO_NUM_32, 0),
+		LEDC::Channel(ledTimer, GPIO_NUM_15, 0),
+		LEDC::Channel(ledTimer, GPIO_NUM_33, 0),
+	    },
+	},
+
 	artTask(new DerivedArtTask(&spiBus1, &spiBus2,
 	    [this](){return luxTask.getLux();},
 	    keyValueBroker))
@@ -181,6 +202,13 @@ public:
 	disconnected.reset(new Disconnected(*this));
 
 	luxTask.start();
+
+	for (auto & rgb: ledChannel) {
+	    for (auto & p: rgb) {
+		p.set_fade_with_time(128, 10000);
+		p.fade_start();
+	    }
+	}
 
 	artTask->start();
     }

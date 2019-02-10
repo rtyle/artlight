@@ -2,6 +2,14 @@
 
 namespace LEDC {
 
+Fader::Fader(int intr_alloc_flags) {
+    ESP_ERROR_CHECK(ledc_fade_func_install(intr_alloc_flags));
+}
+
+Fader::~Fader() {
+    ledc_fade_func_uninstall();
+}
+
 std::forward_list<ledc_timer_t> Timer::free[] {
     {
 	LEDC_TIMER_0,
@@ -94,9 +102,9 @@ std::forward_list<ledc_channel_t> Channel::free[] {
 Channel::Channel(
     Timer const &	timer,
     int			gpio_num,
-    ledc_intr_type_t	intr_type,
     uint32_t		duty,
-    int			hpoint)
+    int			hpoint,
+    ledc_intr_type_t	intr_type)
 :
     speed_mode(timer.speed_mode),
     channel([this](){
