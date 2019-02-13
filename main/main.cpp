@@ -190,14 +190,14 @@ public:
 	ledTimer(LEDC_HIGH_SPEED_MODE, LEDC_TIMER_8_BIT, 10000),
 	ledChannel {
 	    {
-		LEDC::Channel(ledTimer, GPIO_NUM_19, 0),
-		LEDC::Channel(ledTimer, GPIO_NUM_16, 0),
-		LEDC::Channel(ledTimer, GPIO_NUM_17, 0),
+		LEDC::Channel(ledTimer, GPIO_NUM_19, 64),
+		LEDC::Channel(ledTimer, GPIO_NUM_16, 64),
+		LEDC::Channel(ledTimer, GPIO_NUM_17, 64),
 	    },
 	    {
-		LEDC::Channel(ledTimer, GPIO_NUM_33, 0),
-		LEDC::Channel(ledTimer, GPIO_NUM_27, 0),
-		LEDC::Channel(ledTimer, GPIO_NUM_12, 0),
+		LEDC::Channel(ledTimer, GPIO_NUM_33, 64),
+		LEDC::Channel(ledTimer, GPIO_NUM_27, 64),
+		LEDC::Channel(ledTimer, GPIO_NUM_12, 64),
 	    },
 	},
 
@@ -211,11 +211,11 @@ public:
 	irPin(GPIO_NUM_26, GPIO_MODE_INPUT, GPIO_PULLUP_ENABLE,
 	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask),
 
-	aPinObserver(irPin, [this](){
-	    ESP_LOGI(name, "aPin %d", irPin.get_level());
+	aPinObserver(aPin, [this](){
+	    ESP_LOGI(name, "aPin %d", aPin.get_level());
 	}),
-	bPinObserver(irPin, [this](){
-	    ESP_LOGI(name, "bPin %d", irPin.get_level());
+	bPinObserver(bPin, [this](){
+	    ESP_LOGI(name, "bPin %d", bPin.get_level());
 	}),
 	irPinObserver(irPin, [this](){
 	    ESP_LOGI(name, "irPin %d", irPin.get_level());
@@ -238,7 +238,7 @@ public:
 
 	for (auto & rgb: ledChannel) {
 	    for (auto & p: rgb) {
-		p.set_fade_with_time(128, 10000);
+		p.set_fade_with_time(128, 1000);
 		p.fade_start();
 	    }
 	}
