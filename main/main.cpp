@@ -190,14 +190,14 @@ public:
 	ledTimer(LEDC_HIGH_SPEED_MODE, LEDC_TIMER_8_BIT, 10000),
 	ledChannel {
 	    {
-		LEDC::Channel(ledTimer, GPIO_NUM_19, 64),
-		LEDC::Channel(ledTimer, GPIO_NUM_16, 64),
-		LEDC::Channel(ledTimer, GPIO_NUM_17, 64),
+		LEDC::Channel(ledTimer, GPIO_NUM_19, 0),
+		LEDC::Channel(ledTimer, GPIO_NUM_16, 0),
+		LEDC::Channel(ledTimer, GPIO_NUM_17, 0),
 	    },
 	    {
-		LEDC::Channel(ledTimer, GPIO_NUM_33, 64),
-		LEDC::Channel(ledTimer, GPIO_NUM_27, 64),
-		LEDC::Channel(ledTimer, GPIO_NUM_12, 64),
+		LEDC::Channel(ledTimer, GPIO_NUM_33, 0),
+		LEDC::Channel(ledTimer, GPIO_NUM_27, 0),
+		LEDC::Channel(ledTimer, GPIO_NUM_12, 0),
 	    },
 	},
 
