@@ -8,13 +8,13 @@
 /// The LEDC namespace provides wrappers for ESP-IDF LEDC functions.
 namespace LEDC {
 
-/// Fader wraps the automatic LEDC fade function that runs as the LEDC ISR
-/// on the CPU core that the Fader is constructed on.
-/// The function is installed on construction and uninstalled on destruction.
-class Fader {
+/// ISR installs the fade function as the LEDC ISR which runs
+/// on the CPU core that the it is constructed on.
+/// The fade function is uninstalled on destruction.
+class ISR {
 public:
-    Fader(int intr_alloc_flags = 0);
-    ~Fader();
+    ISR(int intr_alloc_flags = 0);
+    ~ISR();
 };
 
 class Channel;

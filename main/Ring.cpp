@@ -124,28 +124,6 @@ public:
     }
 };
 
-/// Wave is a Moving (from a center with a speed)
-/// cosine function object
-/// with a frequency (number of periods in a domain span of 1).
-/// The output is adjusted to range from 0 to 1.
-class Wave : public Moving {
-private:
-    float const	frequency;
-public:
-    Wave(
-	float center		= 0.0f,
-	float speed		= 0.0f,
-	float frequency_	= 1.0f)
-    :
-	Moving		(center, speed),
-	frequency	(frequency_)
-    {}
-    float operator()(At at) const {
-	return (1.0f + std::cos(2.0f * pi * frequency * at.center(*this)))
-	    / 2.0f;
-    }
-};
-
 /// Bell is a Moving (from a center with a speed)
 /// standard normal distribution curve function object
 /// with a standard deviation and center value of 1.
@@ -165,6 +143,51 @@ public:
     float operator()(At at) const {
 	float place = at.center(*this);
 	return std::exp(-place * place / twoSigmaSquared);
+    }
+};
+
+/// Wave is a Moving (from a center with a speed)
+/// cosine function object
+/// with a frequency (number of periods in a domain span of 1).
+/// The output is adjusted to range from 0 to 1.
+class Wave : public Moving {
+private:
+    float const	frequency;
+public:
+    Wave(
+	float center		= 0.0f,
+	float speed		= 0.0f,
+	float width		= 1.0f)
+    :
+	Moving		(center, speed),
+	frequency	(1.0f / width)
+    {}
+    float operator()(At at) const {
+	return (1.0f + std::cos(2.0f * pi * frequency * at.center(*this)))
+	    / 2.0f;
+    }
+};
+
+/// BellWave composes a Bell after a right and left Moving Wave.
+class BellWave : public Moving {
+private:
+    static auto constexpr	divisor = 4.0f;
+    Bell const		bell;
+    Wave const		right;
+    Wave const		left;
+public:
+    BellWave(
+	float center		= 0.0f,
+	float speed		= 0.0f,
+	float width		= 1.0f)
+    :
+	bell	(center, speed, width),
+	right	(center, 3.0f * speed, width / divisor),
+//	left	(center, -speed * 3.0f / 2.0f, width / 4.0)
+	left	(center, 0.0, width / divisor)
+    {}
+    float operator()(At at) const {
+	return bell(at) * (right(at) + left(at)) / 2.0f;
     }
 };
 
@@ -208,9 +231,9 @@ public:
     virtual LEDI operator()(float place) const = 0;
 };
 
-static Pulse hourPulse	(12);
-static Pulse minutePulse(60);
-static Pulse secondPulse(60);
+static Pulse hourPulse	(0);//12);
+static Pulse minutePulse(0);//60);
+static Pulse secondPulse(0);//60);
 
 /// Clock is Art that is constructed with the current time
 /// and the width & color (of the mean and tail(s))
@@ -251,24 +274,24 @@ public:
 	sShape	(0.0f, 1.0f, sWidth)
     {}
     /*virtual */ LEDI operator()(float place) const {
-	return	  hColor(hShape(At(place, hTime)))
-		+ mColor(mShape(At(place, mTime)))
-		+ sColor(sShape(At(place, sTime)))
+	return	//  hColor(hShape(At(place, hTime)))
+		//+ mColor(mShape(At(place, mTime)))
+		/*+*/ sColor(sShape(At(place, sTime)))
 	;
     }
 };
 
 void ArtTask::update() {
-    static size_t constexpr perimeterLength = 144;
+    static size_t constexpr perimeterLength = 80;
 
-    Clock<Bell> art(
+    Clock<BellWave> art(
 	static_cast<float>(smoothTime.millisecondsSinceTwelveLocaltime())
 	    / millisecondsPerSecond,
 	aWidth / perimeterLength, aMean, aTail,
 	bWidth / perimeterLength, bMean, bTail,
 	cWidth / perimeterLength, cMean, cTail);
 
-    #if 1
+    #if 0
 	FoldsInRing inRing(12, 11);
     #else
 	OrdinalsInRing inRing(perimeterLength);

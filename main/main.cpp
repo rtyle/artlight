@@ -11,8 +11,10 @@
 #include "MDNS.h"
 #include "NVSKeyValueBroker.h"
 #include "OtaTask.h"
+#include "Pin.h"
 #include "ProvisionTask.h"
 #include "Preferences.h"
+#include "Qio.h"
 #include "SPI.h"
 #include "TimeUpdate.h"
 #include "Wifi.h"
@@ -110,9 +112,20 @@ public:
     SPI::Bus const spiBus1;
     SPI::Bus const spiBus2;
 
-    LEDC::Fader		ledFader;
+    LEDC::ISR		ledISR;
     LEDC::Timer		ledTimer;
     LEDC::Channel	ledChannel[2][3];
+
+    ObservablePin::ISR		pinISR;
+    ObservablePin::Task		pinTask;
+
+    ObservablePin		aPin;
+    ObservablePin		bPin;
+    ObservablePin		irPin;
+
+    ObservablePin::Observer	aPinObserver;
+    ObservablePin::Observer	bPinObserver;
+    ObservablePin::Observer	irPinObserver;
 
     std::unique_ptr<ArtTask> artTask;
 
@@ -173,7 +186,7 @@ public:
 		.sclk_io_num_(SPI::Bus::VspiConfig.sclk_io_num),
 	    2),
 
-	ledFader(),
+	ledISR(),
 	ledTimer(LEDC_HIGH_SPEED_MODE, LEDC_TIMER_8_BIT, 10000),
 	ledChannel {
 	    {
@@ -182,11 +195,31 @@ public:
 		LEDC::Channel(ledTimer, GPIO_NUM_17, 0),
 	    },
 	    {
-		LEDC::Channel(ledTimer, GPIO_NUM_32, 0),
-		LEDC::Channel(ledTimer, GPIO_NUM_15, 0),
 		LEDC::Channel(ledTimer, GPIO_NUM_33, 0),
+		LEDC::Channel(ledTimer, GPIO_NUM_27, 0),
+		LEDC::Channel(ledTimer, GPIO_NUM_12, 0),
 	    },
 	},
+
+	pinISR(),
+	pinTask("pinTask", 5, 4096, tskNO_AFFINITY, 128),
+
+	aPin(GPIO_NUM_5 , GPIO_MODE_INPUT, GPIO_PULLUP_ENABLE,
+	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask),
+	bPin(GPIO_NUM_15, GPIO_MODE_INPUT, GPIO_PULLUP_ENABLE,
+	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask),
+	irPin(GPIO_NUM_26, GPIO_MODE_INPUT, GPIO_PULLUP_ENABLE,
+	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask),
+
+	aPinObserver(irPin, [this](){
+	    ESP_LOGI(name, "aPin %d", irPin.get_level());
+	}),
+	bPinObserver(irPin, [this](){
+	    ESP_LOGI(name, "bPin %d", irPin.get_level());
+	}),
+	irPinObserver(irPin, [this](){
+	    ESP_LOGI(name, "irPin %d", irPin.get_level());
+	}),
 
 	artTask(new DerivedArtTask(&spiBus1, &spiBus2,
 	    [this](){return luxTask.getLux();},
@@ -209,6 +242,8 @@ public:
 		p.fade_start();
 	    }
 	}
+
+	pinTask.start();
 
 	artTask->start();
     }

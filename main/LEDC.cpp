@@ -2,11 +2,11 @@
 
 namespace LEDC {
 
-Fader::Fader(int intr_alloc_flags) {
+ISR::ISR(int intr_alloc_flags) {
     ESP_ERROR_CHECK(ledc_fade_func_install(intr_alloc_flags));
 }
 
-Fader::~Fader() {
+ISR::~ISR() {
     ledc_fade_func_uninstall();
 }
 
