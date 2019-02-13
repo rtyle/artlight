@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="50" unitdist="mil" unit="mil" style="lines" multiple="1" display="yes" altdistance="5" altunitdist="mil" altunit="mil"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="no" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="no" active="yes"/>
@@ -244,6 +244,31 @@
 <wire x1="25.4" y1="-12.7" x2="-27.94" y2="-12.7" width="0.127" layer="21"/>
 <wire x1="-27.94" y1="-12.7" x2="-27.94" y2="12.7" width="0.127" layer="21"/>
 </package>
+<package name="FEATHERWING-ARTLIGHT.CORNHOLE">
+<description>Adafruit Featherwing for Huzzah32 as used by artlight.cornhole</description>
+<pad name="5VUSB" x="-5.08" y="10.16" drill="1" diameter="1.778"/>
+<pad name="HSPI:MOSI" x="-2.54" y="10.16" drill="1" diameter="1.778"/>
+<pad name="HSPI:SCLK" x="12.7" y="10.16" drill="1" diameter="1.778"/>
+<pad name="I2C:SCL" x="15.24" y="10.16" drill="1" diameter="1.778"/>
+<pad name="VSPI:MOSI" x="17.78" y="10.16" drill="1" diameter="1.778"/>
+<pad name="VSPI:SCLK" x="7.62" y="-10.16" drill="1" diameter="1.778"/>
+<pad name="I2C:SDA" x="17.78" y="-10.16" drill="1" diameter="1.778"/>
+<pad name="GND" x="-12.7" y="-10.16" drill="1" diameter="1.778"/>
+<pad name="3.3V" x="-17.78" y="-10.16" drill="1" diameter="1.778"/>
+<wire x1="-27.94" y1="12.7" x2="25.4" y2="12.7" width="0.127" layer="21"/>
+<wire x1="25.4" y1="12.7" x2="25.4" y2="-12.7" width="0.127" layer="21"/>
+<wire x1="25.4" y1="-12.7" x2="-27.94" y2="-12.7" width="0.127" layer="21"/>
+<wire x1="-27.94" y1="-12.7" x2="-27.94" y2="12.7" width="0.127" layer="21"/>
+<pad name="SW1" x="7.62" y="10.16" drill="1" diameter="1.778"/>
+<pad name="LED1R" x="5.08" y="10.16" drill="1" diameter="1.778"/>
+<pad name="LED1G" x="2.54" y="10.16" drill="1" diameter="1.778"/>
+<pad name="LED1B" x="0" y="10.16" drill="1" diameter="1.778"/>
+<pad name="SWBB" x="-10.16" y="-10.16" drill="1" diameter="1.778"/>
+<pad name="SW0" x="5.08" y="-10.16" drill="1" diameter="1.778"/>
+<pad name="LED0R" x="10.16" y="-10.16" drill="1" diameter="1.778"/>
+<pad name="LED0G" x="12.7" y="-10.16" drill="1" diameter="1.778"/>
+<pad name="LED0B" x="15.24" y="-10.16" drill="1" diameter="1.778"/>
+</package>
 </packages>
 <symbols>
 <symbol name="HUZZAH32">
@@ -322,6 +347,31 @@
 <wire x1="9.525" y1="8.255" x2="-9.525" y2="8.255" width="0.254" layer="94"/>
 <wire x1="-9.525" y1="8.255" x2="-9.525" y2="-8.255" width="0.254" layer="94"/>
 </symbol>
+<symbol name="HUZZAH32-ARTLIGHT.CORNHOLE">
+<description>Adafruit Huzzah32 as used by artlight.cornhole</description>
+<wire x1="-26.67" y1="-10.16" x2="24.13" y2="-10.16" width="0.254" layer="94"/>
+<wire x1="24.13" y1="-10.16" x2="24.13" y2="12.7" width="0.254" layer="94"/>
+<wire x1="24.13" y1="12.7" x2="-26.67" y2="12.7" width="0.254" layer="94"/>
+<wire x1="-26.67" y1="12.7" x2="-26.67" y2="-10.16" width="0.254" layer="94"/>
+<pin name="3.3V" x="-20.32" y="-15.24" length="middle" rot="R90"/>
+<pin name="GND" x="-15.24" y="-15.24" length="middle" rot="R90"/>
+<pin name="VSPI:SCLK" x="5.08" y="-15.24" length="middle" rot="R90"/>
+<pin name="I2C:SDA" x="15.24" y="-15.24" length="middle" rot="R90"/>
+<pin name="VSPI:MOSI" x="15.24" y="17.78" length="middle" rot="R270"/>
+<pin name="I2C:SCL" x="12.7" y="17.78" length="middle" rot="R270"/>
+<pin name="HSPI:SCLK" x="10.16" y="17.78" length="middle" rot="R270"/>
+<pin name="HSPI:MOSI" x="-5.08" y="17.78" length="middle" rot="R270"/>
+<pin name="5VUSB" x="-7.62" y="17.78" length="middle" rot="R270"/>
+<pin name="SWBB" x="-12.7" y="-15.24" length="middle" rot="R90"/>
+<pin name="SW0" x="2.54" y="-15.24" length="middle" rot="R90"/>
+<pin name="LED0R" x="7.62" y="-15.24" length="middle" rot="R90"/>
+<pin name="LED0G" x="10.16" y="-15.24" length="middle" rot="R90"/>
+<pin name="LED0B" x="12.7" y="-15.24" length="middle" rot="R90"/>
+<pin name="SW1" x="5.08" y="17.78" length="middle" rot="R270"/>
+<pin name="LED1R" x="2.54" y="17.78" length="middle" rot="R270"/>
+<pin name="LED1G" x="0" y="17.78" length="middle" rot="R270"/>
+<pin name="LED1B" x="-2.54" y="17.78" length="middle" rot="R270"/>
+</symbol>
 </symbols>
 <devicesets>
 <deviceset name="HUZZAH32-ARTLIGHT">
@@ -360,6 +410,39 @@
 <connect gate="G$1" pin="SCL" pad="SCL"/>
 <connect gate="G$1" pin="SDA" pad="SDA"/>
 <connect gate="G$1" pin="VIN" pad="VIN"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="HUZZAH32-ARTLIGHT.CORNHOLE">
+<description>Adafruit Huzzah32 as used by artlight.cornhole</description>
+<gates>
+<gate name="G$1" symbol="HUZZAH32-ARTLIGHT.CORNHOLE" x="2.54" y="2.54"/>
+</gates>
+<devices>
+<device name="" package="FEATHERWING-ARTLIGHT.CORNHOLE">
+<connects>
+<connect gate="G$1" pin="3.3V" pad="3.3V"/>
+<connect gate="G$1" pin="5VUSB" pad="5VUSB"/>
+<connect gate="G$1" pin="GND" pad="GND"/>
+<connect gate="G$1" pin="HSPI:MOSI" pad="HSPI:MOSI"/>
+<connect gate="G$1" pin="HSPI:SCLK" pad="HSPI:SCLK"/>
+<connect gate="G$1" pin="I2C:SCL" pad="I2C:SCL"/>
+<connect gate="G$1" pin="I2C:SDA" pad="I2C:SDA"/>
+<connect gate="G$1" pin="LED0B" pad="LED0B"/>
+<connect gate="G$1" pin="LED0G" pad="LED0G"/>
+<connect gate="G$1" pin="LED0R" pad="LED0R"/>
+<connect gate="G$1" pin="LED1B" pad="LED1B"/>
+<connect gate="G$1" pin="LED1G" pad="LED1G"/>
+<connect gate="G$1" pin="LED1R" pad="LED1R"/>
+<connect gate="G$1" pin="SW0" pad="SW0"/>
+<connect gate="G$1" pin="SW1" pad="SW1"/>
+<connect gate="G$1" pin="SWBB" pad="SWBB"/>
+<connect gate="G$1" pin="VSPI:MOSI" pad="VSPI:MOSI"/>
+<connect gate="G$1" pin="VSPI:SCLK" pad="VSPI:SCLK"/>
 </connects>
 <technologies>
 <technology name=""/>
