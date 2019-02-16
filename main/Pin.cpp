@@ -22,7 +22,7 @@ Pin::Pin(
 	pinUsed[gpio_num] = true;
     }
     gpio_config_t config = {
-	static_cast<uint64_t>(1 << gpio_num),
+	static_cast<uint64_t>(1) << gpio_num,
 	mode,
 	pull_up_en,
 	pull_down_en,

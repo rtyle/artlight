@@ -114,17 +114,19 @@ public:
 
     LEDC::ISR		ledISR;
     LEDC::Timer		ledTimer;
-    LEDC::Channel	ledChannel[2][3];
+    LEDC::Channel	ledChannel[3][3];
 
     ObservablePin::ISR		pinISR;
     ObservablePin::Task		pinTask;
 
     ObservablePin		aPin;
     ObservablePin		bPin;
+    ObservablePin		cPin;
     ObservablePin		irPin;
 
     ObservablePin::Observer	aPinObserver;
     ObservablePin::Observer	bPinObserver;
+    ObservablePin::Observer	cPinObserver;
     ObservablePin::Observer	irPinObserver;
 
     std::unique_ptr<ArtTask> artTask;
@@ -188,11 +190,17 @@ public:
 
 	ledISR(),
 	ledTimer(LEDC_HIGH_SPEED_MODE, LEDC_TIMER_8_BIT, 10000),
+
 	ledChannel {
 	    {
 		LEDC::Channel(ledTimer, GPIO_NUM_19, 0),
 		LEDC::Channel(ledTimer, GPIO_NUM_16, 0),
 		LEDC::Channel(ledTimer, GPIO_NUM_17, 0),
+	    },
+	    {
+		LEDC::Channel(ledTimer, GPIO_NUM_4 , 0),
+		LEDC::Channel(ledTimer, GPIO_NUM_25, 0),
+		LEDC::Channel(ledTimer, GPIO_NUM_26, 0),
 	    },
 	    {
 		LEDC::Channel(ledTimer, GPIO_NUM_33, 0),
@@ -206,9 +214,11 @@ public:
 
 	aPin(GPIO_NUM_5 , GPIO_MODE_INPUT, GPIO_PULLUP_ENABLE,
 	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask),
-	bPin(GPIO_NUM_15, GPIO_MODE_INPUT, GPIO_PULLUP_ENABLE,
+	bPin(GPIO_NUM_36, GPIO_MODE_INPUT, GPIO_PULLUP_DISABLE,
 	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask),
-	irPin(GPIO_NUM_26, GPIO_MODE_INPUT, GPIO_PULLUP_ENABLE,
+	cPin(GPIO_NUM_15, GPIO_MODE_INPUT, GPIO_PULLUP_ENABLE,
+	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask),
+	irPin(GPIO_NUM_34, GPIO_MODE_INPUT, GPIO_PULLUP_DISABLE,
 	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask),
 
 	aPinObserver(aPin, [this](){
@@ -216,6 +226,9 @@ public:
 	}),
 	bPinObserver(bPin, [this](){
 	    ESP_LOGI(name, "bPin %d", bPin.get_level());
+	}),
+	cPinObserver(cPin, [this](){
+	    ESP_LOGI(name, "cPin %d", cPin.get_level());
 	}),
 	irPinObserver(irPin, [this](){
 	    ESP_LOGI(name, "irPin %d", irPin.get_level());
