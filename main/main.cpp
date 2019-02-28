@@ -116,7 +116,8 @@ public:
     ObservablePin::Task	pinTask;
     ObservablePin	pin[4];
 
-    LEDC::Timer		ledTimer;
+    LEDC::Timer		ledTimerHighSpeed;
+    LEDC::Timer		ledTimerLowSpeed;
     LEDC::Channel	ledChannel[3][3];
 
     std::unique_ptr<ArtTask> artTask;
@@ -191,22 +192,23 @@ public:
 		GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask},
 	},
 
-	ledTimer(LEDC_HIGH_SPEED_MODE, LEDC_TIMER_8_BIT),
+	ledTimerHighSpeed(LEDC_HIGH_SPEED_MODE, LEDC_TIMER_8_BIT),
+	ledTimerLowSpeed (LEDC_LOW_SPEED_MODE , LEDC_TIMER_8_BIT),
 	ledChannel {
 	    {
-		{ledTimer, GPIO_NUM_19, 255},
-		{ledTimer, GPIO_NUM_16, 255},
-		{ledTimer, GPIO_NUM_17, 255},
+		{ledTimerHighSpeed, GPIO_NUM_19, 255},
+		{ledTimerHighSpeed, GPIO_NUM_16, 255},
+		{ledTimerHighSpeed, GPIO_NUM_17, 255},
 	    },
 	    {
-		{ledTimer, GPIO_NUM_4 , 255},
-		{ledTimer, GPIO_NUM_25, 255},
-		{ledTimer, GPIO_NUM_26, 255},
+		{ledTimerHighSpeed, GPIO_NUM_4 , 255},
+		{ledTimerHighSpeed, GPIO_NUM_25, 255},
+		{ledTimerHighSpeed, GPIO_NUM_26, 255},
 	    },
 	    {
-		{ledTimer, GPIO_NUM_33, 255},
-		{ledTimer, GPIO_NUM_27, 255},
-		{ledTimer, GPIO_NUM_12, 255},
+		{ledTimerLowSpeed, GPIO_NUM_33, 255},
+		{ledTimerLowSpeed, GPIO_NUM_27, 255},
+		{ledTimerLowSpeed, GPIO_NUM_12, 255},
 	    },
 	},
 

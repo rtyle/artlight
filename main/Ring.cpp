@@ -124,6 +124,27 @@ public:
     }
 };
 
+/// Bump is a Moving (from a center with a speed)
+/// rectified cosine function object
+/// with a frequency (number of periods in a domain span of 1).
+/// The output is adjusted to range from 0 to 1.
+class Bump : public Moving {
+private:
+    float const	frequency;
+public:
+    Bump(
+	float center		= 0.0f,
+	float speed		= 0.0f,
+	float width		= 1.0f)
+    :
+	Moving		(center, speed),
+	frequency	(1.0f / (2.0f * width))
+    {}
+    float operator()(At at) const {
+	return std::abs(std::cos(2.0f * pi * frequency * at.center(*this)));
+    }
+};
+
 /// Bell is a Moving (from a center with a speed)
 /// standard normal distribution curve function object
 /// with a standard deviation and center value of 1.
@@ -225,7 +246,7 @@ public:
 };
 
 /// Art is an abstract base class for a function object that can return
-/// and LEDI value for a specified place on a ring.
+/// an LEDI value for a specified place on a ring.
 class Art {
 public:
     virtual LEDI operator()(float place) const = 0;
@@ -282,11 +303,28 @@ public:
 };
 
 void ArtTask::update() {
+    float time
+	= static_cast<float>(smoothTime.millisecondsSinceTwelveLocaltime())
+	    / millisecondsPerSecond;
+
+    Bump bump(0.0f, 1.0f / 8.0f, 1.0f);
+
+    Ramp<LEDI> aRamp(LEDI(aTail), LEDI(static_cast<uint32_t>(aMean)));
+    LEDI a(aRamp(bump(At(0.0f, time))));
+    ledChannel[0][0].set_duty(a.part.red);	ledChannel[0][0].update_duty();
+    ledChannel[0][1].set_duty(a.part.green);	ledChannel[0][1].update_duty();
+    ledChannel[0][2].set_duty(a.part.blue);	ledChannel[0][2].update_duty();
+
+    Ramp<LEDI> bRamp(LEDI(bTail), LEDI(static_cast<uint32_t>(bMean)));
+    LEDI b(bRamp(bump(At(0.0f, time))));
+    ledChannel[1][0].set_duty(b.part.red);	ledChannel[1][0].update_duty();
+    ledChannel[1][1].set_duty(b.part.green);	ledChannel[1][1].update_duty();
+    ledChannel[1][2].set_duty(b.part.blue);	ledChannel[1][2].update_duty();
+
     static size_t constexpr perimeterLength = 80;
 
     Clock<BellWave> art(
-	static_cast<float>(smoothTime.millisecondsSinceTwelveLocaltime())
-	    / millisecondsPerSecond,
+	time,
 	aWidth / perimeterLength, aMean, aTail,
 	bWidth / perimeterLength, bMean, bTail,
 	cWidth / perimeterLength, cMean, cTail);
