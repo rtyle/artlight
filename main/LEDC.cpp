@@ -1,3 +1,5 @@
+#include <esp_log.h>
+
 #include "LEDC.h"
 
 namespace LEDC {
@@ -33,27 +35,32 @@ Timer::Timer(
     speed_mode	(speed_mode_),
     timer_num	(
 	[this](){
-	    auto free_ = free[speed_mode];
-	    for (auto & timer_num: free_) {
-		free_.pop_front();
-		return timer_num;
+	    auto free_ = &free[speed_mode];
+	    for (auto & timer_num_: *free_) {
+		free_->pop_front();
+		return timer_num_;
 	    }
 	    throw std::bad_alloc();
 	}())
 {
+    if (!freq_hz) {
+	freq_hz = APB_CLK_FREQ / (1 << duty_resolution);
+    }
     ledc_timer_config_t config {
 	speed_mode,
 	duty_resolution,
 	timer_num,
-	freq_hz
-	    ? freq_hz
-	    : APB_CLK_FREQ / (1 << duty_resolution),
+	freq_hz,
     };
     ESP_ERROR_CHECK(ledc_timer_config(&config));
+    ESP_LOGI("LEDC::Timer", "speed_mode %d, duty_resolution %d, timer_num %d, "
+	"freq_hz %d",
+	speed_mode, duty_resolution, timer_num, freq_hz);
 }
 
 Timer::~Timer() {
     free[speed_mode].push_front(timer_num);
+    ESP_LOGI("LEDC::Timer", "free %d", timer_num);
 }
 
 void Timer::set_freq(uint32_t freq_hz) {
@@ -108,10 +115,10 @@ Channel::Channel(
 :
     speed_mode(timer.speed_mode),
     channel([this](){
-	    auto free_ = free[speed_mode];
-	    for (auto & channel: free_) {
-		free_.pop_front();
-		return channel;
+	    auto free_ = &free[speed_mode];
+	    for (auto & channel_: *free_) {
+		free_->pop_front();
+		return channel_;
 	    }
 	    throw std::bad_alloc();
 	}())
@@ -126,10 +133,16 @@ Channel::Channel(
 	hpoint,
     };
     ESP_ERROR_CHECK(ledc_channel_config(&config));
+    ESP_LOGI("LEDC::Channel", "gpio_num %d, speed_mode %d, channel %d, "
+	"intr_type %d, timer_num %d, duty %d, hpoint %d",
+	gpio_num, speed_mode, channel, intr_type,
+	timer.timer_num, duty, hpoint);
+
 }
 
 Channel::~Channel() {
     free[speed_mode].push_front(channel);
+    ESP_LOGI("LEDC::Channel", "free %d", channel);
 }
 
 void Channel::bind_timer(Timer const & timer) {
