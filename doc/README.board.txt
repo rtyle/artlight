@@ -45,15 +45,6 @@ Components on custom artlight board
 
 		Eagle Device for barrel jack
 
-Board assembly
-
-	Solder resistors.
-
-	Solder 90 degree pin headers.
-
-	Solder the TSL2561 and Huzzah32 to the PCB using pin headers.
-	Only pins that are used can be connected.
-
 External components
 
 	Adafruit Dotstar devices ...
@@ -84,3 +75,50 @@ External components
 	This jumper should be removed when using a USB cable to flash or monitor the ESP32.
 	The 5V supply should always be connected
 	so that the lights and board share the same ground reference.
+
+----
+
+Components on custom artlight.cornhole board
+
+	As above, plus
+
+	Two 47K 1/4 watt resistors
+
+	Nine 10K 1/4 watt resistors
+	Nine PN2222 NPN BiPolar Transistors
+
+		https://www.adafruit.com/product/756
+
+
+	additional pin headers
+
+./eagle/projects/artlight contains files used to create an artlight.cornhole PCB
+
+	Eagle board, schematic and generated CAM data sent to JLCPCB
+
+		artlight.cornhole.brd
+		artlight.cornhole.sch
+		artlight.cornhole.zip
+
+External components
+
+	Cornhole LED lights (for frame only, LEDs replaced with DotStar strip).
+
+		https://amazon.com/gp/product/B072ZRZYWG
+
+	Two RGB LED Lit Momentary Switches
+
+		https://www.adafruit.com/product/3423
+
+	One RGB LED Lit On/Off Switch
+
+		https://www.adafruit.com/product/3424
+
+	For maximum brightness,
+	the LEDs in these switches should be driven by 5V, not 3.3V.
+	ESP32 3.3V PWM is used to switch the 5V load through
+	a 10K resistor driving the base of an PN2222 NPN transistor.
+
+	Two IR Break Beam Sensors (for hole, wired in parallel)
+
+		https://www.adafruit.com/product/2168
