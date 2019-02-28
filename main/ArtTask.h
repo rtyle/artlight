@@ -3,6 +3,8 @@
 #include "AsioTask.h"
 #include "GammaEncode.h"
 #include "KeyValueBroker.h"
+#include "LEDC.h"
+#include "Pin.h"
 #include "SPI.h"
 #include "SmoothTime.h"
 
@@ -15,6 +17,9 @@ class ArtTask : public AsioTask {
 protected:
     SPI::Device const			spiDevice1;
     SPI::Device const			spiDevice2;
+    ObservablePin			(&pin)[4];
+    LEDC::Channel			(&ledChannel)[3][3];
+
     std::function<float()> const	getLux;
     KeyValueBroker &			keyValueBroker;
 
@@ -63,6 +68,8 @@ protected:
 
 	SPI::Bus const *	spiBus1,
 	SPI::Bus const *	spiBus2,
+	ObservablePin		(&pin)[4],
+	LEDC::Channel		(&ledChannel)[3][3],
 	std::function<float()>	getLux,
 	KeyValueBroker &	keyValueBroker);
 };

@@ -112,22 +112,12 @@ public:
     SPI::Bus const spiBus1;
     SPI::Bus const spiBus2;
 
-    LEDC::ISR		ledISR;
+    ObservablePin::ISR	pinISR;
+    ObservablePin::Task	pinTask;
+    ObservablePin	pin[4];
+
     LEDC::Timer		ledTimer;
     LEDC::Channel	ledChannel[3][3];
-
-    ObservablePin::ISR		pinISR;
-    ObservablePin::Task		pinTask;
-
-    ObservablePin		aPin;
-    ObservablePin		bPin;
-    ObservablePin		cPin;
-    ObservablePin		irPin;
-
-    ObservablePin::Observer	aPinObserver;
-    ObservablePin::Observer	bPinObserver;
-    ObservablePin::Observer	cPinObserver;
-    ObservablePin::Observer	irPinObserver;
 
     std::unique_ptr<ArtTask> artTask;
 
@@ -188,53 +178,39 @@ public:
 		.sclk_io_num_(SPI::Bus::VspiConfig.sclk_io_num),
 	    2),
 
-	ledISR(),
-	ledTimer(LEDC_HIGH_SPEED_MODE, LEDC_TIMER_8_BIT, 10000),
+	pinISR(),
+	pinTask("pinTask", 5, 4096, tskNO_AFFINITY, 128),
+	pin {
+	    {GPIO_NUM_5 , GPIO_MODE_INPUT, GPIO_PULLUP_ENABLE,
+		GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask},
+	    {GPIO_NUM_36, GPIO_MODE_INPUT, GPIO_PULLUP_DISABLE,
+		GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask},
+	    {GPIO_NUM_15, GPIO_MODE_INPUT, GPIO_PULLUP_ENABLE,
+		GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask},
+	    {GPIO_NUM_34, GPIO_MODE_INPUT, GPIO_PULLUP_DISABLE,
+		GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask},
+	},
 
+	ledTimer(LEDC_HIGH_SPEED_MODE, LEDC_TIMER_8_BIT),
 	ledChannel {
 	    {
-		LEDC::Channel(ledTimer, GPIO_NUM_19, 0),
-		LEDC::Channel(ledTimer, GPIO_NUM_16, 0),
-		LEDC::Channel(ledTimer, GPIO_NUM_17, 0),
+		{ledTimer, GPIO_NUM_19, 255},
+		{ledTimer, GPIO_NUM_16, 255},
+		{ledTimer, GPIO_NUM_17, 255},
 	    },
 	    {
-		LEDC::Channel(ledTimer, GPIO_NUM_4 , 0),
-		LEDC::Channel(ledTimer, GPIO_NUM_25, 0),
-		LEDC::Channel(ledTimer, GPIO_NUM_26, 0),
+		{ledTimer, GPIO_NUM_4 , 255},
+		{ledTimer, GPIO_NUM_25, 255},
+		{ledTimer, GPIO_NUM_26, 255},
 	    },
 	    {
-		LEDC::Channel(ledTimer, GPIO_NUM_33, 0),
-		LEDC::Channel(ledTimer, GPIO_NUM_27, 0),
-		LEDC::Channel(ledTimer, GPIO_NUM_12, 0),
+		{ledTimer, GPIO_NUM_33, 255},
+		{ledTimer, GPIO_NUM_27, 255},
+		{ledTimer, GPIO_NUM_12, 255},
 	    },
 	},
 
-	pinISR(),
-	pinTask("pinTask", 5, 4096, tskNO_AFFINITY, 128),
-
-	aPin(GPIO_NUM_5 , GPIO_MODE_INPUT, GPIO_PULLUP_ENABLE,
-	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask),
-	bPin(GPIO_NUM_36, GPIO_MODE_INPUT, GPIO_PULLUP_DISABLE,
-	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask),
-	cPin(GPIO_NUM_15, GPIO_MODE_INPUT, GPIO_PULLUP_ENABLE,
-	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask),
-	irPin(GPIO_NUM_34, GPIO_MODE_INPUT, GPIO_PULLUP_DISABLE,
-	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask),
-
-	aPinObserver(aPin, [this](){
-	    ESP_LOGI(name, "aPin %d", aPin.get_level());
-	}),
-	bPinObserver(bPin, [this](){
-	    ESP_LOGI(name, "bPin %d", bPin.get_level());
-	}),
-	cPinObserver(cPin, [this](){
-	    ESP_LOGI(name, "cPin %d", cPin.get_level());
-	}),
-	irPinObserver(irPin, [this](){
-	    ESP_LOGI(name, "irPin %d", irPin.get_level());
-	}),
-
-	artTask(new DerivedArtTask(&spiBus1, &spiBus2,
+	artTask(new DerivedArtTask(&spiBus1, &spiBus2, pin, ledChannel,
 	    [this](){return luxTask.getLux();},
 	    keyValueBroker))
     {
@@ -248,13 +224,6 @@ public:
 	disconnected.reset(new Disconnected(*this));
 
 	luxTask.start();
-
-	for (auto & rgb: ledChannel) {
-	    for (auto & p: rgb) {
-		p.set_fade_with_time(128, 1000);
-		p.fade_start();
-	    }
-	}
 
 	pinTask.start();
 

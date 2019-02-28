@@ -347,11 +347,21 @@ void ArtTask::update() {
 ArtTask::ArtTask(
     SPI::Bus const *		spiBus1,
     SPI::Bus const *		spiBus2,
+    ObservablePin		(&pin_)[4],
+    LEDC::Channel		(&ledChannel_)[3][3],
     std::function<float()>	getLux_,
     KeyValueBroker &		keyValueBroker_)
 :
     ::ArtTask		("ringArtTask", 5, 16384, 1,
-			spiBus1, spiBus2, getLux_, keyValueBroker_)
+			spiBus1, spiBus2, pin_, ledChannel_,
+			getLux_, keyValueBroker_),
+
+    observer {
+	{pin[0], [this](){ESP_LOGI(name, "pin a %d" , pin[0].get_level());}},
+	{pin[1], [this](){ESP_LOGI(name, "pin b %d" , pin[1].get_level());}},
+	{pin[2], [this](){ESP_LOGI(name, "pin c %d" , pin[2].get_level());}},
+	{pin[3], [this](){ESP_LOGI(name, "pin ir %d", pin[3].get_level());}},
+    }
 {}
 
 /* virtual */ void ArtTask::run() {

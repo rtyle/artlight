@@ -15,12 +15,15 @@ namespace Ring {
 
 class ArtTask : public ::ArtTask {
 private:
+    ObservablePin::Observer	observer[4];
     void update();
 
 public:
     ArtTask(
 	SPI::Bus const *	spiBus1,
 	SPI::Bus const *	spiBus2,
+	ObservablePin		(&pin)[4],
+	LEDC::Channel		(&ledChannel)[3][3],
 	std::function<float()>	getLux,
 	KeyValueBroker &	keyValueBroker);
 
