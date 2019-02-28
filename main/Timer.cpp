@@ -42,6 +42,10 @@ void Timer::stop() {
     xTimerStop (timerHandle, portMAX_DELAY);
 }
 
+bool Timer::isActive() {
+    return xTimerIsTimerActive(timerHandle) == pdTRUE;
+}
+
 void Timer::setPeriod(TickType_t period) {
 //  ESP_LOGI(name, "Timer::change %u", period);
     xTimerChangePeriod(timerHandle, period, portMAX_DELAY);

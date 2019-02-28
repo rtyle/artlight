@@ -26,6 +26,8 @@ public:
     void start();
     void stop ();
 
+    bool isActive();
+
     void setPeriod(TickType_t);
     TickType_t getPeriod();
 
