@@ -183,6 +183,13 @@ ObservablePin::ObservablePin(
     })
 {}
 
+ObservablePin::ObservablePin(ObservablePin const && move)
+:
+    Pin(move),
+    observeFromISR(move.observeFromISR),
+    observeFromTask(move.observeFromTask)
+{}
+
 void ObservablePin::observe() {
     std::lock_guard<std::recursive_mutex> lock(mutex);
     for (auto & observer: observers) {

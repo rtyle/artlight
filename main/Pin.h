@@ -50,7 +50,7 @@ public:
 };
 
 /// An ObservablePin is a Pin that can have many ObservablePin::Observer's
-/// These observers will be notified
+/// These observers will be notified when there is something to be observed.
 class ObservablePin: public Pin {
 public:
 
@@ -69,7 +69,7 @@ public:
     /// to arrange for ObservablePin.observe to be called
     /// (one can use an ObservablePin::Task for this purpose).
     class Observer {
-    private:
+    protected:
 	ObservablePin & observablePin;
 	std::function<void()> const observe;
     public:
@@ -103,6 +103,13 @@ public:
 	gpio_pulldown_t				pull_down_en,
 	gpio_int_type_t				intr_type,
 	std::function<void(ObservablePin *)>	observeFromISR);
+
+    /// Define an explicit move constructor
+    /// because one will not be defined implicitly
+    /// due to our non-copiable/non-movable std::recursive_mutex.
+    /// A move constructor is needed to support initialization of an
+    /// ObservablePin array class member.
+    ObservablePin(ObservablePin const && move);
 
     /// Notify each Observer
     void observe();
