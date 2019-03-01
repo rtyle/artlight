@@ -313,23 +313,28 @@ void updateLedChannels(LEDC::Channel (&ledChannels)[3], LEDI const & led) {
 }
 
 void ArtTask::update() {
-    float time
-	= static_cast<float>(smoothTime.millisecondsSinceTwelveLocaltime())
-	    / millisecondsPerSecond;
+    static float const phi	= (1.0f + std::sqrt(5.0f)) / 2.0f;
+    static float const sqrt2	= std::sqrt(2.0f);
 
     Ramp<LEDI> aRamp {LEDI(aTail), LEDI(aMean)};
     Ramp<LEDI> bRamp {LEDI(bTail), LEDI(bMean)};
     Ramp<LEDI> cRamp {LEDI(cTail), LEDI(cMean)};
 
-    Bump shape(0.0f, 1.0f / 8.0f, 1.0f);
+    Bump aShape(0.0f, phi   / 8.0f, 1.0f);
+    Bump bShape(0.0f, sqrt2 / 8.0f, 1.0f);
+    Bump cShape(0.0f, 1.5f  / 8.0f, 1.0f);
 
-    updateLedChannels(ledChannel[0], aRamp(shape(At(0.0f, time))));
-    updateLedChannels(ledChannel[1], bRamp(shape(At(0.0f, time))));
+    float secondsSinceBoot = esp_timer_get_time() / 1000000.0f;
+
+    updateLedChannels(ledChannel[0], aRamp(aShape(At(0.0f, secondsSinceBoot))));
+    updateLedChannels(ledChannel[1], bRamp(bShape(At(0.0f, secondsSinceBoot))));
+    updateLedChannels(ledChannel[2], cRamp(cShape(At(0.0f, secondsSinceBoot))));
 
     static size_t constexpr perimeterLength = 80;
 
     Clock<BellWave> art(
-	time,
+	static_cast<float>(smoothTime.millisecondsSinceTwelveLocaltime())
+	    / millisecondsPerSecond,
 	aWidth / perimeterLength, aRamp,
 	bWidth / perimeterLength, bRamp,
 	cWidth / perimeterLength, cRamp);
