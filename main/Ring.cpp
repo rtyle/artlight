@@ -313,16 +313,16 @@ void updateLedChannels(LEDC::Channel (&ledChannels)[3], LEDI const & led) {
 }
 
 void ArtTask::update() {
-    static float const phi	= (1.0f + std::sqrt(5.0f)) / 2.0f;
-    static float const sqrt2	= std::sqrt(2.0f);
+    static float constexpr phi		= (1.0f + std::sqrt(5.0f)) / 2.0f;
+    static float constexpr sqrt2	= std::sqrt(2.0f);
+
+    Bump aShape(0.0f, phi   / 9.0f, 1.0f);	// < 6 seconds
+    Bump bShape(0.0f, sqrt2 / 9.0f, 1.0f);	// > 6 seconds
+    Bump cShape(0.0f, 1.5f  / 9.0f, 1.0f);	// = 6 seconds
 
     Ramp<LEDI> aRamp {LEDI(aTail), LEDI(aMean)};
     Ramp<LEDI> bRamp {LEDI(bTail), LEDI(bMean)};
     Ramp<LEDI> cRamp {LEDI(cTail), LEDI(cMean)};
-
-    Bump aShape(0.0f, phi   / 8.0f, 1.0f);
-    Bump bShape(0.0f, sqrt2 / 8.0f, 1.0f);
-    Bump cShape(0.0f, 1.5f  / 8.0f, 1.0f);
 
     float secondsSinceBoot = esp_timer_get_time() / 1000000.0f;
 
