@@ -12,7 +12,7 @@ using APA102::LED;
 
 namespace Ring {
 
-typedef APA102::LED<int> LEDI;
+using LEDI = APA102::LED<int>;
 
 static auto const pi = std::acos(-1.0f);
 
@@ -262,72 +262,77 @@ static Pulse secondPulse(0);//60);
 template <typename Shape>
 class Clock : public Art {
 private:
-    float const	hTime;
-    float const	mTime;
-    float const	sTime;
-    Ramp<LEDI>	hColor;
-    Ramp<LEDI>	mColor;
-    Ramp<LEDI>	sColor;
-    Shape	hShape;
-    Shape	mShape;
-    Shape	sShape;
+    float const		hTime;
+    float const		mTime;
+    float const		sTime;
+    Ramp<LEDI> const &	hRamp;
+    Ramp<LEDI> const &	mRamp;
+    Ramp<LEDI> const &	sRamp;
+    Shape		hShape;
+    Shape		mShape;
+    Shape		sShape;
 public:
     Clock(
-	float		time,	// seconds since 12, local time
-	float		hWidth,
-	uint32_t	hMeanColor,
-	uint32_t	hTailColor,
-	float		mWidth,
-	uint32_t	mMeanColor,
-	uint32_t	mTailColor,
-	float		sWidth,
-	uint32_t	sMeanColor,
-	uint32_t	sTailColor)
+	float			time,	// seconds since 12, local time
+	float			hWidth,
+	Ramp<LEDI> const &	hRamp_,
+	float			mWidth,
+	Ramp<LEDI> const &	mRamp_,
+	float			sWidth,
+	Ramp<LEDI> const &	sRamp_)
     :
 	hTime	(hourPulse  (inDayOf   (time))),
 	mTime	(minutePulse(inHourOf  (time))),
 	sTime	(secondPulse(inMinuteOf(time))),
-	hColor	(LEDI(hTailColor), LEDI(hMeanColor)),
-	mColor	(LEDI(mTailColor), LEDI(mMeanColor)),
-	sColor	(LEDI(sTailColor), LEDI(sMeanColor)),
+	hRamp	(hRamp_),
+	mRamp	(mRamp_),
+	sRamp	(sRamp_),
 	hShape	(0.0f, 1.0f, hWidth),
 	mShape	(0.0f, 1.0f, mWidth),
 	sShape	(0.0f, 1.0f, sWidth)
     {}
     /*virtual */ LEDI operator()(float place) const {
-	return	//  hColor(hShape(At(place, hTime)))
-		//+ mColor(mShape(At(place, mTime)))
-		/*+*/ sColor(sShape(At(place, sTime)))
+	return	//  hRamp(hShape(At(place, hTime)))
+		//+ mRamp(mShape(At(place, mTime)))
+		/*+*/ sRamp(sShape(At(place, sTime)))
 	;
     }
 };
+
+void updateLedChannel(LEDC::Channel & ledChannel, uint32_t duty) {
+    // do not use ledChannel.set_duty_and_update
+    ledChannel.set_duty(duty);
+    ledChannel.update_duty();
+}
+
+void updateLedChannels(LEDC::Channel (&ledChannels)[3], LEDI const & led) {
+    LEDC::Channel * ledChannel = ledChannels;
+    for (auto duty: {led.part.red, led.part.green, led.part.blue}) {
+	updateLedChannel(*ledChannel++, duty);
+    }
+}
 
 void ArtTask::update() {
     float time
 	= static_cast<float>(smoothTime.millisecondsSinceTwelveLocaltime())
 	    / millisecondsPerSecond;
 
-    Bump bump(0.0f, 1.0f / 8.0f, 1.0f);
+    Ramp<LEDI> aRamp {LEDI(aTail), LEDI(aMean)};
+    Ramp<LEDI> bRamp {LEDI(bTail), LEDI(bMean)};
+    Ramp<LEDI> cRamp {LEDI(cTail), LEDI(cMean)};
 
-    Ramp<LEDI> aRamp(LEDI(aTail), LEDI(static_cast<uint32_t>(aMean)));
-    LEDI a(aRamp(bump(At(0.0f, time))));
-    ledChannel[0][0].set_duty(a.part.red);	ledChannel[0][0].update_duty();
-    ledChannel[0][1].set_duty(a.part.green);	ledChannel[0][1].update_duty();
-    ledChannel[0][2].set_duty(a.part.blue);	ledChannel[0][2].update_duty();
+    Bump shape(0.0f, 1.0f / 8.0f, 1.0f);
 
-    Ramp<LEDI> bRamp(LEDI(bTail), LEDI(static_cast<uint32_t>(bMean)));
-    LEDI b(bRamp(bump(At(0.0f, time))));
-    ledChannel[1][0].set_duty(b.part.red);	ledChannel[1][0].update_duty();
-    ledChannel[1][1].set_duty(b.part.green);	ledChannel[1][1].update_duty();
-    ledChannel[1][2].set_duty(b.part.blue);	ledChannel[1][2].update_duty();
+    updateLedChannels(ledChannel[0], aRamp(shape(At(0.0f, time))));
+    updateLedChannels(ledChannel[1], bRamp(shape(At(0.0f, time))));
 
     static size_t constexpr perimeterLength = 80;
 
     Clock<BellWave> art(
 	time,
-	aWidth / perimeterLength, aMean, aTail,
-	bWidth / perimeterLength, bMean, bTail,
-	cWidth / perimeterLength, cMean, cTail);
+	aWidth / perimeterLength, aRamp,
+	bWidth / perimeterLength, bRamp,
+	cWidth / perimeterLength, cRamp);
 
     #if 0
 	FoldsInRing inRing(12, 11);

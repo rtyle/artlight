@@ -1,7 +1,6 @@
 #include <cstdlib>
 extern "C" int setenv(char const *, char const *, int);
 
-#include "APA102.h"
 #include "ArtTask.h"
 
 #include "fromString.h"

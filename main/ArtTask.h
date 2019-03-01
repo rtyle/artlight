@@ -1,5 +1,6 @@
 #pragma once
 
+#include "APA102.h"
 #include "AsioTask.h"
 #include "GammaEncode.h"
 #include "KeyValueBroker.h"
@@ -27,22 +28,22 @@ protected:
     KeyValueBroker::Observer const	timezoneObserver;
 
     float				aWidth;
-    uint32_t				aMean;
-    uint32_t				aTail;
+    APA102::LED<>			aMean;
+    APA102::LED<>			aTail;
     KeyValueBroker::Observer const	aWidthObserver;
     KeyValueBroker::Observer const	aMeanObserver;
     KeyValueBroker::Observer const	aTailObserver;
 
     float				bWidth;
-    uint32_t				bMean;
-    uint32_t				bTail;
+    APA102::LED<>			bMean;
+    APA102::LED<>			bTail;
     KeyValueBroker::Observer const	bWidthObserver;
     KeyValueBroker::Observer const	bMeanObserver;
     KeyValueBroker::Observer const	bTailObserver;
 
     float				cWidth;
-    uint32_t				cMean;
-    uint32_t				cTail;
+    APA102::LED<>			cMean;
+    APA102::LED<>			cTail;
     KeyValueBroker::Observer const	cWidthObserver;
     KeyValueBroker::Observer const	cMeanObserver;
     KeyValueBroker::Observer const	cTailObserver;
