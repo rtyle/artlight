@@ -305,10 +305,10 @@ void updateLedChannel(LEDC::Channel & ledChannel, uint32_t duty) {
     ledChannel.update_duty();
 }
 
-void updateLedChannels(LEDC::Channel (&ledChannels)[3], LEDI const & led) {
+void updateLedChannelRGB(LEDC::Channel (&ledChannels)[3], LEDI const & color) {
     LEDC::Channel * ledChannel = ledChannels;
-    for (auto duty: {led.part.red, led.part.green, led.part.blue}) {
-	updateLedChannel(*ledChannel++, duty);
+    for (auto part: {color.part.red, color.part.green, color.part.blue}) {
+	updateLedChannel(*ledChannel++, part);
     }
 }
 
@@ -316,9 +316,9 @@ void ArtTask::update() {
     static float constexpr phi		= (1.0f + std::sqrt(5.0f)) / 2.0f;
     static float constexpr sqrt2	= std::sqrt(2.0f);
 
-    Bump aShape(0.0f, phi   / 9.0f, 1.0f);	// < 6 seconds irrational
-    Bump bShape(0.0f, sqrt2 / 9.0f, 1.0f);	// > 6 seconds irrational
-    Bump cShape(0.0f, 1.5f  / 9.0f, 1.0f);	// = 6 seconds   rational
+    Bump aShape(0.0f, phi   / 9.0f, 1.0f);	// < 6 seconds ~irrational
+    Bump bShape(0.0f, 1.5f  / 9.0f, 1.0f);	// = 6 seconds    rational
+    Bump cShape(0.0f, sqrt2 / 9.0f, 1.0f);	// > 6 seconds ~irrational
 
     Ramp<LEDI> aRamp {LEDI(aTail), LEDI(aMean)};
     Ramp<LEDI> bRamp {LEDI(bTail), LEDI(bMean)};
@@ -327,9 +327,9 @@ void ArtTask::update() {
     float secondsSinceBoot = esp_timer_get_time() / 1000000.0f;
 
     LEDC::Channel (*rgb)[3] = &ledChannel[0];
-    updateLedChannels(*rgb++, aRamp(aShape(At(0.0f, secondsSinceBoot))));
-    updateLedChannels(*rgb++, bRamp(bShape(At(0.0f, secondsSinceBoot))));
-    updateLedChannels(*rgb++, cRamp(cShape(At(0.0f, secondsSinceBoot))));
+    updateLedChannelRGB(*rgb++, aRamp(aShape(At(0.0f, secondsSinceBoot))));
+    updateLedChannelRGB(*rgb++, bRamp(bShape(At(0.0f, secondsSinceBoot))));
+    updateLedChannelRGB(*rgb++, cRamp(cShape(At(0.0f, secondsSinceBoot))));
 
     static size_t constexpr perimeterLength = 80;
 
