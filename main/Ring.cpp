@@ -405,11 +405,23 @@ ArtTask::ArtTask(
 			spiBus1, spiBus2, pin_, ledChannel_,
 			getLux_, keyValueBroker_),
 
-    observer {
-	{pin[0], [this](){ESP_LOGI(name, "pin a %d" , pin[0].get_level());}},
-	{pin[1], [this](){ESP_LOGI(name, "pin b %d" , pin[1].get_level());}},
-	{pin[2], [this](){ESP_LOGI(name, "pin c %d" , pin[2].get_level());}},
-	{pin[3], [this](){ESP_LOGI(name, "pin ir %d", pin[3].get_level());}},
+    button {
+	{pin[0], 0, 50000, 200000, 500000,
+	    [this](unsigned count){ESP_LOGI(name, "button a press %d", count);},
+	    [this](unsigned count){ESP_LOGI(name, "button a hold %d" , count);}
+	},
+	{pin[1], 0, 50000, 200000, 500000,
+	    [this](unsigned count){ESP_LOGI(name, "button b press %d", count);},
+	    [this](unsigned count){ESP_LOGI(name, "button b hold %d" , count);}
+	},
+	{pin[2], 0, 50000, 200000, 500000,
+	    [this](unsigned count){ESP_LOGI(name, "button c press %d", count);},
+	    [this](unsigned count){ESP_LOGI(name, "button c hold %d" , count);}
+	},
+	{pin[3], 0, 50000, 200000, 500000,
+	    [this](unsigned count){ESP_LOGI(name, "button d press %d", count);},
+	    [this](unsigned count){ESP_LOGI(name, "button d hold %d" , count);}
+	},
     }
 {}
 

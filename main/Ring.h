@@ -4,6 +4,7 @@
 
 #include "APA102.h"
 #include "ArtTask.h"
+#include "Button.h"
 
 #ifdef DerivedArtTask
     #error DerivedArtTask defined
@@ -15,7 +16,7 @@ namespace Ring {
 
 class ArtTask : public ::ArtTask {
 private:
-    ObservablePin::Observer	observer[4];
+    Button			button[4];
     void update();
 
 public:
