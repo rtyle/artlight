@@ -3,22 +3,22 @@
 Button::Button(
     ObservablePin &			observablePin,
     int					downLevel_,
-    unsigned				debounceDuration_,
-    unsigned				joinDuration_,
+    unsigned				bounceDuration_,
+    unsigned				flushDuration_,
     unsigned				holdDuration_,
-    std::function<void(unsigned)>	press_,
-    std::function<void(unsigned)>	hold_)
+    std::function<void(unsigned)>	pressed_,
+    std::function<void(unsigned)>	held_)
 :
     ObservablePin::Observer(observablePin, [this](){update(false);}),
     downLevel		(downLevel_),
-    debounceDuration	(debounceDuration_),
-    joinDuration	(joinDuration_),
-    holdDuration	(holdDuration_),
-    press		(press_),
-    hold		(hold_),
+    bounceDuration	(bounceDuration_),
+    flushDuration	(flushDuration_),
+    heldDuration	(holdDuration_),
+    pressed		(pressed_),
+    held		(held_),
     downCount		(0),
     upCount		(0),
-    holdCount		(0),
+    heldCount		(0),
     mutex		(),
     timer		("Button", 1, true, [this](){update(true);}),
     stateTime		(esp_timer_get_time()),
@@ -29,14 +29,14 @@ Button::Button(Button const && move)
 :
     ObservablePin::Observer(move),
     downLevel		(move.downLevel),
-    debounceDuration	(move.debounceDuration),
-    joinDuration	(move.joinDuration),
-    holdDuration	(move.holdDuration),
-    press		(std::move(move.press)),
-    hold		(std::move(move.hold)),
+    bounceDuration	(move.bounceDuration),
+    flushDuration	(move.flushDuration),
+    heldDuration	(move.heldDuration),
+    pressed		(std::move(move.pressed)),
+    held		(std::move(move.held)),
     downCount		(move.downCount),
     upCount		(move.upCount),
-    holdCount		(move.holdCount),
+    heldCount		(move.heldCount),
     mutex		(),
     timer		(std::move(move.timer)),
     stateTime		(move.stateTime),
@@ -52,15 +52,15 @@ void Button::update(bool timeout) {
 	if (!timeout) {	// ignore timer (leak)
 	    timer.start();
 	    stateTime = esp_timer_get_time();
-	    state = debounce;
+	    state = bounce;
 	}
 	break;
-    case debounce:
-	if (timeout && debounceDuration < esp_timer_get_time() - stateTime) {
+    case bounce:
+	if (timeout && bounceDuration < esp_timer_get_time() - stateTime) {
 	    stateTime = esp_timer_get_time();
 	    if (downLevel == observablePin.get_level()) {
 		upCount = downCount++;
-		holdCount = 0;
+		heldCount = 0;
 		state = down;
 	    } else {
 		downCount = ++upCount;
@@ -71,28 +71,28 @@ void Button::update(bool timeout) {
     case down:
 	if (timeout) {
 	    int64_t stateDuration = esp_timer_get_time() - stateTime;
-	    if (joinDuration < stateDuration) {
+	    if (flushDuration < stateDuration) {
 		if (0 < upCount) {
-		    press(upCount - 1);
+		    pressed(upCount - 1);
 		    upCount = downCount = 0;
 		}
 	    }
-	    if (holdDuration < stateDuration) {
-		stateTime += holdDuration;
-		hold(holdCount++);
+	    if (heldDuration < stateDuration) {
+		stateTime += heldDuration;
+		held(heldCount++);
 		upCount = downCount = -1;
 	    }
 	} else {
 	    stateTime = esp_timer_get_time();
-	    state = debounce;
+	    state = bounce;
 	}
 	break;
     case up:
 	if (timeout) {
 	    int64_t stateDuration = esp_timer_get_time() - stateTime;
-	    if (joinDuration < stateDuration) {
+	    if (flushDuration < stateDuration) {
 		if (0 < upCount) {
-		    press(upCount - 1);
+		    pressed(upCount - 1);
 		    upCount = downCount = 0;
 		}
 		timer.stop();
@@ -101,7 +101,7 @@ void Button::update(bool timeout) {
 	    }
 	} else {
 	    stateTime = esp_timer_get_time();
-	    state = debounce;
+	    state = bounce;
 	}
 	break;
     }

@@ -108,7 +108,7 @@ public:
     /// because one will not be defined implicitly
     /// due to our non-copiable/non-movable std::recursive_mutex.
     /// A move constructor is needed to support initialization of an
-    /// ObservablePin array class member.
+    /// ObservablePin class array element.
     ObservablePin(ObservablePin const && move);
 
     /// Notify each Observer
