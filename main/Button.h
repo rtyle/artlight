@@ -7,15 +7,16 @@
 /// manages a finite state machine to debounce the pin and generate
 /// pressed and held events.
 /// An idle button enters the bounce state on any pin activity and stays
-/// there until bounceDuration elapses.
-/// After bounceDuration, the button enters the up or down state depending
+/// there until debounceDuration elapses.
+/// After debounceDuration, the button enters the up or down state depending
 /// on how the pin level compares with downLevel.
-/// If the button is up or down for more than flushDuration,
-/// any previously buffered pressed events are flushed.
-/// While the button is down, each heldDuration a held event is generated.
 /// If there is pin activity on an up button before a pressed event
-/// generated, that event is buffered pending a flush and the bounce state
-/// is entered.
+/// generated, that event is buffered and the bounce state is entered;
+/// otherwise, if it has been up for more than bufferDuration any buffered
+/// events are flushed and the idle state is entered.
+/// If the button is down for more than bufferDuration, any previously buffered
+/// events are flushed.
+/// While the button is down, each holdDuration a held event is generated.
 class Button : private ObservablePin::Observer {
 private:
     enum State {
@@ -25,9 +26,9 @@ private:
 	up,
     };
     int const			downLevel;
-    unsigned const		bounceDuration;
-    unsigned const		flushDuration;
-    unsigned const		heldDuration;
+    unsigned const		debounceDuration;
+    unsigned const		bufferDuration;
+    unsigned const		holdDuration;
     std::function<void(unsigned)> const	pressed;
     std::function<void(unsigned)> const	held;
     int				downCount;
@@ -45,9 +46,9 @@ public:
     Button(
 	ObservablePin &			observablePin,
 	int				downLevel,
-	unsigned			bounceDuration,
-	unsigned			flushDuration,
-	unsigned			heldDuration,
+	unsigned			debounceDuration,
+	unsigned			bufferDuration,
+	unsigned			holdDuration,
 	std::function<void(unsigned)>	pressed,
 	std::function<void(unsigned)>	held);
 

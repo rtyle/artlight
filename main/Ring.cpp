@@ -393,9 +393,9 @@ void ArtTask::update() {
     }
 }
 
-static unsigned constexpr debounceDuration	=  25000;
-static unsigned constexpr joinDuration		= 150000;
-static unsigned constexpr holdDuration		= 300000;
+static unsigned constexpr bounceDuration	=  25000;
+static unsigned constexpr bufferDuration	= 150000;
+static unsigned constexpr holdDuration		= 500000;
 
 ArtTask::ArtTask(
     SPI::Bus const *		spiBus1,
@@ -410,19 +410,19 @@ ArtTask::ArtTask(
 			getLux_, keyValueBroker_),
 
     button {
-	{pin[0], 0, debounceDuration, joinDuration, holdDuration,
+	{pin[0], 0, bounceDuration, bufferDuration, holdDuration,
 	    [this](unsigned count){ESP_LOGI(name, "button a press %d", count);},
 	    [this](unsigned count){ESP_LOGI(name, "button a hold %d" , count);}
 	},
-	{pin[1], 0, debounceDuration, joinDuration, holdDuration,
+	{pin[1], 0, bounceDuration, bufferDuration, holdDuration,
 	    [this](unsigned count){ESP_LOGI(name, "button b press %d", count);},
 	    [this](unsigned count){ESP_LOGI(name, "button b hold %d" , count);}
 	},
-	{pin[2], 0, debounceDuration, joinDuration, holdDuration,
+	{pin[2], 0, bounceDuration, bufferDuration, holdDuration,
 	    [this](unsigned count){ESP_LOGI(name, "button c press %d", count);},
 	    [this](unsigned count){ESP_LOGI(name, "button c hold %d" , count);}
 	},
-	{pin[3], 0, debounceDuration, joinDuration, holdDuration,
+	{pin[3], 0, bounceDuration, bufferDuration, holdDuration,
 	    [this](unsigned count){ESP_LOGI(name, "button d press %d", count);},
 	    [this](unsigned count){ESP_LOGI(name, "button d hold %d" , count);}
 	},

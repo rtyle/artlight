@@ -3,17 +3,17 @@
 Button::Button(
     ObservablePin &			observablePin,
     int					downLevel_,
-    unsigned				bounceDuration_,
-    unsigned				flushDuration_,
+    unsigned				debounceDuration_,
+    unsigned				bufferDuration_,
     unsigned				holdDuration_,
     std::function<void(unsigned)>	pressed_,
     std::function<void(unsigned)>	held_)
 :
     ObservablePin::Observer(observablePin, [this](){update(false);}),
     downLevel		(downLevel_),
-    bounceDuration	(bounceDuration_),
-    flushDuration	(flushDuration_),
-    heldDuration	(holdDuration_),
+    debounceDuration	(debounceDuration_),
+    bufferDuration	(bufferDuration_),
+    holdDuration	(holdDuration_),
     pressed		(pressed_),
     held		(held_),
     downCount		(0),
@@ -29,9 +29,9 @@ Button::Button(Button const && move)
 :
     ObservablePin::Observer(move),
     downLevel		(move.downLevel),
-    bounceDuration	(move.bounceDuration),
-    flushDuration	(move.flushDuration),
-    heldDuration	(move.heldDuration),
+    debounceDuration	(move.debounceDuration),
+    bufferDuration	(move.bufferDuration),
+    holdDuration	(move.holdDuration),
     pressed		(std::move(move.pressed)),
     held		(std::move(move.held)),
     downCount		(move.downCount),
@@ -56,7 +56,7 @@ void Button::update(bool timeout) {
 	}
 	break;
     case bounce:
-	if (timeout && bounceDuration < esp_timer_get_time() - stateTime) {
+	if (timeout && debounceDuration < esp_timer_get_time() - stateTime) {
 	    stateTime = esp_timer_get_time();
 	    if (downLevel == observablePin.get_level()) {
 		upCount = downCount++;
@@ -71,14 +71,14 @@ void Button::update(bool timeout) {
     case down:
 	if (timeout) {
 	    int64_t stateDuration = esp_timer_get_time() - stateTime;
-	    if (flushDuration < stateDuration) {
+	    if (bufferDuration < stateDuration) {
 		if (0 < upCount) {
 		    pressed(upCount - 1);
 		    upCount = downCount = 0;
 		}
 	    }
-	    if (heldDuration < stateDuration) {
-		stateTime += heldDuration;
+	    if (holdDuration < stateDuration) {
+		stateTime += holdDuration;
 		held(heldCount++);
 		upCount = downCount = -1;
 	    }
@@ -90,7 +90,7 @@ void Button::update(bool timeout) {
     case up:
 	if (timeout) {
 	    int64_t stateDuration = esp_timer_get_time() - stateTime;
-	    if (flushDuration < stateDuration) {
+	    if (bufferDuration < stateDuration) {
 		if (0 < upCount) {
 		    pressed(upCount - 1);
 		    upCount = downCount = 0;
