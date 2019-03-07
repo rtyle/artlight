@@ -81,15 +81,15 @@ static Sawtooth inMinuteOf(60.0f);
 static Sawtooth inHourOf  (60.0f * 60.0f);
 static Sawtooth inDayOf   (60.0f * 60.0f * 12.0f);	/// 12 hour clock
 
-/// Ramp is a function (object) that outputs a linear ramp between two output
-/// values of type T as its input goes from 0 to 1.
-template <typename T> class Ramp {
+/// Blend is a function (object) that blends two values (of type T)
+/// using linear interpolation
+template <typename T> class Blend {
 private:
     T const a;
     T const b;
     T const slope = b - a;
 public:
-    Ramp(T a_, T b_) : a(a_), b(b_) {}
+    Blend(T a_, T b_) : a(a_), b(b_) {}
     template <typename F> T operator ()(F f) const {return slope * f + a;}
 };
 
@@ -265,9 +265,9 @@ private:
     float const		hTime;
     float const		mTime;
     float const		sTime;
-    Ramp<LEDI> const &	hRamp;
-    Ramp<LEDI> const &	mRamp;
-    Ramp<LEDI> const &	sRamp;
+    Blend<LEDI> const &	hBlend;
+    Blend<LEDI> const &	mBlend;
+    Blend<LEDI> const &	sBlend;
     Shape		hShape;
     Shape		mShape;
     Shape		sShape;
@@ -275,26 +275,26 @@ public:
     Clock(
 	float			time,	// seconds since 12, local time
 	float			hWidth,
-	Ramp<LEDI> const &	hRamp_,
+	Blend<LEDI> const &	hBlend_,
 	float			mWidth,
-	Ramp<LEDI> const &	mRamp_,
+	Blend<LEDI> const &	mBlend_,
 	float			sWidth,
-	Ramp<LEDI> const &	sRamp_)
+	Blend<LEDI> const &	sBlend_)
     :
 	hTime	(hourPulse  (inDayOf   (time))),
 	mTime	(minutePulse(inHourOf  (time))),
 	sTime	(secondPulse(inMinuteOf(time))),
-	hRamp	(hRamp_),
-	mRamp	(mRamp_),
-	sRamp	(sRamp_),
+	hBlend	(hBlend_),
+	mBlend	(mBlend_),
+	sBlend	(sBlend_),
 	hShape	(0.0f, 1.0f, hWidth),
 	mShape	(0.0f, 1.0f, mWidth),
 	sShape	(0.0f, 1.0f, sWidth)
     {}
     /*virtual */ LEDI operator()(float place) const {
-	return	//  hRamp(hShape(At(place, hTime)))
-		//+ mRamp(mShape(At(place, mTime)))
-		/*+*/ sRamp(sShape(At(place, sTime)))
+	return	//  hBlend(hShape(At(place, hTime)))
+		//+ mBlend(mShape(At(place, mTime)))
+		/*+*/ sBlend(sShape(At(place, sTime)))
 	;
     }
 };
@@ -320,25 +320,25 @@ void ArtTask::update() {
     Bump bShape(0.0f, 1.5f  / 9.0f, 1.0f);	// = 6 seconds    rational
     Bump cShape(0.0f, sqrt2 / 9.0f, 1.0f);	// > 6 seconds ~irrational
 
-    Ramp<LEDI> aRamp {LEDI(aTail), LEDI(aMean)};
-    Ramp<LEDI> bRamp {LEDI(bTail), LEDI(bMean)};
-    Ramp<LEDI> cRamp {LEDI(cTail), LEDI(cMean)};
+    Blend<LEDI> aBlend {LEDI(aFades), LEDI(aColor)};
+    Blend<LEDI> bBlend {LEDI(bFades), LEDI(bColor)};
+    Blend<LEDI> cBlend {LEDI(cFades), LEDI(cColor)};
 
     float secondsSinceBoot = esp_timer_get_time() / 1000000.0f;
 
     LEDC::Channel (*rgb)[3] = &ledChannel[0];
-    updateLedChannelRGB(*rgb++, aRamp(aShape(At(0.0f, secondsSinceBoot))));
-    updateLedChannelRGB(*rgb++, bRamp(bShape(At(0.0f, secondsSinceBoot))));
-    updateLedChannelRGB(*rgb++, cRamp(cShape(At(0.0f, secondsSinceBoot))));
+    updateLedChannelRGB(*rgb++, aBlend(aShape(At(0.0f, secondsSinceBoot))));
+    updateLedChannelRGB(*rgb++, bBlend(bShape(At(0.0f, secondsSinceBoot))));
+    updateLedChannelRGB(*rgb++, cBlend(cShape(At(0.0f, secondsSinceBoot))));
 
     static size_t constexpr perimeterLength = 80;
 
     Clock<BellWave> art(
 	static_cast<float>(smoothTime.millisecondsSinceTwelveLocaltime())
 	    / millisecondsPerSecond,
-	aWidth / perimeterLength, aRamp,
-	bWidth / perimeterLength, bRamp,
-	cWidth / perimeterLength, cRamp);
+	aWidth / perimeterLength, aBlend,
+	bWidth / perimeterLength, bBlend,
+	cWidth / perimeterLength, cBlend);
 
     #if 0
 	FoldsInRing inRing(12, 11);

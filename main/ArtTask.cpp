@@ -54,8 +54,8 @@ ArtTask::ArtTask(
 	    }),
 
     aWidth		(1.0f),
-    aMean		(0u),
-    aTail		(0u),
+    aColor		(0u),
+    aFades		(0u),
     aWidthObserver(keyValueBroker, "aWidth", "4",
 	[this](char const * widthObserved){
 	    float width = fromString<float>(widthObserved);
@@ -63,24 +63,24 @@ ArtTask::ArtTask(
 		aWidth = width;
 	    });
 	}),
-    aMeanObserver(keyValueBroker, "aMean", "#ff0000",
+    aColorObserver(keyValueBroker, "aColor", "#ff0000",
 	[this](char const * color){
 	    LED<> led(color);
 	    io.post([this, led](){
-		aMean = led;
+		aColor = led;
 	    });
 	}),
-    aTailObserver(keyValueBroker, "aTail", "#000000",
+    aFadesObserver(keyValueBroker, "aFades", "#000000",
 	[this](char const * color){
 	    LED<> led(color);
 	    io.post([this, led](){
-		aTail = led;
+		aFades = led;
 	    });
 	}),
 
     bWidth		(1.0f),
-    bMean		(0u),
-    bTail		(0u),
+    bColor		(0u),
+    bFades		(0u),
     bWidthObserver(keyValueBroker, "bWidth", "4",
 	[this](char const * widthObserved){
 	    float width = fromString<float>(widthObserved);
@@ -88,24 +88,24 @@ ArtTask::ArtTask(
 		bWidth = width;
 	    });
 	}),
-    bMeanObserver(keyValueBroker, "bMean", "#0000ff",
+    bColorObserver(keyValueBroker, "bColor", "#0000ff",
 	[this](char const * color){
 	    LED<> led(color);
 	    io.post([this, led](){
-		bMean = led;
+		bColor = led;
 	    });
 	}),
-    bTailObserver(keyValueBroker, "bTail", "#000000",
+    bFadesObserver(keyValueBroker, "bFades", "#000000",
 	[this](char const * color){
 	    LED<> led(color);
 	    io.post([this, led](){
-		bTail = led;
+		bFades = led;
 	    });
 	}),
 
     cWidth		(1.0f),
-    cMean		(0u),
-    cTail		(0u),
+    cColor		(0u),
+    cFades		(0u),
     cWidthObserver(keyValueBroker, "cWidth", "2",
 	[this](char const * widthObserved){
 	    float width = fromString<float>(widthObserved);
@@ -113,18 +113,18 @@ ArtTask::ArtTask(
 		cWidth = width;
 	    });
 	}),
-    cMeanObserver(keyValueBroker, "cMean", "#ffff00",
+    cColorObserver(keyValueBroker, "cColor", "#ffff00",
 	[this](char const * color){
 	    LED<> led(color);
 	    io.post([this, led](){
-		cMean = led;
+		cColor = led;
 	    });
 	}),
-    cTailObserver(keyValueBroker, "cTail", "#000000",
+    cFadesObserver(keyValueBroker, "cFades", "#000000",
 	[this](char const * color){
 	    LED<> led(color);
 	    io.post([this, led](){
-		cTail = led;
+		cFades = led;
 	    });
 	}),
 

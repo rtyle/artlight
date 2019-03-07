@@ -79,28 +79,28 @@
 						<span class='tab0'>A</span>
 						<label for='aWidth'>Width</label>
 						<input type='number' id='aWidth' name='aWidth' min='1.0' max='16.0' step='0.1'/>
-						<label for='aMean'>Color</label>
-						<input type='color' id='aMean' name='aMean'/>
-						<label for='aTail'>Fades To</label>
-						<input type='color' id='aTail' name='aTail'/>
+						<label for='aColor'>Color</label>
+						<input type='color' id='aColor' name='aColor'/>
+						<label for='aFades'>Fades to</label>
+						<input type='color' id='aFades' name='aFades'/>
 					</div>
 					<div>
 						<span class='tab0'>B</span>
 						<label for='bWidth'>Width</label>
 						<input type='number' id='bWidth' name='bWidth' min='1.0' max='16.0' step='0.1'/>
-						<label for='bMean'>Color</label>
-						<input type='color' id='bMean' name='bMean'/>
-						<label for='bTail'>Fades To</label>
-						<input type='color' id='bTail' name='bTail'/>
+						<label for='bColor'>Color</label>
+						<input type='color' id='bColor' name='bColor'/>
+						<label for='bFades'>Fades to</label>
+						<input type='color' id='bFades' name='bFades'/>
 					</div>
 					<div>
 						<span class='tab0'>C</span>
 						<label for='cWidth'>Width</label>
 						<input type='number' id='cWidth' name='cWidth' min='1.0' max='16.0' step='0.1'/>
-						<label for='cMean'>Color</label>
-						<input type='color' id='cMean' name='cMean'/>
-						<label for='cTail'>Fades To</label>
-						<input type='color' id='cTail' name='cTail'/>
+						<label for='cColor'>Color</label>
+						<input type='color' id='cColor' name='cColor'/>
+						<label for='cFades'>Fades to</label>
+						<input type='color' id='cFades' name='cFades'/>
 					</div>
 			</fieldset>
 			<fieldset>

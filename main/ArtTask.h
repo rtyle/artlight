@@ -28,25 +28,25 @@ protected:
     KeyValueBroker::Observer const	timezoneObserver;
 
     float				aWidth;
-    APA102::LED<>			aMean;
-    APA102::LED<>			aTail;
+    APA102::LED<>			aColor;
+    APA102::LED<>			aFades;
     KeyValueBroker::Observer const	aWidthObserver;
-    KeyValueBroker::Observer const	aMeanObserver;
-    KeyValueBroker::Observer const	aTailObserver;
+    KeyValueBroker::Observer const	aColorObserver;
+    KeyValueBroker::Observer const	aFadesObserver;
 
     float				bWidth;
-    APA102::LED<>			bMean;
-    APA102::LED<>			bTail;
+    APA102::LED<>			bColor;
+    APA102::LED<>			bFades;
     KeyValueBroker::Observer const	bWidthObserver;
-    KeyValueBroker::Observer const	bMeanObserver;
-    KeyValueBroker::Observer const	bTailObserver;
+    KeyValueBroker::Observer const	bColorObserver;
+    KeyValueBroker::Observer const	bFadesObserver;
 
     float				cWidth;
-    APA102::LED<>			cMean;
-    APA102::LED<>			cTail;
+    APA102::LED<>			cColor;
+    APA102::LED<>			cFades;
     KeyValueBroker::Observer const	cWidthObserver;
-    KeyValueBroker::Observer const	cMeanObserver;
-    KeyValueBroker::Observer const	cTailObserver;
+    KeyValueBroker::Observer const	cColorObserver;
+    KeyValueBroker::Observer const	cFadesObserver;
 
     enum struct Range {clip, normalize}	range;
     KeyValueBroker::Observer const	rangeObserver;
