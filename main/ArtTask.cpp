@@ -24,13 +24,13 @@ ArtTask::ArtTask(
 
     spiDevice1		(spiBus1, SPI::Device::Config()
 			    .mode_(APA102::spiMode)
-			    .clock_speed_hz_(16000000)	// see SPI_MASTER_FREQ_*
+			    .clock_speed_hz_(8000000)	// see SPI_MASTER_FREQ_*
 			    .spics_io_num_(-1)		// no chip select
 			    .queue_size_(1)
 			),
     spiDevice2		(spiBus2, SPI::Device::Config()
 			    .mode_(APA102::spiMode)
-			    .clock_speed_hz_(16000000)	// see SPI_MASTER_FREQ_*
+			    .clock_speed_hz_(8000000)	// see SPI_MASTER_FREQ_*
 			    .spics_io_num_(-1)		// no chip select
 			    .queue_size_(1)
 			),
