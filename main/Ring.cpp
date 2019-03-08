@@ -202,11 +202,17 @@ public:
     BellWave(
 	float center		= 0.0f,
 	float speed		= 0.0f,
-	float width		= 1.0f)
+	float width		= 1.0f,
+	float frequency		= 1.0f)
     :
 	bell	(center, speed, width),
+#if 0
 	right	(center,  15.0f * width, width / 2.0f),
 	left	(center, -15.0f * width, width / 2.0f)
+#else
+	right	(center,  frequency * 15.0f * width, width / 2.0f),
+	left	(center, -frequency * 15.0f * width, width / 2.0f)
+#endif
     {}
     float operator()(At at) const {
 	return bell(at) * (right(at) + left(at)) / 2.0f;
@@ -287,8 +293,8 @@ public:
 	hBlend	(hBlend_),
 	mBlend	(mBlend_),
 	sBlend	(sBlend_),
-	hShape	(0.0f, 1.0f, hWidth),
-	mShape	(0.0f, 1.0f, mWidth),
+	hShape	(0.0f, 1.0f, hWidth, 60.0f * 12.0f),
+	mShape	(0.0f, 1.0f, mWidth, 60.0f),
 	sShape	(0.0f, 1.0f, sWidth)
     {}
     /*virtual */ LEDI operator()(float place) const {
@@ -297,7 +303,7 @@ public:
 		+ mBlend(mShape(At(place, mTime)))
 		+ sBlend(sShape(At(place, sTime)))
 #else
-	return sBlend(sShape(At(place, sTime)))
+	return mBlend(mShape(At(place, mTime)))
 #endif
 	;
     }
