@@ -14,7 +14,7 @@ namespace Ring {
 
 using LEDI = APA102::LED<int>;
 
-static auto const pi = std::acos(-1.0f);
+static auto constexpr pi = std::acos(-1.0f);
 
 static auto constexpr millisecondsPerSecond	= 1000u;
 
@@ -173,26 +173,28 @@ public:
 /// The output is adjusted to range from 0 to 1.
 class Wave : public Moving {
 private:
-    float const	frequency;
+    float const	width;
 public:
     Wave(
 	float center		= 0.0f,
 	float speed		= 0.0f,
-	float width		= 1.0f)
+	float width_		= 1.0f)
     :
 	Moving		(center, speed),
-	frequency	(1.0f / width)
-    {}
+	width		(width_)
+    {
+//	ESP_LOGI("Wave", "c %f, s %f, w %f, f %f", this->center, this->speed, width);
+    }
     float operator()(At at) const {
-	return (1.0f + std::cos(2.0f * pi * frequency * at.center(*this)))
+	return (1.0f + std::cos(2.0f * pi * at.center(*this) / width))
 	    / 2.0f;
     }
 };
 
-/// BellWave composes a Bell after a right and left Moving Wave.
+/// BellWave composes a Bell after a standing wave
+/// (the average of a right and left Moving Wave).
 class BellWave : public Moving {
 private:
-    static auto constexpr	divisor = 4.0f;
     Bell const		bell;
     Wave const		right;
     Wave const		left;
@@ -203,9 +205,8 @@ public:
 	float width		= 1.0f)
     :
 	bell	(center, speed, width),
-	right	(center, 3.0f * speed, width / divisor),
-//	left	(center, -speed * 3.0f / 2.0f, width / 4.0)
-	left	(center, 0.0, width / divisor)
+	right	(center,  15.0f * width, width / 2.0f),
+	left	(center, -15.0f * width, width / 2.0f)
     {}
     float operator()(At at) const {
 	return bell(at) * (right(at) + left(at)) / 2.0f;
@@ -257,8 +258,7 @@ static Pulse minutePulse(0);//60);
 static Pulse secondPulse(0);//60);
 
 /// Clock is Art that is constructed with the current time
-/// and the width & color (of the mean and tail(s))
-/// of each hour, minute and second hand.
+/// and the width & color of each hour, minute and second hand.
 template <typename Shape>
 class Clock : public Art {
 private:
@@ -292,9 +292,13 @@ public:
 	sShape	(0.0f, 1.0f, sWidth)
     {}
     /*virtual */ LEDI operator()(float place) const {
-	return	//  hBlend(hShape(At(place, hTime)))
-		//+ mBlend(mShape(At(place, mTime)))
-		/*+*/ sBlend(sShape(At(place, sTime)))
+#if 1
+	return	  hBlend(hShape(At(place, hTime)))
+		+ mBlend(mShape(At(place, mTime)))
+		+ sBlend(sShape(At(place, sTime)))
+#else
+	return sBlend(sShape(At(place, sTime)))
+#endif
 	;
     }
 };
