@@ -41,10 +41,10 @@ template LED<unsigned>::operator uint32_t() const;
 
 template <> LED<uint8_t>::operator std::string () const {
     std::ostringstream stream;
-    stream << '#' << std::hex << std::setw(2) << std::setfill('0')
-	<< static_cast<unsigned>(part.red)
-	<< static_cast<unsigned>(part.green)
-	<< static_cast<unsigned>(part.blue);
+    stream << '#' << std::hex << std::setfill('0')
+	<< std::setw(2) << static_cast<unsigned>(part.red)
+	<< std::setw(2) << static_cast<unsigned>(part.green)
+	<< std::setw(2) << static_cast<unsigned>(part.blue);
     return stream.str();
 }
 
