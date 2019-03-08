@@ -5,7 +5,23 @@ extern "C" int setenv(char const *, char const *, int);
 
 #include "fromString.h"
 
-using APA102::LED;
+void ArtTask::fadesObserver(
+    APA102::LED<> &	fades,
+    char const *	key,
+    APA102::LED<int>	value)
+{
+    static int constexpr ceiling = 0x30;
+    int sum = value.sum();
+    if (ceiling < sum) {
+	std::string const newValue(APA102::LED<>(value * ceiling / sum));
+	keyValueBroker.publish(key, newValue.c_str());
+    } else {
+	io.post([&fades, value]() {
+	    fades = value;
+	});
+    }
+
+}
 
 ArtTask::ArtTask(
     char const *		name,
@@ -65,17 +81,14 @@ ArtTask::ArtTask(
 	}),
     aColorObserver(keyValueBroker, "aColor", "#ff0000",
 	[this](char const * color){
-	    LED<> led(color);
+	    APA102::LED<> led(color);
 	    io.post([this, led](){
 		aColor = led;
 	    });
 	}),
     aFadesObserver(keyValueBroker, "aFades", "#000000",
 	[this](char const * color){
-	    LED<> led(color);
-	    io.post([this, led](){
-		aFades = led;
-	    });
+	    fadesObserver(aFades, "aFades", color);
 	}),
 
     bWidth		(1.0f),
@@ -90,17 +103,14 @@ ArtTask::ArtTask(
 	}),
     bColorObserver(keyValueBroker, "bColor", "#0000ff",
 	[this](char const * color){
-	    LED<> led(color);
+	    APA102::LED<> led(color);
 	    io.post([this, led](){
 		bColor = led;
 	    });
 	}),
     bFadesObserver(keyValueBroker, "bFades", "#000000",
 	[this](char const * color){
-	    LED<> led(color);
-	    io.post([this, led](){
-		bFades = led;
-	    });
+	    fadesObserver(bFades, "bFades", color);
 	}),
 
     cWidth		(1.0f),
@@ -115,17 +125,14 @@ ArtTask::ArtTask(
 	}),
     cColorObserver(keyValueBroker, "cColor", "#ffff00",
 	[this](char const * color){
-	    LED<> led(color);
+	    APA102::LED<> led(color);
 	    io.post([this, led](){
 		cColor = led;
 	    });
 	}),
     cFadesObserver(keyValueBroker, "cFades", "#000000",
 	[this](char const * color){
-	    LED<> led(color);
-	    io.post([this, led](){
-		cFades = led;
-	    });
+	    fadesObserver(cFades, "cFades", color);
 	}),
 
     range(Range::clip),

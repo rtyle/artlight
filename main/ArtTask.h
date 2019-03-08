@@ -61,6 +61,8 @@ protected:
 
     SmoothTime				smoothTime;
 
+    void fadesObserver(APA102::LED<> & fades, char const * key, APA102::LED<int> value);
+
     ArtTask(
 	char const *		name,
 	UBaseType_t		priority,
