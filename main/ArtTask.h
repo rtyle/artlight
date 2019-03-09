@@ -24,7 +24,6 @@ protected:
     std::function<float()> const	getLux;
     KeyValueBroker &			keyValueBroker;
 
-
     KeyValueBroker::Observer const	timezoneObserver;
 
     float				aWidth;
@@ -61,7 +60,8 @@ protected:
 
     SmoothTime				smoothTime;
 
-    void fadesObserver(APA102::LED<> & fades, char const * key, APA102::LED<int> value);
+    void fadesObserver(
+	APA102::LED<> & fades, char const * key, APA102::LED<int> value);
 
     ArtTask(
 	char const *		name,
