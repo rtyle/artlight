@@ -195,8 +195,14 @@ public:
     }
 };
 
-/// BellWave composes a Bell after a standing wave
+/// BellWave composes a Bell after/over a standing wave
 /// (the average of a right and left Moving Wave).
+/// The waveWidth of the waves is chosen to be two lights in the ring
+/// so that adjacent lights will pulse 180 degrees out of phase.
+/// By default, the frequency of waves is once per time unit.
+/// Multiple bell waves can move over each other with the ability to
+/// resolve all of them if their frequencies are kept out of phase.
+/// A mix of rational multiples of irrational numbers are good for this purpose.
 class BellWave : public Moving {
 private:
     static float constexpr waveWidth = 2.0f / ringSize;
