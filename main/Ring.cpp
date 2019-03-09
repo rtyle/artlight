@@ -14,9 +14,13 @@ namespace Ring {
 
 using LEDI = APA102::LED<int>;
 
-static auto constexpr pi = std::acos(-1.0f);
+static float constexpr pi	= std::acos(-1.0f);
+static float constexpr phi	= (1.0f + std::sqrt(5.0f)) / 2.0f;
+static float constexpr sqrt2	= std::sqrt(2.0f);
 
 static auto constexpr millisecondsPerSecond	= 1000u;
+
+static size_t constexpr ringSize = 80;
 
 // implicit unsigned integral conversions
 // widen with zero extension and narrow by truncation
@@ -195,6 +199,7 @@ public:
 /// (the average of a right and left Moving Wave).
 class BellWave : public Moving {
 private:
+    static float constexpr waveWidth = 2.0f / ringSize;
     Bell const		bell;
     Wave const		right;
     Wave const		left;
@@ -206,13 +211,8 @@ public:
 	float frequency		= 1.0f)
     :
 	bell	(center, speed, width),
-#if 0
-	right	(center,  15.0f * width, width / 2.0f),
-	left	(center, -15.0f * width, width / 2.0f)
-#else
-	right	(center,  frequency * 15.0f * width, width / 2.0f),
-	left	(center, -frequency * 15.0f * width, width / 2.0f)
-#endif
+	right	(center,  frequency * 30.0f * waveWidth, waveWidth),
+	left	(center, -frequency * 30.0f * waveWidth, waveWidth)
     {}
     float operator()(At at) const {
 	return bell(at) * (right(at) + left(at)) / 2.0f;
@@ -293,9 +293,9 @@ public:
 	hBlend	(hBlend_),
 	mBlend	(mBlend_),
 	sBlend	(sBlend_),
-	hShape	(0.0f, 1.0f, hWidth, 60.0f * 12.0f),
-	mShape	(0.0f, 1.0f, mWidth, 60.0f),
-	sShape	(0.0f, 1.0f, sWidth)
+	hShape	(0.0f, 1.0f, hWidth, 2.0f * phi   * 60.0f * 12.0f / 3.0),
+	mShape	(0.0f, 1.0f, mWidth, 2.0f * sqrt2 * 60.0f / 3.0),
+	sShape	(0.0f, 1.0f, sWidth, 1.0f)
     {}
     /*virtual */ LEDI operator()(float place) const {
 #if 1
@@ -323,12 +323,9 @@ void updateLedChannelRGB(LEDC::Channel (&ledChannels)[3], LEDI const & color) {
 }
 
 void ArtTask::update() {
-    static float constexpr phi		= (1.0f + std::sqrt(5.0f)) / 2.0f;
-    static float constexpr sqrt2	= std::sqrt(2.0f);
-
     Bump aShape(0.0f, phi   / 9.0f, 1.0f);	// < 6 seconds ~irrational
-    Bump bShape(0.0f, 1.5f  / 9.0f, 1.0f);	// = 6 seconds    rational
-    Bump cShape(0.0f, sqrt2 / 9.0f, 1.0f);	// > 6 seconds ~irrational
+    Bump bShape(0.0f, sqrt2 / 9.0f, 1.0f);	// > 6 seconds ~irrational
+    Bump cShape(0.0f, 1.5f  / 9.0f, 1.0f);	// = 6 seconds    rational
 
     Blend<LEDI> aBlend {LEDI(aFades), LEDI(aColor)};
     Blend<LEDI> bBlend {LEDI(bFades), LEDI(bColor)};
@@ -341,22 +338,20 @@ void ArtTask::update() {
     updateLedChannelRGB(*rgb++, bBlend(bShape(At(0.0f, secondsSinceBoot))));
     updateLedChannelRGB(*rgb++, cBlend(cShape(At(0.0f, secondsSinceBoot))));
 
-    static size_t constexpr perimeterLength = 80;
-
     Clock<BellWave> art(
 	static_cast<float>(smoothTime.millisecondsSinceTwelveLocaltime())
 	    / millisecondsPerSecond,
-	aWidth / perimeterLength, aBlend,
-	bWidth / perimeterLength, bBlend,
-	cWidth / perimeterLength, cBlend);
+	aWidth / ringSize, aBlend,
+	bWidth / ringSize, bBlend,
+	cWidth / ringSize, cBlend);
 
     #if 0
 	FoldsInRing inRing(12, 11);
     #else
-	OrdinalsInRing inRing(perimeterLength);
+	OrdinalsInRing inRing(ringSize);
     #endif
 
-    LEDI leds[perimeterLength];
+    LEDI leds[ringSize];
 
     // render art from places in the ring,
     // keeping track of the largest led value by part.
@@ -369,7 +364,7 @@ void ArtTask::update() {
 	maxRendering = std::max(maxRendering, led.max());
     }
 
-    APA102::Message<perimeterLength> message;
+    APA102::Message<ringSize> message;
 
     /// adjust brightness
     float dimming = dim == Dim::manual
