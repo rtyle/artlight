@@ -29,23 +29,29 @@ protected:
     float				aWidth;
     APA102::LED<>			aColor;
     APA102::LED<>			aFades;
+    std::string				aShape;
     KeyValueBroker::Observer const	aWidthObserver;
     KeyValueBroker::Observer const	aColorObserver;
     KeyValueBroker::Observer const	aFadesObserver;
+    KeyValueBroker::Observer const	aShapeObserver;
 
     float				bWidth;
     APA102::LED<>			bColor;
     APA102::LED<>			bFades;
+    std::string				bShape;
     KeyValueBroker::Observer const	bWidthObserver;
     KeyValueBroker::Observer const	bColorObserver;
     KeyValueBroker::Observer const	bFadesObserver;
+    KeyValueBroker::Observer const	bShapeObserver;
 
     float				cWidth;
     APA102::LED<>			cColor;
     APA102::LED<>			cFades;
+    std::string				cShape;
     KeyValueBroker::Observer const	cWidthObserver;
     KeyValueBroker::Observer const	cColorObserver;
     KeyValueBroker::Observer const	cFadesObserver;
+    KeyValueBroker::Observer const	cShapeObserver;
 
     enum struct Range {clip, normalize}	range;
     KeyValueBroker::Observer const	rangeObserver;

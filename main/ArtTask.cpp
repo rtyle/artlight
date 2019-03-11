@@ -72,6 +72,7 @@ ArtTask::ArtTask(
     aWidth		(1.0f),
     aColor		(0u),
     aFades		(0u),
+    aShape		("bell"),
     aWidthObserver(keyValueBroker, "aWidth", "4",
 	[this](char const * widthObserved){
 	    float width = fromString<float>(widthObserved);
@@ -90,10 +91,15 @@ ArtTask::ArtTask(
 	[this](char const * color){
 	    fadesObserver(aFades, "aFades", color);
 	}),
+    aShapeObserver(keyValueBroker, "aShape", "bell",
+	[this](char const * shape){
+	    aShape = shape;
+	}),
 
     bWidth		(1.0f),
     bColor		(0u),
     bFades		(0u),
+    bShape		("bell"),
     bWidthObserver(keyValueBroker, "bWidth", "4",
 	[this](char const * widthObserved){
 	    float width = fromString<float>(widthObserved);
@@ -112,10 +118,15 @@ ArtTask::ArtTask(
 	[this](char const * color){
 	    fadesObserver(bFades, "bFades", color);
 	}),
+    bShapeObserver(keyValueBroker, "bShape", "bell",
+	[this](char const * shape){
+	    bShape = shape;
+	}),
 
     cWidth		(1.0f),
     cColor		(0u),
     cFades		(0u),
+    cShape		("bell"),
     cWidthObserver(keyValueBroker, "cWidth", "2",
 	[this](char const * widthObserved){
 	    float width = fromString<float>(widthObserved);
@@ -133,6 +144,10 @@ ArtTask::ArtTask(
     cFadesObserver(keyValueBroker, "cFades", "#000000",
 	[this](char const * color){
 	    fadesObserver(cFades, "cFades", color);
+	}),
+    cShapeObserver(keyValueBroker, "cShape", "bell",
+	[this](char const * shape){
+	    cShape = shape;
 	}),
 
     range(Range::clip),

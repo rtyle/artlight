@@ -83,6 +83,11 @@
 						<input type='color' id='aColor' name='aColor'/>
 						<label for='aFades'>Fades to</label>
 						<input type='color' id='aFades' name='aFades'/>
+						<label for='aShape'>Shape</label>
+						<select id='aShape' name='aShape'>
+							<option value='bell'>Bell</option>
+							<option value='wave'>Wave</option>
+						</select>
 					</div>
 					<div>
 						<span class='tab0'>B</span>
@@ -92,6 +97,11 @@
 						<input type='color' id='bColor' name='bColor'/>
 						<label for='bFades'>Fades to</label>
 						<input type='color' id='bFades' name='bFades'/>
+						<label for='bShape'>Shape</label>
+						<select id='bShape' name='bShape'>
+							<option value='bell'>Bell</option>
+							<option value='wave'>Wave</option>
+						</select>
 					</div>
 					<div>
 						<span class='tab0'>C</span>
@@ -101,6 +111,11 @@
 						<input type='color' id='cColor' name='cColor'/>
 						<label for='cFades'>Fades to</label>
 						<input type='color' id='cFades' name='cFades'/>
+						<label for='cShape'>Shape</label>
+						<select id='cShape' name='cShape'>
+							<option value='bell'>Bell</option>
+							<option value='wave'>Wave</option>
+						</select>
 					</div>
 			</fieldset>
 			<fieldset>
