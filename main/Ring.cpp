@@ -373,7 +373,7 @@ void ArtTask::update() {
     APA102::Message<ringSize> message;
 
     /// adjust brightness
-    float dimming = dim == Dim::manual
+    float dimming = dim.value == Dim::manual
 	? dimLevel / 16.0f
 	// automatic dimming as a function of measured ambient lux.
 	// this will range from 3/16 to 16/16 with the numerator increasing by
@@ -381,12 +381,12 @@ void ArtTask::update() {
 	// an LED value of 128 will be dimmed to 24 in complete darkness (lux 0)
 	: (3.0f + std::min(13.0f, std::log2(1.0f + getLux()))) / 16.0f;
     LEDI * led = leds;
-    if (range == Range::clip) {
+    if (range.value == Range::clip) {
 	for (auto & e: message.encodings) {
 	    e = LED<>(gammaEncode,
 		clip(*led++) * dimming);
 	}
-    } else if (range == Range::normalize) {
+    } else if (range.value == Range::normalize) {
 	static auto maxEncoding = std::numeric_limits<uint8_t>::max();
 	for (auto & e: message.encodings) {
 	    e = LED<>(gammaEncode,

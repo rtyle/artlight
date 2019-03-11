@@ -15,6 +15,34 @@
 ///	* adjusts its presentation based on updated values for interesting keys
 
 class ArtTask : public AsioTask {
+public:
+    struct Dim {
+    private:
+	static char const * const string[];
+    public:
+	enum Value {automatic, manual} value;
+	Dim(Value);
+	Dim(char const *);
+	char const * toString() const;
+    };
+    struct Range {
+    private:
+	static char const * const string[];
+    public:
+	enum Value {clip, normalize} value;
+	Range(Value);
+	Range(char const *);
+	char const * toString() const;
+    };
+    struct Shape {
+    private:
+	static char const * const string[];
+    public:
+	enum Value {bell, wave} value;
+	Shape(Value);
+	Shape(char const *);
+	char const * toString() const;
+    };
 protected:
     SPI::Device const			spiDevice1;
     SPI::Device const			spiDevice2;
@@ -29,7 +57,7 @@ protected:
     float				aWidth;
     APA102::LED<>			aColor;
     APA102::LED<>			aFades;
-    std::string				aShape;
+    Shape				aShape;
     KeyValueBroker::Observer const	aWidthObserver;
     KeyValueBroker::Observer const	aColorObserver;
     KeyValueBroker::Observer const	aFadesObserver;
@@ -38,7 +66,7 @@ protected:
     float				bWidth;
     APA102::LED<>			bColor;
     APA102::LED<>			bFades;
-    std::string				bShape;
+    Shape				bShape;
     KeyValueBroker::Observer const	bWidthObserver;
     KeyValueBroker::Observer const	bColorObserver;
     KeyValueBroker::Observer const	bFadesObserver;
@@ -47,15 +75,15 @@ protected:
     float				cWidth;
     APA102::LED<>			cColor;
     APA102::LED<>			cFades;
-    std::string				cShape;
+    Shape				cShape;
     KeyValueBroker::Observer const	cWidthObserver;
     KeyValueBroker::Observer const	cColorObserver;
     KeyValueBroker::Observer const	cFadesObserver;
     KeyValueBroker::Observer const	cShapeObserver;
 
-    enum struct Range {clip, normalize}	range;
+    Range range;
     KeyValueBroker::Observer const	rangeObserver;
-    enum struct Dim {automatic, manual}	dim;
+    Dim					dim;
     KeyValueBroker::Observer const	dimObserver;
     unsigned				dimLevel;
     KeyValueBroker::Observer const	dimLevelObserver;

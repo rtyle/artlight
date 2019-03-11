@@ -23,6 +23,54 @@ void ArtTask::fadesObserver(
 
 }
 
+char const * const ArtTask::Dim::string[] {"_automatic", "_manual",};
+ArtTask::Dim::Dim(Value value_) : value(value_) {}
+ArtTask::Dim::Dim(char const * value) : value(
+    [value](){
+	size_t i = 0;
+	for (auto e: string) {
+	    if (0 == std::strcmp(e, value)) break;
+	    ++i;
+	}
+	return static_cast<Value>(i);
+    }()
+) {}
+char const * ArtTask::Dim::toString() const {
+    return string[value];
+}
+
+char const * const ArtTask::Range::string[] {"_clip", "_normalize",};
+ArtTask::Range::Range(Value value_) : value(value_) {}
+ArtTask::Range::Range(char const * value) : value(
+    [value](){
+	size_t i = 0;
+	for (auto e: string) {
+	    if (0 == std::strcmp(e, value)) break;
+	    ++i;
+	}
+	return static_cast<Value>(i);
+    }()
+) {}
+char const * ArtTask::Range::toString() const {
+    return string[value];
+}
+
+char const * const ArtTask::Shape::string[] {"bell", "wave",};
+ArtTask::Shape::Shape(Value value_) : value(value_) {}
+ArtTask::Shape::Shape(char const * value) : value(
+    [value](){
+	size_t i = 0;
+	for (auto e: string) {
+	    if (0 == std::strcmp(e, value)) break;
+	    ++i;
+	}
+	return static_cast<Value>(i);
+    }()
+) {}
+char const * ArtTask::Shape::toString() const {
+    return string[value];
+}
+
 ArtTask::ArtTask(
     char const *		name,
     UBaseType_t			priority,
@@ -72,7 +120,7 @@ ArtTask::ArtTask(
     aWidth		(1.0f),
     aColor		(0u),
     aFades		(0u),
-    aShape		("bell"),
+    aShape		(Shape::Value::bell),
     aWidthObserver(keyValueBroker, "aWidth", "4",
 	[this](char const * widthObserved){
 	    float width = fromString<float>(widthObserved);
@@ -91,15 +139,18 @@ ArtTask::ArtTask(
 	[this](char const * color){
 	    fadesObserver(aFades, "aFades", color);
 	}),
-    aShapeObserver(keyValueBroker, "aShape", "bell",
-	[this](char const * shape){
-	    aShape = shape;
+    aShapeObserver(keyValueBroker, "aShape", aShape.toString(),
+	[this](char const * value){
+	    Shape shape(value);
+	    io.post([this, shape](){
+		aShape = shape;
+	    });
 	}),
 
     bWidth		(1.0f),
     bColor		(0u),
     bFades		(0u),
-    bShape		("bell"),
+    bShape		(Shape::Value::bell),
     bWidthObserver(keyValueBroker, "bWidth", "4",
 	[this](char const * widthObserved){
 	    float width = fromString<float>(widthObserved);
@@ -118,15 +169,18 @@ ArtTask::ArtTask(
 	[this](char const * color){
 	    fadesObserver(bFades, "bFades", color);
 	}),
-    bShapeObserver(keyValueBroker, "bShape", "bell",
-	[this](char const * shape){
-	    bShape = shape;
+    bShapeObserver(keyValueBroker, "bShape", bShape.toString(),
+	[this](char const * value){
+	    Shape shape(value);
+	    io.post([this, shape](){
+		bShape = shape;
+	    });
 	}),
 
     cWidth		(1.0f),
     cColor		(0u),
     cFades		(0u),
-    cShape		("bell"),
+    cShape		(Shape::Value::bell),
     cWidthObserver(keyValueBroker, "cWidth", "2",
 	[this](char const * widthObserved){
 	    float width = fromString<float>(widthObserved);
@@ -145,27 +199,26 @@ ArtTask::ArtTask(
 	[this](char const * color){
 	    fadesObserver(cFades, "cFades", color);
 	}),
-    cShapeObserver(keyValueBroker, "cShape", "bell",
-	[this](char const * shape){
-	    cShape = shape;
+    cShapeObserver(keyValueBroker, "cShape", cShape.toString(),
+	[this](char const * value){
+	    Shape shape(value);
+	    io.post([this, shape](){
+		cShape = shape;
+	    });
 	}),
 
     range(Range::clip),
-    rangeObserver(keyValueBroker, "range", "_clip",
+    rangeObserver(keyValueBroker, "range", range.toString(),
 	[this](char const * value){
-	    Range range_ = 0 == strcmp("_clip", value)
-		? Range::clip
-		: Range::normalize;
+	    Range range_(value);
 	    io.post([this, range_](){
 		range = range_;
 	    });
 	}),
     dim(Dim::automatic),
-    dimObserver(keyValueBroker, "dim", "_automatic",
+    dimObserver(keyValueBroker, "dim", dim.toString(),
 	[this](char const * value){
-	    Dim dim_ = 0 == strcmp("_automatic", value)
-		? Dim::automatic
-		: Dim::manual;
+	    Dim dim_ (value);
 	    io.post([this, dim_](){
 		dim = dim_;
 	    });
