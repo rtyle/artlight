@@ -78,7 +78,7 @@
 					<div>
 						<span class='tab0'>A</span>
 						<label for='aWidth'>Width</label>
-						<input type='number' id='aWidth' name='aWidth' min='1.0' max='16.0' step='0.1'/>
+						<input type='range' id='aWidth' name='aWidth' min='1' max='16' step='1'>
 						<label for='aColor'>Color</label>
 						<input type='color' id='aColor' name='aColor'/>
 						<label for='aFades'>Fades to</label>
@@ -87,7 +87,7 @@
 					<div>
 						<span class='tab0'>B</span>
 						<label for='bWidth'>Width</label>
-						<input type='number' id='bWidth' name='bWidth' min='1.0' max='16.0' step='0.1'/>
+						<input type='range' id='bWidth' name='bWidth' min='1' max='16' step='1'>
 						<label for='bColor'>Color</label>
 						<input type='color' id='bColor' name='bColor'/>
 						<label for='bFades'>Fades to</label>
@@ -96,7 +96,7 @@
 					<div>
 						<span class='tab0'>C</span>
 						<label for='cWidth'>Width</label>
-						<input type='number' id='cWidth' name='cWidth' min='1.0' max='16.0' step='0.1'/>
+						<input type='range' id='cWidth' name='cWidth' min='1' max='16' step='1'>
 						<label for='cColor'>Color</label>
 						<input type='color' id='cColor' name='cColor'/>
 						<label for='cFades'>Fades to</label>
