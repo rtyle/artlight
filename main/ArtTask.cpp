@@ -23,32 +23,32 @@ void ArtTask::fadesObserver(
 
 }
 
-char const * const ArtTask::Dim::string[] {"_automatic", "_manual",};
+char const * const ArtTask::Dim::string[] {"automatic", "manual",};
 ArtTask::Dim::Dim(Value value_) : value(value_) {}
 ArtTask::Dim::Dim(char const * value) : value(
     [value](){
 	size_t i = 0;
 	for (auto e: string) {
-	    if (0 == std::strcmp(e, value)) break;
+	    if (0 == std::strcmp(e, value)) return static_cast<Value>(i);
 	    ++i;
 	}
-	return static_cast<Value>(i);
+	return automatic;
     }()
 ) {}
 char const * ArtTask::Dim::toString() const {
     return string[value];
 }
 
-char const * const ArtTask::Range::string[] {"_clip", "_normalize",};
+char const * const ArtTask::Range::string[] {"clip", "normalize",};
 ArtTask::Range::Range(Value value_) : value(value_) {}
 ArtTask::Range::Range(char const * value) : value(
     [value](){
 	size_t i = 0;
 	for (auto e: string) {
-	    if (0 == std::strcmp(e, value)) break;
+	    if (0 == std::strcmp(e, value)) return static_cast<Value>(i);
 	    ++i;
 	}
-	return static_cast<Value>(i);
+	return clip;
     }()
 ) {}
 char const * ArtTask::Range::toString() const {
@@ -61,10 +61,10 @@ ArtTask::Shape::Shape(char const * value) : value(
     [value](){
 	size_t i = 0;
 	for (auto e: string) {
-	    if (0 == std::strcmp(e, value)) break;
+	    if (0 == std::strcmp(e, value)) return static_cast<Value>(i);
 	    ++i;
 	}
-	return static_cast<Value>(i);
+	return bell;
     }()
 ) {}
 char const * ArtTask::Shape::toString() const {

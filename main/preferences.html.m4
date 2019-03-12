@@ -64,6 +64,7 @@
 				$('input:checkbox').on('change', function(e) {$(this).next().val(0 + $(this).prop('checked'))});
 				$('input[type="color"]').on('input', function(e) {$.ajax({type: 'POST', data: {[$(this).attr('name')]: $(this).val()}})});
 				$('input[type="range"]').on('input', function(e) {$.ajax({type: 'POST', data: {[$(this).attr('name')]: $(this).val()}})});
+				$('select').on('input', function(e) {$.ajax({type: 'POST', data: {[$(this).attr('name')]: $(this).val()}})});
 			});
 		</script>
 
@@ -121,26 +122,26 @@
 			<fieldset>
 				<legend>Brightness</legend>
 					<div>
-						<span class='tab0'>Range</span>
-						<input type='radio' id='range_clip' name='range' value='_clip'/>
-						<label for='range_clip'>Clip</label>
-						<input type='radio' id='range_normalize' name='range' value='_normalize'/>
-						<label for='range_normalize'>Normalize</label>
+						<label class='tab0' for='range'>Range</label>
+						<select id='range' name='range'>
+							<option value='clip'>Clip</option>
+							<option value='normalize'>Normalize</option>
+						</select>
 					</div>
 					<div>
-						<span class='tab0'>Dim</span>
-						<input type='radio' id='dim_automatic' name='dim' value='_automatic'/>
-						<label for='dim_automatic'>Automatic</label>
-						<input type='radio' id='dim_manual' name='dim' value='_manual'/>
-						<label for='dim_manual'>Manual</label>
+						<label class='tab0' for='dim'>Dim</label>
+						<select id='dim' name='dim'>
+							<option value='automatic'>Automatic</option>
+							<option value='manual'>Manual</option>
+						</select>
 						<input type='range' id='dimLevel' name='dimLevel' min='3' max='16'>
-						<label for='dimLevel'>Level</label>
+						<label for='dimLevel'>Manual Level</label>
 					</div>
 					<div>
 						<span class='tab0'>Gamma</span>
 						<input type='range' id='gamma' name='gamma' min='5' max='30'>
 						<label for='gamma'>Correction</label>
-						<a href='https://en.wikipedia.org/wiki/Gamma_correction'>❓</a>
+						<a href='https://en.wikipedia.org/wiki/Gamma_correction'>Help</a>
 					</div>
 			</fieldset>
 			<fieldset>
@@ -148,12 +149,12 @@
 				<div>
 					<label class='tab0' for='timezone'>Time Zone</label>
 					<input type='text' id='timezone' name='timezone' minlength='5' maxlength='32' placeholder='GNU timezone specification'/>
-					<a href='https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html'>❓</a>
+					<a href='https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html'>Help</a>
 				</div>
 				<div>
 					<label class='tab0' for='timeServers'>Time Servers</label>
 					<input type='text' id='timeServers' name='timeServers' minlength='8' maxlength='64' placeholder='whitespace delimited list'/>
-					<a href='https://www.ntppool.org/en/use.html'>❓</a>
+					<a href='https://www.ntppool.org/en/use.html'>Help</a>
 				</div>
 			</fieldset>
 			<fieldset>
