@@ -2,6 +2,7 @@
 
 #include <esp_log.h>
 
+#include "Dial.h"
 #include "InRing.h"
 #include "Ring.h"
 #include "Timer.h"
@@ -15,6 +16,7 @@ namespace Ring {
 using LEDI = APA102::LED<int>;
 
 static float constexpr pi	= std::acos(-1.0f);
+static float constexpr tau	= 2.0f * pi;
 static float constexpr phi	= (1.0f + std::sqrt(5.0f)) / 2.0f;
 static float constexpr sqrt2	= std::sqrt(2.0f);
 
@@ -55,7 +57,7 @@ private:
     float const sign;
 public:
     Pulse(float count = 1, bool pulseFirst = false) :
-	factor(count * 2 * pi),
+	factor(count * tau),
 	sign(pulseFirst ? 1 : -1)
     {}
     float operator () (float x) const {
@@ -97,167 +99,6 @@ public:
     template <typename F> T operator ()(F f) const {return slope * f + a;}
 };
 
-/// Moving describes how something moves with respect to time
-struct Moving {
-public:
-    float const center;		/// place at time 0
-    float const speed;		/// change in place per unit time
-    Moving(float center_ = 0.0f, float speed_ = 0.0f)
-	: center(center_), speed(speed_) {}
-};
-
-/// At describes where something is at (place and time).
-/// With a Moving object, it can tell how far from the Moving.center it is.
-/// Moving objects move around a circle with a perimeter of 1.
-/// The calculated distance to the Moving.center will be between [-0.5, 0.5).
-struct At {
-public:
-    float const	place;
-    float const	time;
-    At(float place_, float time_) : place(place_), time(time_) {}
-    float center(Moving const & moving) const {
-	float distance = place - moving.center - time * moving.speed;
-	float ignore;
-	if (distance < 0.0f) {
-	    distance = 1.0f - std::modf(-distance, &ignore);
-	} else {
-	    distance = std::modf(distance, &ignore);
-	}
-	if (distance >= 0.5f) distance -= 1.0f;
-	return distance;
-    }
-};
-
-/// Bump is a Moving (from a center with a speed)
-/// rectified cosine function object
-/// with a frequency (number of periods in a domain span of 1).
-/// The output is adjusted to range from 0 to 1.
-class Bump : public Moving {
-private:
-    float const	frequency;
-public:
-    Bump(
-	float center		= 0.0f,
-	float speed		= 0.0f,
-	float width		= 1.0f)
-    :
-	Moving		(center, speed),
-	frequency	(1.0f / (2.0f * width))
-    {}
-    float operator()(At at) const {
-	return std::abs(std::cos(2.0f * pi * frequency * at.center(*this)));
-    }
-};
-
-/// Bell is a Moving (from a center with a speed)
-/// standard normal distribution curve function object
-/// with a standard deviation and center value of 1.
-/// http://wikipedia.org/wiki/Normal_distribution
-class Bell : public Moving {
-private:
-    float const twoSigmaSquared;
-public:
-    Bell(
-	float center	= 0.0f,
-	float speed	= 0.0f,
-	float sigma	= 1.0f)
-    :
-	Moving		(center, speed),
-	twoSigmaSquared	(2 * sigma * sigma)
-    {}
-    float operator()(At at) const {
-	float place = at.center(*this);
-	return std::exp(-place * place / twoSigmaSquared);
-    }
-};
-
-/// Wave is a Moving (from a center with a speed)
-/// cosine function object
-/// with a frequency (number of periods in a domain span of 1).
-/// The output is adjusted to range from 0 to 1.
-class Wave : public Moving {
-private:
-    float const	width;
-public:
-    Wave(
-	float center		= 0.0f,
-	float speed		= 0.0f,
-	float width_		= 1.0f)
-    :
-	Moving		(center, speed),
-	width		(width_)
-    {
-//	ESP_LOGI("Wave", "c %f, s %f, w %f, f %f", this->center, this->speed, width);
-    }
-    float operator()(At at) const {
-	return (1.0f + std::cos(2.0f * pi * at.center(*this) / width))
-	    / 2.0f;
-    }
-};
-
-/// BellWave composes a Bell after/over a standing wave
-/// (the average of a right and left Moving Wave).
-/// The waveWidth of the waves is chosen to be two lights in the ring
-/// so that adjacent lights will pulse 180 degrees out of phase.
-/// By default, the frequency of waves is once per time unit.
-/// Multiple bell waves can move over each other with the ability to
-/// resolve all of them if their frequencies are kept out of phase.
-/// A mix of rational multiples of irrational numbers are good for this purpose.
-class BellWave : public Moving {
-private:
-    static float constexpr waveWidth = 2.0f / ringSize;
-    Bell const		bell;
-    Wave const		right;
-    Wave const		left;
-public:
-    BellWave(
-	float center		= 0.0f,
-	float speed		= 0.0f,
-	float width		= 1.0f,
-	float frequency		= 1.0f)
-    :
-	bell	(center, speed, width),
-	right	(center,  frequency * 30.0f * waveWidth, waveWidth),
-	left	(center, -frequency * 30.0f * waveWidth, waveWidth)
-    {}
-    float operator()(At at) const {
-	return bell(at) * (right(at) + left(at)) / 2.0f;
-    }
-};
-
-/// https://en.wikipedia.org/wiki/Sinc_function
-template <typename F>
-static F sinc(F x) {
-    if (0.0f == x) return 1.0f;
-    return std::sin(x) / x;
-}
-
-/// Ripple is a Moving (from a center with a speed)
-/// modified sinc(x) (sin(x)/x) curve
-/// whose output ranges from 0 to 1
-/// https://www.desmos.com/calculator/9ndsrd9psf
-class Ripple : public Moving {
-private:
-    float const width;
-public:
-    Ripple(
-	float center	= 0.0f,
-	float speed	= 0.0f,
-	float width_	= 1.0f)
-    :
-	Moving		(center, speed),
-	width		(width_)
-    {}
-    float operator()(At at) const {
-	float place = pi * std::abs(at.center(*this) / width);
-	if (1.0f / 2.0f > place) {
-	    return sinc(place);
-	} else {
-	    return (1.0f + std::sin(place)) / (2.0f * place);
-	}
-    }
-};
-
 /// Art is an abstract base class for a function object that can return
 /// an LEDI value for a specified place on a ring.
 class Art {
@@ -274,6 +115,7 @@ static Pulse secondPulse(0);//60);
 template <typename Shape>
 class Clock : public Art {
 private:
+    static float constexpr waveWidth = 2.0f / ringSize;
     float const		hTime;
     float const		mTime;
     float const		sTime;
@@ -285,7 +127,8 @@ private:
     Shape		sShape;
 public:
     Clock(
-	float			time,	// seconds since 12, local time
+	float			time,
+	float			localTime,
 	float			hWidth,
 	Blend<LEDI> const &	hBlend_,
 	float			mWidth,
@@ -293,24 +136,23 @@ public:
 	float			sWidth,
 	Blend<LEDI> const &	sBlend_)
     :
-	hTime	(hourPulse  (inDayOf   (time))),
-	mTime	(minutePulse(inHourOf  (time))),
-	sTime	(secondPulse(inMinuteOf(time))),
+	hTime	(hourPulse  (inDayOf   (localTime))),
+	mTime	(minutePulse(inHourOf  (localTime))),
+	sTime	(secondPulse(inMinuteOf(localTime))),
 	hBlend	(hBlend_),
 	mBlend	(mBlend_),
 	sBlend	(sBlend_),
-	hShape	(0.0f, 1.0f, hWidth, 2.0f * phi   * 60.0f * 12.0f / 3.0),
-	mShape	(0.0f, 1.0f, mWidth, 2.0f * sqrt2 * 60.0f / 3.0),
-	sShape	(0.0f, 1.0f, sWidth, 1.0f)
+	hShape	(hTime, hWidth,
+		    (phi / 1.5f) *	time * waveWidth / 2.0f, waveWidth),
+	mShape	(mTime, mWidth,
+		    (sqrt2 / 1.5f) *	time * waveWidth / 2.0f, waveWidth),
+	sShape	(sTime, sWidth,
+					time * waveWidth / 2.0f, waveWidth)
     {}
     /*virtual */ LEDI operator()(float place) const {
-#if 1
-	return	  hBlend(hShape(At(place, hTime)))
-		+ mBlend(mShape(At(place, mTime)))
-		+ sBlend(sShape(At(place, sTime)))
-#else
-	return mBlend(mShape(At(place, mTime)))
-#endif
+	return	  hBlend(hShape(place))
+		+ mBlend(mShape(place))
+		+ sBlend(sShape(place))
 	;
     }
 };
@@ -329,22 +171,23 @@ void updateLedChannelRGB(LEDC::Channel (&ledChannels)[3], LEDI const & color) {
 }
 
 void ArtTask::update() {
-    Bump aShape(0.0f, phi   / 9.0f, 1.0f);	// < 6 seconds ~irrational
-    Bump bShape(0.0f, sqrt2 / 9.0f, 1.0f);	// > 6 seconds ~irrational
-    Bump cShape(0.0f, 1.5f  / 9.0f, 1.0f);	// = 6 seconds    rational
+    float time = esp_timer_get_time() / 1000000.0f;
+
+    static BumpDial dial;
 
     Blend<LEDI> aBlend {LEDI(aFades), LEDI(aColor)};
     Blend<LEDI> bBlend {LEDI(bFades), LEDI(bColor)};
     Blend<LEDI> cBlend {LEDI(cFades), LEDI(cColor)};
 
-    float secondsSinceBoot = esp_timer_get_time() / 1000000.0f;
+    float place = time / 9.0f;
 
     LEDC::Channel (*rgb)[3] = &ledChannel[0];
-    updateLedChannelRGB(*rgb++, aBlend(aShape(At(0.0f, secondsSinceBoot))));
-    updateLedChannelRGB(*rgb++, bBlend(bShape(At(0.0f, secondsSinceBoot))));
-    updateLedChannelRGB(*rgb++, cBlend(cShape(At(0.0f, secondsSinceBoot))));
+    updateLedChannelRGB(*rgb++, aBlend(dial(place * phi  )));
+    updateLedChannelRGB(*rgb++, bBlend(dial(place * sqrt2)));
+    updateLedChannelRGB(*rgb++, cBlend(dial(place * 1.5f )));
 
-    Clock<BellWave> art(
+    Clock<BellStandingWaveDial> art(
+	time,
 	static_cast<float>(smoothTime.millisecondsSinceTwelveLocaltime())
 	    / millisecondsPerSecond,
 	aWidth / ringSize, aBlend,
