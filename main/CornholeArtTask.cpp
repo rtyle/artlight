@@ -142,8 +142,8 @@ void CornholeArtTask::update() {
     auto maxRendering = std::numeric_limits<int>::min();
     for (auto & led: leds) {
 	for (auto & place: *inRing) {
-	    for (auto & draw: renderList) {
-		led = led + draw(place);
+	    for (auto & render: renderList) {
+		led = led + render(place);
 	    }
 	}
 	++inRing;

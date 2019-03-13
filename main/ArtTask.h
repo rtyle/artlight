@@ -3,6 +3,7 @@
 #include "APA102.h"
 #include "AsioTask.h"
 #include "GammaEncode.h"
+#include "InRing.h"
 #include "KeyValueBroker.h"
 #include "SPI.h"
 #include "SmoothTime.h"
