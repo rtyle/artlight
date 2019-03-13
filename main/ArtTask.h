@@ -42,8 +42,7 @@ public:
 	char const * toString() const;
     };
 protected:
-    SPI::Device const			spiDevice1;
-    SPI::Device const			spiDevice2;
+    SPI::Device const			spiDevice[2];
 
     std::function<float()> const	getLux;
     KeyValueBroker &			keyValueBroker;
@@ -99,8 +98,7 @@ protected:
 	size_t			stackSize,
 	BaseType_t		core,
 
-	SPI::Bus const *	spiBus1,
-	SPI::Bus const *	spiBus2,
+	SPI::Bus const		(&spiBus)[2],
 	std::function<float()>	getLux,
 	KeyValueBroker &	keyValueBroker);
 };

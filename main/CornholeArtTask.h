@@ -23,8 +23,7 @@ private:
 
 public:
     CornholeArtTask(
-	SPI::Bus const *	spiBus1,
-	SPI::Bus const *	spiBus2,
+	SPI::Bus const		(&spiBus)[2],
 	std::function<float()>	getLux,
 	KeyValueBroker &	keyValueBroker);
 

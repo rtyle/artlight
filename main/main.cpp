@@ -107,8 +107,7 @@ public:
     I2C::Master const i2cMaster;
     LuxTask luxTask;
 
-    SPI::Bus const spiBus1;
-    SPI::Bus const spiBus2;;
+    SPI::Bus const spiBus[2];
 
     DerivedArtTask artTask;
 
@@ -160,16 +159,18 @@ public:
 	    I2C_NUM_0, 0),
 	luxTask(&i2cMaster),
 
-	spiBus1(HSPI_HOST, SPI::Bus::Config()
+	spiBus{
+	    {HSPI_HOST, SPI::Bus::Config()
 		.mosi_io_num_(SPI::Bus::HspiConfig.mosi_io_num)
 		.sclk_io_num_(SPI::Bus::HspiConfig.sclk_io_num),
-	    1),
-	spiBus2(VSPI_HOST, SPI::Bus::Config()
+	    1},
+	    {VSPI_HOST, SPI::Bus::Config()
 		.mosi_io_num_(SPI::Bus::VspiConfig.mosi_io_num)
 		.sclk_io_num_(SPI::Bus::VspiConfig.sclk_io_num),
-	    2),
+	    2},
+	},
 
-	artTask(&spiBus1, &spiBus2,
+	artTask(spiBus,
 	    [this](){return luxTask.getLux();},
 	    keyValueBroker)
     {

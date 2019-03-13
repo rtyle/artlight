@@ -175,10 +175,10 @@ void CornholeArtTask::update() {
     }
 
     {
-	SPI::Transaction transaction1(spiDevice1, SPI::Transaction::Config()
+	SPI::Transaction transaction0(spiDevice[0], SPI::Transaction::Config()
 	    .tx_buffer_(&message)
 	    .length_(message.length()));
-	SPI::Transaction transaction2(spiDevice2, SPI::Transaction::Config()
+	SPI::Transaction transaction1(spiDevice[1], SPI::Transaction::Config()
 	    .tx_buffer_(&message)
 	    .length_(message.length()));
     }
@@ -189,14 +189,12 @@ static unsigned constexpr bufferDuration	= 150000;
 static unsigned constexpr holdDuration		= 500000;
 
 CornholeArtTask::CornholeArtTask(
-    SPI::Bus const *		spiBus1,
-    SPI::Bus const *		spiBus2,
+    SPI::Bus const		(&spiBus)[2],
     std::function<float()>	getLux_,
     KeyValueBroker &		keyValueBroker_)
 :
-    ArtTask		("ringArtTask", 5, 16384, 1,
-    			spiBus1, spiBus2,
-    			getLux_, keyValueBroker_),
+    ArtTask		("CornholeArtTask", 5, 16384, 1,
+    			spiBus, getLux_, keyValueBroker_),
 
     pinISR(),
     pinTask("pinTask", 5, 4096, tskNO_AFFINITY, 128),
