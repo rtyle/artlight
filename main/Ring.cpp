@@ -7,8 +7,6 @@
 #include "Ring.h"
 #include "Timer.h"
 
-#include "function.h"
-
 using APA102::LED;
 
 namespace Ring {
