@@ -79,8 +79,6 @@ ArtTask::ArtTask(
 
     SPI::Bus const *		spiBus1,
     SPI::Bus const *		spiBus2,
-    ObservablePin		(&pin_)[4],
-    LEDC::Channel		(&ledChannel_)[3][3],
     std::function<float()>	getLux_,
     KeyValueBroker &		keyValueBroker_)
 :
@@ -98,10 +96,6 @@ ArtTask::ArtTask(
 			    .spics_io_num_(-1)		// no chip select
 			    .queue_size_(1)
 			),
-
-    pin(pin_),
-
-    ledChannel(ledChannel_),
 
     getLux		(getLux_),
 

@@ -6,12 +6,10 @@
 #include "AsioTask.h"
 #include "Event.h"
 #include "I2C.h"
-#include "LEDC.h"
 #include "LuxTask.h"
 #include "MDNS.h"
 #include "NVSKeyValueBroker.h"
 #include "OtaTask.h"
-#include "Pin.h"
 #include "ProvisionTask.h"
 #include "Preferences.h"
 #include "Qio.h"
@@ -110,17 +108,9 @@ public:
     LuxTask luxTask;
 
     SPI::Bus const spiBus1;
-    SPI::Bus const spiBus2;
+    SPI::Bus const spiBus2;;
 
-    ObservablePin::ISR	pinISR;
-    ObservablePin::Task	pinTask;
-    ObservablePin	pin[4];
-
-    LEDC::Timer		ledTimerHighSpeed;
-    LEDC::Timer		ledTimerLowSpeed;
-    LEDC::Channel	ledChannel[3][3];
-
-    std::unique_ptr<ArtTask> artTask;
+    DerivedArtTask artTask;
 
     Main()
     :
@@ -179,42 +169,9 @@ public:
 		.sclk_io_num_(SPI::Bus::VspiConfig.sclk_io_num),
 	    2),
 
-	pinISR(),
-	pinTask("pinTask", 5, 4096, tskNO_AFFINITY, 128),
-	pin {
-	    {GPIO_NUM_5 , GPIO_MODE_INPUT, GPIO_PULLUP_ENABLE,
-		GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask},
-	    {GPIO_NUM_36, GPIO_MODE_INPUT, GPIO_PULLUP_DISABLE,
-		GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask},
-	    {GPIO_NUM_15, GPIO_MODE_INPUT, GPIO_PULLUP_ENABLE,
-		GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask},
-	    {GPIO_NUM_34, GPIO_MODE_INPUT, GPIO_PULLUP_DISABLE,
-		GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask},
-	},
-
-	ledTimerHighSpeed(LEDC_HIGH_SPEED_MODE, LEDC_TIMER_8_BIT),
-	ledTimerLowSpeed (LEDC_LOW_SPEED_MODE , LEDC_TIMER_8_BIT),
-	ledChannel {
-	    {
-		{ledTimerHighSpeed, GPIO_NUM_19, 255},
-		{ledTimerHighSpeed, GPIO_NUM_16, 255},
-		{ledTimerHighSpeed, GPIO_NUM_17, 255},
-	    },
-	    {
-		{ledTimerHighSpeed, GPIO_NUM_4 , 255},
-		{ledTimerHighSpeed, GPIO_NUM_25, 255},
-		{ledTimerHighSpeed, GPIO_NUM_26, 255},
-	    },
-	    {
-		{ledTimerLowSpeed, GPIO_NUM_33, 255},
-		{ledTimerLowSpeed, GPIO_NUM_27, 255},
-		{ledTimerLowSpeed, GPIO_NUM_12, 255},
-	    },
-	},
-
-	artTask(new DerivedArtTask(&spiBus1, &spiBus2, pin, ledChannel,
+	artTask(&spiBus1, &spiBus2,
 	    [this](){return luxTask.getLux();},
-	    keyValueBroker))
+	    keyValueBroker)
     {
 	std::setlocale(LC_ALL, "en_US.utf8");
 
@@ -227,9 +184,7 @@ public:
 
 	luxTask.start();
 
-	pinTask.start();
-
-	artTask->start();
+	artTask.start();
     }
 
     ~Main() {}

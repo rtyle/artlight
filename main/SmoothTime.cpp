@@ -58,8 +58,7 @@ SmoothTime::SmoothTime(char const * name_, size_t stepCount_)
     lastBootTime(get_boot_time())
 {}
 
-int64_t SmoothTime::microsecondsSinceEpoch() {
-    uint64_t microseconds = esp_timer_get_time();
+int64_t SmoothTime::microsecondsSinceEpoch(uint64_t microseconds) {
     int64_t const thisBootTime = get_boot_time();
     if (thisBootTime != lastBootTime) {
 	// if we were to cut the difference in half on each successive step
@@ -112,9 +111,9 @@ int64_t SmoothTime::microsecondsSinceEpoch() {
     }
 }
 
-uint32_t SmoothTime::millisecondsSinceTwelveLocaltime() {
+uint32_t SmoothTime::millisecondsSinceTwelveLocaltime(uint64_t microseconds) {
     int64_t milliseconds
-	= microsecondsSinceEpoch() / microsecondsPerMillisecond;
+	= microsecondsSinceEpoch(microseconds) / microsecondsPerMillisecond;
 
     std::time_t seconds = milliseconds / millisecondsPerSecond;
     milliseconds -= static_cast<int64_t>(seconds) * millisecondsPerSecond;

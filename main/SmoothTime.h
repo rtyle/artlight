@@ -13,6 +13,6 @@ private:
     int64_t		lastBootTime;
 public:
     SmoothTime(char const * name, size_t count);
-    int64_t	microsecondsSinceEpoch();
-    uint32_t	millisecondsSinceTwelveLocaltime();
+    int64_t	microsecondsSinceEpoch(uint64_t microsecondsSinceBoot);
+    uint32_t	millisecondsSinceTwelveLocaltime(uint64_t microsecondsSinceBoot);
 };
