@@ -62,8 +62,9 @@
 				$('#data'	)	.click(function() {fill('data'		)});
 				$('#dataDefault')	.click(function() {fill('dataDefault'	)});
 				$('input:checkbox').on('change', function(e) {$(this).next().val(0 + $(this).prop('checked'))});
-				$('input[type="color"]').on('input', function(e) {$.ajax({type: 'POST', data: {[$(this).attr('name')]: $(this).val()}})});
-				$('input[type="range"]').on('input', function(e) {$.ajax({type: 'POST', data: {[$(this).attr('name')]: $(this).val()}})});
+				$('input[type="color"]' ).on('input', function(e) {$.ajax({type: 'POST', data: {[$(this).attr('name')]: $(this).val()}})});
+				$('input[type="number"]').on('input', function(e) {$.ajax({type: 'POST', data: {[$(this).attr('name')]: $(this).val()}})});
+				$('input[type="range"]' ).on('input', function(e) {$.ajax({type: 'POST', data: {[$(this).attr('name')]: $(this).val()}})});
 				$('select').on('input', function(e) {$.ajax({type: 'POST', data: {[$(this).attr('name')]: $(this).val()}})});
 			});
 		</script>
