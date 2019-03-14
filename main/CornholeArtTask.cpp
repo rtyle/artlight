@@ -1,6 +1,7 @@
 #include <esp_log.h>
 
 #include "clip.h"
+#include "fromString.h"
 #include "Blend.h"
 #include "CornholeArtTask.h"
 #include "Dial.h"
@@ -60,76 +61,89 @@ void CornholeArtTask::update() {
     updateLedChannelRGB(*rgb++, bBlend(dial(place * sqrt2)));
     updateLedChannelRGB(*rgb++, cBlend(dial(place * 1.5f )));
 
-    std::list<std::function<LEDI(float)>> renderList;
+    float aWidthInRing = aWidth / ringSize;
+    float bWidthInRing = bWidth / ringSize;
+    float cWidthInRing = cWidth / ringSize;
 
-    // clock
-    {
-	static float waveWidth = 2.0f / ringSize;
+    float aPosition;
+    float bPosition;
+    float cPosition;
+    if (aScore || bScore) {
+	static float constexpr maxScore = 21.0;
+	aPosition = aScore / maxScore;
+	bPosition = bScore / maxScore;
+	cPosition = aPosition - bPosition;
+	if (maxScore <= aScore) aWidthInRing = 2.0f * aWidth / ringSize;
+	if (maxScore <= bScore) bWidthInRing = 2.0f * bWidth / ringSize;
+	cWidthInRing = 0.0f;
+    } else {
 	float secondsSinceTwelveLocaltime
 	    = smoothTime.millisecondsSinceTwelveLocaltime(microsecondsSinceBoot)
 		/ millisecondsPerSecond;
-	if (aWidth) {
-	    float width = aWidth / ringSize;
-	    float position = hourPulse(inDayOf(secondsSinceTwelveLocaltime));
-	    switch (aShape.value) {
-	    case Shape::Value::bell: {
-		    BellDial shape(position, width);
-		    renderList.push_back([aBlend, shape](float place){
-			return aBlend(shape(place));
-		    });
-		}
-		break;
-	    case Shape::Value::wave: {
-		    BellStandingWaveDial shape(position, width, (phi / 1.5f) *
-			secondsSinceBoot * waveWidth / 2.0f, waveWidth);
-		    renderList.push_back([aBlend, shape](float place){
-			return aBlend(shape(place));
-		    });
-		}
-		break;
+	aPosition = hourPulse(inDayOf(secondsSinceTwelveLocaltime));
+	bPosition = minutePulse(inHourOf(secondsSinceTwelveLocaltime));
+	cPosition = secondPulse(inMinuteOf(secondsSinceTwelveLocaltime));
+    }
+
+    std::list<std::function<LEDI(float)>> renderList;
+
+    static float waveWidth = 2.0f / ringSize;
+
+    if (aWidthInRing) {
+	switch (aShape.value) {
+	case Shape::Value::bell: {
+		BellDial shape(aPosition, aWidthInRing);
+		renderList.push_back([aBlend, shape](float place){
+		    return aBlend(shape(place));
+		});
 	    }
+	    break;
+	case Shape::Value::wave: {
+		BellStandingWaveDial shape(aPosition, aWidthInRing, (phi / 1.5f) *
+		    secondsSinceBoot * waveWidth / 2.0f, waveWidth);
+		renderList.push_back([aBlend, shape](float place){
+		    return aBlend(shape(place));
+		});
+	    }
+	    break;
 	}
-	if (bWidth) {
-	    float width = bWidth / ringSize;
-	    float position = minutePulse(inHourOf(secondsSinceTwelveLocaltime));
-	    switch (bShape.value) {
-	    case Shape::Value::bell: {
-		    BellDial shape(position, width);
-		    renderList.push_back([bBlend, shape](float place){
-			return bBlend(shape(place));
-		    });
-		}
-		break;
-	    case Shape::Value::wave: {
-		    BellStandingWaveDial shape(position, width, (sqrt2 / 1.5f) *
-			secondsSinceBoot * waveWidth / 2.0f, waveWidth);
-		    renderList.push_back([bBlend, shape](float place){
-			return bBlend(shape(place));
-		    });
-		}
-		break;
+    }
+    if (bWidthInRing) {
+	switch (bShape.value) {
+	case Shape::Value::bell: {
+		BellDial shape(bPosition, bWidthInRing);
+		renderList.push_back([bBlend, shape](float place){
+		    return bBlend(shape(place));
+		});
 	    }
+	    break;
+	case Shape::Value::wave: {
+		BellStandingWaveDial shape(bPosition, bWidthInRing, (sqrt2 / 1.5f) *
+		    secondsSinceBoot * waveWidth / 2.0f, waveWidth);
+		renderList.push_back([bBlend, shape](float place){
+		    return bBlend(shape(place));
+		});
+	    }
+	    break;
 	}
-	if (cWidth) {
-	    float width = cWidth / ringSize;
-	    float position = secondPulse(inMinuteOf(secondsSinceTwelveLocaltime));
-	    switch (cShape.value) {
-	    case Shape::Value::bell: {
-		    BellDial shape(position, width);
-		    renderList.push_back([cBlend, shape](float place){
-			return cBlend(shape(place));
-		    });
-		}
-		break;
-	    case Shape::Value::wave: {
-		    BellStandingWaveDial shape(position, width,
-			secondsSinceBoot * waveWidth / 2.0f, waveWidth);
-		    renderList.push_back([cBlend, shape](float place){
-			return cBlend(shape(place));
-		    });
-		}
-		break;
+    }
+    if (cWidthInRing) {
+	switch (cShape.value) {
+	case Shape::Value::bell: {
+		BellDial shape(cPosition, cWidthInRing);
+		renderList.push_back([cBlend, shape](float place){
+		    return cBlend(shape(place));
+		});
 	    }
+	    break;
+	case Shape::Value::wave: {
+		BellStandingWaveDial shape(cPosition, cWidthInRing,
+		    secondsSinceBoot * waveWidth / 2.0f, waveWidth);
+		renderList.push_back([cBlend, shape](float place){
+		    return cBlend(shape(place));
+		});
+	    }
+	    break;
 	}
     }
 
@@ -246,7 +260,25 @@ CornholeArtTask::CornholeArtTask(
 	    {ledTimerLowSpeed, GPIO_NUM_27, 255},
 	    {ledTimerLowSpeed, GPIO_NUM_12, 255},
 	},
-    }
+    },
+
+    aScore(0),
+    aScoreObserver(keyValueBroker, "aScore", "0",
+	[this](char const * scoreObserved){
+	    unsigned score = fromString<unsigned>(scoreObserved);
+	    io.post([this, score](){
+		aScore = score;
+	    });
+	}),
+
+    bScore(0),
+    bScoreObserver(keyValueBroker, "bScore", "0",
+	[this](char const * scoreObserved){
+	    unsigned score = fromString<unsigned>(scoreObserved);
+	    io.post([this, score](){
+		bScore = score;
+	    });
+	})
 {
     pinTask.start();
 }

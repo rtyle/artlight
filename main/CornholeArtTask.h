@@ -19,6 +19,12 @@ private:
     LEDC::Timer		ledTimerLowSpeed;
     LEDC::Channel	ledChannel[3][3];
 
+    unsigned				aScore;
+    KeyValueBroker::Observer const	aScoreObserver;
+
+    unsigned				bScore;
+    KeyValueBroker::Observer const	bScoreObserver;
+
     void update();
 
 public:
