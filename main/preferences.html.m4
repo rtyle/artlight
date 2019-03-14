@@ -74,75 +74,90 @@
 			<button id='data'	>Fill with Current Values</button>
 		</div>
 		<form method='post'>
+ifelse(`cornhole', ArtLightApplication, dnl
+			<fieldset>
+				<legend>Cornhole</legend>
+				<div>
+					<span class='tab0'>A</span>
+					<label for='aScore'>Score</label>
+					<input type='number' id='aScore' name='aScore' min='0' max='21' step='1'>
+				</div>
+				<div>
+					<span class='tab0'>B</span>
+					<label for='bScore'>Score</label>
+					<input type='number' id='bScore' name='bScore' min='0' max='21' step='1'>
+				</div>
+			</fieldset>
+)dnl
 			<fieldset>
 				<legend>Presentation</legend>
-					<div>
-						<span class='tab0'>A</span>
-						<label for='aWidth'>Width</label>
-						<input type='range' id='aWidth' name='aWidth' min='0' max='8' step='1'>
-						<label for='aColor'>Color</label>
-						<input type='color' id='aColor' name='aColor'/>
-						<label for='aFades'>Fades to</label>
-						<input type='color' id='aFades' name='aFades'/>
-						<label for='aShape'>Shape</label>
-						<select id='aShape' name='aShape'>
-							<option value='bell'>Bell</option>
-							<option value='wave'>Wave</option>
-						</select>
-					</div>
-					<div>
-						<span class='tab0'>B</span>
-						<label for='bWidth'>Width</label>
-						<input type='range' id='bWidth' name='bWidth' min='0' max='8' step='1'>
-						<label for='bColor'>Color</label>
-						<input type='color' id='bColor' name='bColor'/>
-						<label for='bFades'>Fades to</label>
-						<input type='color' id='bFades' name='bFades'/>
-						<label for='bShape'>Shape</label>
-						<select id='bShape' name='bShape'>
-							<option value='bell'>Bell</option>
-							<option value='wave'>Wave</option>
-						</select>
-					</div>
-					<div>
-						<span class='tab0'>C</span>
-						<label for='cWidth'>Width</label>
-						<input type='range' id='cWidth' name='cWidth' min='0' max='8' step='1'>
-						<label for='cColor'>Color</label>
-						<input type='color' id='cColor' name='cColor'/>
-						<label for='cFades'>Fades to</label>
-						<input type='color' id='cFades' name='cFades'/>
-						<label for='cShape'>Shape</label>
-						<select id='cShape' name='cShape'>
-							<option value='bell'>Bell</option>
-							<option value='wave'>Wave</option>
-						</select>
-					</div>
+				<div>
+					<span class='tab0'>A</span>
+					<label for='aWidth'>Width</label>
+					<input type='range' id='aWidth' name='aWidth' min='0' max='8' step='1'>
+					<label for='aColor'>Color</label>
+					<input type='color' id='aColor' name='aColor'/>
+					<label for='aFades'>Fades to</label>
+					<input type='color' id='aFades' name='aFades'/>
+					<label for='aShape'>Shape</label>
+					<select id='aShape' name='aShape'>
+						<option value='bell'>Bell</option>
+						<option value='wave'>Wave</option>
+					</select>
+				</div>
+				<div>
+					<span class='tab0'>B</span>
+					<label for='bWidth'>Width</label>
+					<input type='range' id='bWidth' name='bWidth' min='0' max='8' step='1'>
+					<label for='bColor'>Color</label>
+					<input type='color' id='bColor' name='bColor'/>
+					<label for='bFades'>Fades to</label>
+					<input type='color' id='bFades' name='bFades'/>
+					<label for='bShape'>Shape</label>
+					<select id='bShape' name='bShape'>
+						<option value='bell'>Bell</option>
+						<option value='wave'>Wave</option>
+					</select>
+				</div>
+				<div>
+					<span class='tab0'>C</span>
+					<label for='cWidth'>Width</label>
+					<input type='range' id='cWidth' name='cWidth' min='0' max='8' step='1'>
+					<label for='cColor'>Color</label>
+					<input type='color' id='cColor' name='cColor'/>
+					<label for='cFades'>Fades to</label>
+					<input type='color' id='cFades' name='cFades'/>
+					<label for='cShape'>Shape</label>
+					<select id='cShape' name='cShape'>
+						<option value='bell'>Bell</option>
+						<option value='wave'>Wave</option>
+					</select>
+				</div>
 			</fieldset>
 			<fieldset>
 				<legend>Brightness</legend>
-					<div>
-						<label class='tab0' for='range'>Range</label>
-						<select id='range' name='range'>
-							<option value='clip'>Clip</option>
-							<option value='normalize'>Normalize</option>
-						</select>
-					</div>
-					<div>
-						<label class='tab0' for='dim'>Dim</label>
-						<select id='dim' name='dim'>
-							<option value='automatic'>Automatic</option>
-							<option value='manual'>Manual</option>
-						</select>
-						<input type='range' id='dimLevel' name='dimLevel' min='3' max='16'>
-						<label for='dimLevel'>Manual Level</label>
-					</div>
-					<div>
-						<span class='tab0'>Gamma</span>
-						<input type='range' id='gamma' name='gamma' min='5' max='30'>
-						<label for='gamma'>Correction</label>
-						<a href='https://en.wikipedia.org/wiki/Gamma_correction'>Help</a>
-					</div>
+				<div>
+					<label class='tab0' for='range'>Range</label>
+					<select id='range' name='range'>
+						<option value='clip'>Clip</option>
+						<option value='normalize'>Normalize</option>
+					</select>
+				</div>
+				<div>
+					<label class='tab0' for='dim'>Dim</label>
+					<select id='dim' name='dim'>
+						<option value='automatic'>Automatic</option>
+						<option value='manual'>Manual</option>
+					</select>
+					<input type='range' id='dimLevel' name='dimLevel' min='3' max='16'>
+					<label for='dimLevel'>Manual Level</label>
+				</div>
+				<div>
+					<span class='tab0'>Gamma</span>
+					<input type='range' id='gamma' name='gamma' min='5' max='30'>
+					<label for='gamma'>Correction</label>
+					<a href='https://en.wikipedia.org/wiki/Gamma_correction'>Help</a>
+				</div>
 			</fieldset>
 			<fieldset>
 				<legend>Time Acquisition</legend>
