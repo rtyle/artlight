@@ -25,3 +25,4 @@ static T fromString(char const * s) {
 
 // variant instantiations
 template float fromString(char const *);
+template unsigned fromString(char const *);
