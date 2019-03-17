@@ -60,7 +60,6 @@ void Button::update(bool timeout) {
 	    stateTime = esp_timer_get_time();
 	    if (downLevel == observablePin.get_level()) {
 		upCount = downCount++;
-		heldCount = 0;
 		state = down;
 	    } else {
 		downCount = ++upCount;
@@ -80,9 +79,14 @@ void Button::update(bool timeout) {
 	    if (holdDuration < stateDuration) {
 		stateTime += holdDuration;
 		held(heldCount++);
-		upCount = downCount = -1;
 	    }
 	} else {
+	    if (heldCount) {
+		held(-heldCount);
+		heldCount =  0;
+		downCount =  0;
+		upCount	  = -1;
+	    }
 	    stateTime = esp_timer_get_time();
 	    state = bounce;
 	}
@@ -106,3 +110,5 @@ void Button::update(bool timeout) {
 	break;
     }
 }
+
+bool Button::isDown() {return State::down == state;}

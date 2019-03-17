@@ -11,12 +11,16 @@
 /// After debounceDuration, the button enters the up or down state depending
 /// on how the pin level compares with downLevel.
 /// If there is pin activity on an up button before a pressed event
-/// generated, that event is buffered and the bounce state is entered;
+/// is generated, that event is buffered and the bounce state is reentered;
 /// otherwise, if it has been up for more than bufferDuration any buffered
-/// events are flushed and the idle state is entered.
-/// If the button is down for more than bufferDuration, any previously buffered
-/// events are flushed.
-/// While the button is down, each holdDuration a held event is generated.
+/// events are flushed (pressed is called with the buffered count)
+/// and the idle state is entered.
+/// If the button is down for more than bufferDuration, any buffered
+/// events are flushed (pressed is called with the buffered count).
+/// While the button is down, each holdDuration, held is called with
+/// incrementing counter.
+/// When a held button is finally released, held is called with the negated
+/// counter.
 class Button : private ObservablePin::Observer {
 private:
     enum State {
@@ -31,7 +35,7 @@ private:
     unsigned const		holdDuration;
     std::function<void(unsigned)> const	pressed;
     std::function<void(unsigned)> const	held;
-    int				downCount;
+    unsigned			downCount;
     int				upCount;
     unsigned			heldCount;
     std::recursive_mutex	mutex;
@@ -58,4 +62,6 @@ public:
     /// A move constructor is needed to support initialization of a
     /// Button class array class element.
     Button(Button const && move);
+
+    bool isDown();
 };
