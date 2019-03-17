@@ -19,11 +19,12 @@ private:
     LEDC::Timer		ledTimerLowSpeed;
     LEDC::Channel	ledChannel[3][3];
 
-    unsigned				aScore;
-    KeyValueBroker::Observer const	aScoreObserver;
+    unsigned				score[2];
+    KeyValueBroker::Observer const	scoreObserver[2];
 
-    unsigned				bScore;
-    KeyValueBroker::Observer const	bScoreObserver;
+    void scoreIncrement(size_t index, unsigned count);
+    void scoreDecrement(size_t index, int count);
+    void scoreObserved(size_t index, char const * value);
 
     void update();
 

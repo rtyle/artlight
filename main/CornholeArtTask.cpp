@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include <esp_log.h>
 
 #include "clip.h"
@@ -44,6 +46,8 @@ void updateLedChannelRGB(LEDC::Channel (&ledChannels)[3], LEDI const & color) {
     }
 }
 
+static unsigned constexpr maxScore = 21;
+
 void CornholeArtTask::update() {
     uint64_t microsecondsSinceBoot = esp_timer_get_time();
     float secondsSinceBoot = microsecondsSinceBoot / 1000000.0f;
@@ -68,13 +72,12 @@ void CornholeArtTask::update() {
     float aPosition;
     float bPosition;
     float cPosition;
-    if (aScore || bScore) {
-	static float constexpr maxScore = 21.0;
-	aPosition = aScore / maxScore;
-	bPosition = bScore / maxScore;
+    if (score[0] || score[1]) {
+	aPosition = score[0] / static_cast<float>(maxScore);
+	bPosition = score[1] / static_cast<float>(maxScore);
 	cPosition = aPosition - bPosition;
-	if (maxScore <= aScore) aWidthInRing = 2.0f * aWidth / ringSize;
-	if (maxScore <= bScore) bWidthInRing = 2.0f * bWidth / ringSize;
+	if (maxScore <= score[0]) aWidthInRing = 3.0f * aWidth / ringSize;
+	if (maxScore <= score[1]) bWidthInRing = 3.0f * bWidth / ringSize;
 	cWidthInRing = 0.0f;
     } else {
 	float secondsSinceTwelveLocaltime
@@ -198,6 +201,40 @@ void CornholeArtTask::update() {
     }
 }
 
+static char const * const scoreKey[] = {"aScore", "bScore"};
+
+void CornholeArtTask::scoreIncrement(size_t index, unsigned count) {
+    io.post([this, index, count](){
+	// increment the score but not above max
+	unsigned value = std::min(maxScore, score[index] + 1 + count);
+	std::ostringstream os;
+	os << value;
+	keyValueBroker.publish(scoreKey[index], os.str().c_str());
+    });
+
+}
+
+void CornholeArtTask::scoreDecrement(size_t index, int count) {
+    io.post([this, index, count](){
+	if (0 > count) return;
+	// decrement the score but not below 0
+	// if the other scoring button is held too decrement all the way to 0
+	unsigned value = button[1 ^ index].isDown()
+	    ? 0
+	    : std::max(0, static_cast<int>(score[index] - 1));
+	std::ostringstream os;
+	os << value;
+	keyValueBroker.publish(scoreKey[index], os.str().c_str());
+    });
+}
+
+void CornholeArtTask::scoreObserved(size_t index, char const * value_) {
+    unsigned value = fromString<unsigned>(value_);
+    io.post([this, index, value](){
+	score[index] = value;
+    });
+}
+
 static unsigned constexpr bounceDuration	=  25000;
 static unsigned constexpr bufferDuration	= 150000;
 static unsigned constexpr holdDuration		= 500000;
@@ -225,12 +262,12 @@ CornholeArtTask::CornholeArtTask(
 
     button {
 	{pin[0], 0, bounceDuration, bufferDuration, holdDuration,
-	    [this](unsigned count){ESP_LOGI(name, "button a press %d", count);},
-	    [this](unsigned count){ESP_LOGI(name, "button a hold %d" , count);}
+	    [this](unsigned count){scoreIncrement(0, count);},
+	    [this](unsigned count){scoreDecrement(0, count);},
 	},
 	{pin[1], 0, bounceDuration, bufferDuration, holdDuration,
-	    [this](unsigned count){ESP_LOGI(name, "button b press %d", count);},
-	    [this](unsigned count){ESP_LOGI(name, "button b hold %d" , count);}
+	    [this](unsigned count){scoreIncrement(1, count);},
+	    [this](unsigned count){scoreDecrement(1, count);},
 	},
 	{pin[2], 0, bounceDuration, bufferDuration, holdDuration,
 	    [this](unsigned count){ESP_LOGI(name, "button c press %d", count);},
@@ -262,23 +299,13 @@ CornholeArtTask::CornholeArtTask(
 	},
     },
 
-    aScore(0),
-    aScoreObserver(keyValueBroker, "aScore", "0",
-	[this](char const * scoreObserved){
-	    unsigned score = fromString<unsigned>(scoreObserved);
-	    io.post([this, score](){
-		aScore = score;
-	    });
-	}),
-
-    bScore(0),
-    bScoreObserver(keyValueBroker, "bScore", "0",
-	[this](char const * scoreObserved){
-	    unsigned score = fromString<unsigned>(scoreObserved);
-	    io.post([this, score](){
-		bScore = score;
-	    });
-	})
+    score {0, 0},
+    scoreObserver {
+	{keyValueBroker, "aScore", "0",
+	    [this](char const * value){scoreObserved(0, value);}},
+	{keyValueBroker, "bScore", "0",
+	    [this](char const * value){scoreObserved(1, value);}},
+    }
 {
     pinTask.start();
 }
