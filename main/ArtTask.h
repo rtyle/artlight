@@ -45,7 +45,6 @@ public:
 
     void widthObserved(size_t index, char const * value);
     void colorObserved(size_t index, char const * value);
-    void fadesObserved(size_t index, char const * value);
     void shapeObserved(size_t index, char const * value);
 
 protected:
@@ -58,12 +57,10 @@ protected:
 
     float				width[3];
     APA102::LED<>			color[3];
-    APA102::LED<>			fades[3];
     Shape				shape[3];
 
     KeyValueBroker::Observer const	widthObserver[3];
     KeyValueBroker::Observer const	colorObserver[3];
-    KeyValueBroker::Observer const	fadesObserver[3];
     KeyValueBroker::Observer const	shapeObserver[3];
 
     Range range;

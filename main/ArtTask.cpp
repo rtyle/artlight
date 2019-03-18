@@ -63,11 +63,6 @@ char const * const colorKey[] {
     "bColor",
     "cColor",
 };
-char const * const fadesKey[] {
-    "aFades",
-    "bFades",
-    "cFades",
-};
 char const * const shapeKey[] {
     "aShape",
     "bShape",
@@ -85,13 +80,6 @@ void ArtTask::colorObserved(size_t index, char const * value_) {
     APA102::LED<> value(value_);
     io.post([this, index, value](){
 	color[index] = value;
-    });
-}
-
-void ArtTask::fadesObserved(size_t index, char const * value_) {
-    APA102::LED<> value(value_);
-    io.post([this, index, value](){
-	fades[index] = value;
     });
 }
 
@@ -167,15 +155,6 @@ ArtTask::ArtTask(
 	    [this](char const * value) {colorObserved(1, value);}},
 	{keyValueBroker, colorKey[2], "#ffff00",
 	    [this](char const * value) {colorObserved(2, value);}},
-    },
-
-    fadesObserver {
-	{keyValueBroker, fadesKey[0], "#000000",
-	    [this](char const * value) {fadesObserved(0, value);}},
-	{keyValueBroker, fadesKey[1], "#000000",
-	    [this](char const * value) {fadesObserved(1, value);}},
-	{keyValueBroker, fadesKey[2], "#000000",
-	    [this](char const * value) {fadesObserved(2, value);}},
     },
 
     shapeObserver {

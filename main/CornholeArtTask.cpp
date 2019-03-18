@@ -54,10 +54,11 @@ void CornholeArtTask::update() {
 
     static BumpDial dial;
 
+    static LEDI black(0, 0, 0);
     Blend<LEDI> blend[] {
-	{fades[0], color[0]},
-	{fades[1], color[1]},
-	{fades[2], color[2]},
+	{black, color[0]},
+	{black, color[1]},
+	{black, color[2]},
     };
 
     float place = secondsSinceBoot / 9.0f;
