@@ -54,99 +54,73 @@ void CornholeArtTask::update() {
 
     static BumpDial dial;
 
-    Blend<LEDI> aBlend {LEDI(aFades), LEDI(aColor)};
-    Blend<LEDI> bBlend {LEDI(bFades), LEDI(bColor)};
-    Blend<LEDI> cBlend {LEDI(cFades), LEDI(cColor)};
+    Blend<LEDI> blend[] {
+	{fades[0], color[0]},
+	{fades[1], color[1]},
+	{fades[2], color[2]},
+    };
 
     float place = secondsSinceBoot / 9.0f;
 
     LEDC::Channel (*rgb)[3] = &ledChannel[0];
-    updateLedChannelRGB(*rgb++, aBlend(dial(place * phi  )));
-    updateLedChannelRGB(*rgb++, bBlend(dial(place * sqrt2)));
-    updateLedChannelRGB(*rgb++, cBlend(dial(place * 1.5f )));
+    updateLedChannelRGB(*rgb++, blend[0](dial(place * phi  )));
+    updateLedChannelRGB(*rgb++, blend[1](dial(place * sqrt2)));
+    updateLedChannelRGB(*rgb++, blend[2](dial(place * 1.5f )));
 
-    float aWidthInRing = aWidth / ringSize;
-    float bWidthInRing = bWidth / ringSize;
-    float cWidthInRing = cWidth / ringSize;
+    float widthInRing[] {
+	width[0] / ringSize,
+	width[1] / ringSize,
+	width[2] / ringSize,
+    };
 
-    float aPosition;
-    float bPosition;
-    float cPosition;
+    float position[3] {};
     if (score[0] || score[1]) {
-	aPosition = score[0] / static_cast<float>(maxScore);
-	bPosition = score[1] / static_cast<float>(maxScore);
-	cPosition = aPosition - bPosition;
-	if (maxScore <= score[0]) aWidthInRing = 3.0f * aWidth / ringSize;
-	if (maxScore <= score[1]) bWidthInRing = 3.0f * bWidth / ringSize;
-	cWidthInRing = 0.0f;
+	position[0] = score[0] / static_cast<float>(maxScore);
+	position[1] = score[1] / static_cast<float>(maxScore);
+	position[2] = position[0] - position[1];
+	if (maxScore <= score[0]) widthInRing[0] *= 3.0f;
+	if (maxScore <= score[1]) widthInRing[1] *= 3.0f;;
+	widthInRing[2] = 0.0f;
     } else {
 	float secondsSinceTwelveLocaltime
 	    = smoothTime.millisecondsSinceTwelveLocaltime(microsecondsSinceBoot)
 		/ millisecondsPerSecond;
-	aPosition = hourPulse(inDayOf(secondsSinceTwelveLocaltime));
-	bPosition = minutePulse(inHourOf(secondsSinceTwelveLocaltime));
-	cPosition = secondPulse(inMinuteOf(secondsSinceTwelveLocaltime));
+	position[0] = hourPulse  (inDayOf   (secondsSinceTwelveLocaltime));
+	position[1] = minutePulse(inHourOf  (secondsSinceTwelveLocaltime));
+	position[2] = secondPulse(inMinuteOf(secondsSinceTwelveLocaltime));
     }
 
     std::list<std::function<LEDI(float)>> renderList;
 
-    static float waveWidth = 2.0f / ringSize;
+    static float constexpr waveWidth = 2.0f / ringSize;
 
-    if (aWidthInRing) {
-	switch (aShape.value) {
-	case Shape::Value::bell: {
-		BellDial shape(aPosition, aWidthInRing);
-		renderList.push_back([aBlend, shape](float place){
-		    return aBlend(shape(place));
-		});
+    static float constexpr scale[] {
+	phi	/ 1.5f,		//  > 1.0
+	sqrt2	/ 1.5f,		//  < 1.0
+	1.5f	/ 1.5f,		// == 1.0
+    };
+
+    for (size_t index = 0; index < 3; ++index) {
+	if (widthInRing[index]) {
+	    switch (shape[index].value) {
+	    case Shape::Value::bell: {
+		    BellDial dial(position[index], widthInRing[index]);
+		    renderList.push_back([&blend, index, dial](float place){
+			return blend[index](dial(place));
+		    });
+		}
+		break;
+	    case Shape::Value::wave: {
+		    BellStandingWaveDial dial(position[index],
+			widthInRing[index],
+			scale[index] * secondsSinceBoot * waveWidth / 2.0f,
+			waveWidth);
+		    renderList.push_back([&blend, index, dial](float place){
+			return blend[index](dial(place));
+		    });
+		}
+		break;
 	    }
-	    break;
-	case Shape::Value::wave: {
-		BellStandingWaveDial shape(aPosition, aWidthInRing, (phi / 1.5f) *
-		    secondsSinceBoot * waveWidth / 2.0f, waveWidth);
-		renderList.push_back([aBlend, shape](float place){
-		    return aBlend(shape(place));
-		});
-	    }
-	    break;
-	}
-    }
-    if (bWidthInRing) {
-	switch (bShape.value) {
-	case Shape::Value::bell: {
-		BellDial shape(bPosition, bWidthInRing);
-		renderList.push_back([bBlend, shape](float place){
-		    return bBlend(shape(place));
-		});
-	    }
-	    break;
-	case Shape::Value::wave: {
-		BellStandingWaveDial shape(bPosition, bWidthInRing, (sqrt2 / 1.5f) *
-		    secondsSinceBoot * waveWidth / 2.0f, waveWidth);
-		renderList.push_back([bBlend, shape](float place){
-		    return bBlend(shape(place));
-		});
-	    }
-	    break;
-	}
-    }
-    if (cWidthInRing) {
-	switch (cShape.value) {
-	case Shape::Value::bell: {
-		BellDial shape(cPosition, cWidthInRing);
-		renderList.push_back([cBlend, shape](float place){
-		    return cBlend(shape(place));
-		});
-	    }
-	    break;
-	case Shape::Value::wave: {
-		BellStandingWaveDial shape(cPosition, cWidthInRing,
-		    secondsSinceBoot * waveWidth / 2.0f, waveWidth);
-		renderList.push_back([cBlend, shape](float place){
-		    return cBlend(shape(place));
-		});
-	    }
-	    break;
 	}
     }
 
@@ -191,19 +165,15 @@ void CornholeArtTask::update() {
 	}
     }
 
-    {
-	SPI::Transaction transaction0(spiDevice[0], SPI::Transaction::Config()
-	    .tx_buffer_(&message)
-	    .length_(message.length()));
-	SPI::Transaction transaction1(spiDevice[1], SPI::Transaction::Config()
-	    .tx_buffer_(&message)
-	    .length_(message.length()));
-    }
+    SPI::Transaction transaction1(spiDevice[1], SPI::Transaction::Config()
+	.tx_buffer_(&message)
+	.length_(message.length()));
 }
 
 static char const * const scoreKey[] = {"aScore", "bScore"};
 
 void CornholeArtTask::scoreIncrement(size_t index, unsigned count) {
+    ESP_LOGI(name, "scoreIncrement %d %d", index, count);
     io.post([this, index, count](){
 	// increment the score but not above max
 	unsigned value = std::min(maxScore, score[index] + 1 + count);
@@ -215,8 +185,9 @@ void CornholeArtTask::scoreIncrement(size_t index, unsigned count) {
 }
 
 void CornholeArtTask::scoreDecrement(size_t index, int count) {
+    ESP_LOGI(name, "scoreDecrement %d %d", index, count);
     io.post([this, index, count](){
-	if (0 > count) return;
+	if (0 > count) return;	// button hold released
 	// decrement the score but not below 0
 	// if the other scoring button is held too decrement all the way to 0
 	unsigned value = button[1 ^ index].isDown()
@@ -229,6 +200,7 @@ void CornholeArtTask::scoreDecrement(size_t index, int count) {
 }
 
 void CornholeArtTask::scoreObserved(size_t index, char const * value_) {
+    ESP_LOGI(name, "scoreObserved %d %s", index, value_);
     unsigned value = fromString<unsigned>(value_);
     io.post([this, index, value](){
 	score[index] = value;
@@ -253,7 +225,7 @@ CornholeArtTask::CornholeArtTask(
 	{GPIO_NUM_5 , GPIO_MODE_INPUT, GPIO_PULLUP_ENABLE,
 	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask},
 	{GPIO_NUM_36, GPIO_MODE_INPUT, GPIO_PULLUP_DISABLE,
-	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask},
+	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_DISABLE, pinTask},
 	{GPIO_NUM_15, GPIO_MODE_INPUT, GPIO_PULLUP_ENABLE,
 	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask},
 	{GPIO_NUM_34, GPIO_MODE_INPUT, GPIO_PULLUP_DISABLE,
@@ -301,16 +273,16 @@ CornholeArtTask::CornholeArtTask(
 
     score {0, 0},
     scoreObserver {
-	{keyValueBroker, "aScore", "0",
+	{keyValueBroker, scoreKey[0], "0",
 	    [this](char const * value){scoreObserved(0, value);}},
-	{keyValueBroker, "bScore", "0",
+	{keyValueBroker, scoreKey[1], "0",
 	    [this](char const * value){scoreObserved(1, value);}},
     }
 {
     pinTask.start();
 }
 
-/* virtual */ void CornholeArtTask::run() {
+void CornholeArtTask::run() {
     // asio timers are not supported
     // adapt a FreeRTOS timer to post timeout to this task.
     Timer updateTimer(name, 1, true, [this](){
@@ -328,7 +300,35 @@ CornholeArtTask::CornholeArtTask(
     AsioTask::run();
 }
 
-/* virtual */ CornholeArtTask::~CornholeArtTask() {
+void CornholeArtTask::start() {
+    // https://www.espressif.com/sites/default/files/documentation/
+    //		eco_and_workarounds_for_bugs_in_esp32_en.pdf
+    //	3.11. When certain RTC peripherals are powered on, the inputs of
+    //		GPIO36 and GPIO39 will be pulled down for approximately 80 ns.
+    //	Details:
+    //		Powering on the following RTC peripherals will trigger this issue:
+    //		* SARADC1
+    //		* SARADC2
+    //		* AMP
+    //		* HALL
+    //	Workarounds:
+    //		When enabling power for any of these peripherals,
+    //		ignore input from GPIO36 and GPIO39.
+    //
+    // Unfortunately, we are using GPIO36 (pin[1]) and, we assume,
+    // SARADC2 (Successive Approximation Register Analog to Digital Converter 2)
+    // has been powered on to support WI-FI.
+    // To workaround this bug, pin[1] was constructed with interrupts disabled.
+    // We assume that we are past the 80ns pull-down and enable interrupts now.
+    // We must be on the same CPU that the GPIO ISR service was installed
+    // on (our pinISR was (we were) constructed on).
+    ObservablePin &pin36(pin[1]);
+    pin36.set_intr_type(GPIO_INTR_ANYEDGE);
+    pin36.intr_enable();
+    AsioTask::start();
+}
+
+CornholeArtTask::~CornholeArtTask() {
     stop();
     ESP_LOGI(name, "~CornholeArtTask");
 }

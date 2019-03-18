@@ -42,6 +42,12 @@ public:
 	Shape(char const *);
 	char const * toString() const;
     };
+
+    void widthObserved(size_t index, char const * value);
+    void colorObserved(size_t index, char const * value);
+    void fadesObserved(size_t index, char const * value);
+    void shapeObserved(size_t index, char const * value);
+
 protected:
     SPI::Device const			spiDevice[2];
 
@@ -50,32 +56,15 @@ protected:
 
     KeyValueBroker::Observer const	timezoneObserver;
 
-    float				aWidth;
-    APA102::LED<>			aColor;
-    APA102::LED<>			aFades;
-    Shape				aShape;
-    KeyValueBroker::Observer const	aWidthObserver;
-    KeyValueBroker::Observer const	aColorObserver;
-    KeyValueBroker::Observer const	aFadesObserver;
-    KeyValueBroker::Observer const	aShapeObserver;
+    float				width[3];
+    APA102::LED<>			color[3];
+    APA102::LED<>			fades[3];
+    Shape				shape[3];
 
-    float				bWidth;
-    APA102::LED<>			bColor;
-    APA102::LED<>			bFades;
-    Shape				bShape;
-    KeyValueBroker::Observer const	bWidthObserver;
-    KeyValueBroker::Observer const	bColorObserver;
-    KeyValueBroker::Observer const	bFadesObserver;
-    KeyValueBroker::Observer const	bShapeObserver;
-
-    float				cWidth;
-    APA102::LED<>			cColor;
-    APA102::LED<>			cFades;
-    Shape				cShape;
-    KeyValueBroker::Observer const	cWidthObserver;
-    KeyValueBroker::Observer const	cColorObserver;
-    KeyValueBroker::Observer const	cFadesObserver;
-    KeyValueBroker::Observer const	cShapeObserver;
+    KeyValueBroker::Observer const	widthObserver[3];
+    KeyValueBroker::Observer const	colorObserver[3];
+    KeyValueBroker::Observer const	fadesObserver[3];
+    KeyValueBroker::Observer const	shapeObserver[3];
 
     Range range;
     KeyValueBroker::Observer const	rangeObserver;
@@ -89,9 +78,6 @@ protected:
     KeyValueBroker::Observer const	gammaObserver;
 
     SmoothTime				smoothTime;
-
-    void fadesObserver(
-	APA102::LED<> & fades, char const * key, APA102::LED<int> value);
 
     ArtTask(
 	char const *		name,

@@ -24,9 +24,12 @@ private:
 
     void scoreIncrement(size_t index, unsigned count);
     void scoreDecrement(size_t index, int count);
-    void scoreObserved(size_t index, char const * value);
+    void scoreObserved (size_t index, char const * value);
 
     void update();
+
+protected:
+    void run() override;
 
 public:
     CornholeArtTask(
@@ -34,7 +37,7 @@ public:
 	std::function<float()>	getLux,
 	KeyValueBroker &	keyValueBroker);
 
-    /* virtual */ void run() override;
+    void start() override;
 
-    /* virtual */ ~CornholeArtTask() override;
+    ~CornholeArtTask() override;
 };

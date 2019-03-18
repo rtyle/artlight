@@ -32,7 +32,7 @@ public:
     Task();
 
     /// Start running this Task
-    void start();
+    virtual void start();
 
     virtual ~Task();
 };

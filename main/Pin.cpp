@@ -143,7 +143,7 @@ ObservablePin::Observer::Observer(
     observablePin.observers.insert(this);
     if (1 == observablePin.observers.size()) {
 	// this is the first observer on its observablePin
-	// A. call ObservablePin::postFromISRThat(&observablePin) on interrupt
+	// A. call ObservablePin::postFromISRFor(&observablePin) on interrupt
 	gpio_isr_handler_add(observablePin.gpio_num,
 	    postFromISRFor, &observablePin);
     }
