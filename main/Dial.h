@@ -8,6 +8,7 @@ private:
     float const	position;
 public:
     Dial(float position = 0.0f);
+    virtual ~Dial();
     virtual float operator()(float place) const;
 };
 

@@ -15,8 +15,6 @@
 using APA102::LED;
 using LEDI = APA102::LED<int>;
 
-static float constexpr pi	= std::acos(-1.0f);
-static float constexpr tau	= 2.0f * pi;
 static float constexpr phi	= (1.0f + std::sqrt(5.0f)) / 2.0f;
 static float constexpr sqrt2	= std::sqrt(2.0f);
 

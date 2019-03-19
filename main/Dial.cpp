@@ -6,6 +6,7 @@ static float constexpr pi	= std::acos(-1.0f);
 static float constexpr tau	= 2.0f * pi;
 
 Dial::Dial(float position_) : position(position_) {}
+Dial::~Dial() {}
 
 float Dial::operator()(float place) const {
     float offset = place - position;
@@ -28,7 +29,6 @@ float BumpDial::operator()(float place) const {
 
 BellDial::BellDial(float position, float sigma)
     : Dial(position), twoSigmaSquared(2.0f * sigma * sigma) {}
-
 
 float BellDial::operator()(float place) const {
     float offset = Dial::operator()(place);
