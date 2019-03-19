@@ -31,7 +31,7 @@
 static char response[] =
 "HTTP/1.1 200 OK\r\n"
 "Content-Type: text/html; charset=utf-8\r\n"
-"Content-Length: 759\r\n"
+"Content-Length: 707\r\n"
 "\r\n" R"----(<!DOCTYPE html>
 <html>
 <head>
@@ -40,16 +40,16 @@ static char response[] =
 <form method='post'>
 <div>
 <label for='ssid'>SSID</label>
-<input value='' type='text' id='ssid' name='ssid' minlength='1' maxlength='32' placeholder='SSID, 1 to 32 characters'/>
+<input value='' type='text' id='ssid' name='ssid' minlength='1' maxlength='32' placeholder='1 to 32 characters'/>
 </div>
 <div>
 <label for='password'>Password</label>
-<input value='' type='password' id='password' name='password' minlength='8' maxlength='64' placeholder='Password, 8 to 64 characters'/>
+<input value='' type='password' id='password' name='password' minlength='8' maxlength='64' placeholder='8 to 64 characters'/>
 </div>
 <div>
 <label for='hostname'>mDNS Hostname</label>
-<input value='' type='text' id='hostname' name='_hostname' minlength='0' maxlength='15' pattern='[0-9A-Za-z]*' placeholder='0 to 15 alphanumeric characters'/>
-Leave blank to accept default or previously defined preference.
+<input value='' type='text' id='hostname' name='_hostname' minlength='0' maxlength='64' placeholder='0 to 64 characters'/>
+leave blank to accept default or previously defined preference.
 </div>
 <div>
 <button>Submit</button>
@@ -207,7 +207,7 @@ bool ProvisionTask::readRequest() {
 				    if (0 == strncmp(s, hn, sizeof hn - 1)) {
 					s += sizeof hn - 1;
 
-					char hostname[16] = {};
+					char hostname[64 + 1] = {};
 					t = hostname;
 					z = sizeof hostname - 1;
 					percentDecode(t, s, '&', z);
