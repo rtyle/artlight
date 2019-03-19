@@ -79,8 +79,15 @@ void CornholeArtTask::update() {
 	position[0] = score[0] / static_cast<float>(maxScore);
 	position[1] = score[1] / static_cast<float>(maxScore);
 	position[2] = position[0] - position[1];
-	if (maxScore <= score[0]) widthInRing[0] *= 3.0f;
-	if (maxScore <= score[1]) widthInRing[1] *= 3.0f;;
+	if (score[0] != score[1]) {
+	    if (maxScore <= score[0]) {
+		widthInRing[0] *= 3.0f;
+		widthInRing[1]  = 0.0f;
+	    } else if (maxScore <= score[1]) {
+		widthInRing[1] *= 3.0f;
+		widthInRing[0]  = 0.0f;
+	    }
+	}
 	widthInRing[2] = 0.0f;
     } else {
 	float secondsSinceTwelveLocaltime
