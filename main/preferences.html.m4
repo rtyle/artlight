@@ -58,6 +58,11 @@
 			}
 	
 			$(document).ready(function() {
+ifelse(`cornhole', ArtLightApplication, dnl
+				if (window.location.pathname == '/') {
+					$('`#'preferences').hide();
+				}
+)dnl
 				fill('data');
 				$('#data'	)	.click(function() {fill('data'		)});
 				$('#dataDefault')	.click(function() {fill('dataDefault'	)});
@@ -90,6 +95,7 @@ ifelse(`cornhole', ArtLightApplication, dnl
 				</div>
 			</fieldset>
 )dnl
+			<div id='preferences'>
 			<fieldset>
 				<legend>Presentation</legend>
 				<div>
@@ -184,6 +190,7 @@ ifelse(`cornhole', ArtLightApplication, dnl
 					<input type='hidden' name='otaStart'/>
 				</div>
 			</fieldset>
+			</div>
 			<div>
 				<input type='submit'/>
 			</div>
