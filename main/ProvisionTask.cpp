@@ -31,7 +31,7 @@
 static char response[] =
 "HTTP/1.1 200 OK\r\n"
 "Content-Type: text/html; charset=utf-8\r\n"
-"Content-Length: 479\r\n"
+"Content-Length: 759\r\n"
 "\r\n" R"----(<!DOCTYPE html>
 <html>
 <head>
@@ -45,6 +45,11 @@ static char response[] =
 <div>
 <label for='password'>Password</label>
 <input value='' type='password' id='password' name='password' minlength='8' maxlength='64' placeholder='Password, 8 to 64 characters'/>
+</div>
+<div>
+<label for='hostname'>mDNS Hostname</label>
+<input value='' type='text' id='hostname' name='_hostname' minlength='0' maxlength='15' pattern='[0-9A-Za-z]*' placeholder='0 to 15 alphanumeric characters'/>
+Leave blank to accept default or previously defined preference.
 </div>
 <div>
 <button>Submit</button>
@@ -196,6 +201,23 @@ bool ProvisionTask::readRequest() {
 				    ESP_ERROR_CHECK(esp_wifi_set_config(
 					ESP_IF_WIFI_STA, &wifi_config));
 				    ESP_ERROR_CHECK(esp_wifi_connect());
+
+				    ++s;
+				    static char constexpr hn[] = "_hostname=";
+				    if (0 == strncmp(s, hn, sizeof hn - 1)) {
+					s += sizeof hn - 1;
+
+					char hostname[16] = {};
+					t = hostname;
+					z = sizeof hostname - 1;
+					percentDecode(t, s, '&', z);
+
+					if (*hostname) {
+					    ESP_LOGI(name,
+						"publish %s%s", hn, hostname);
+					    keyValueBroker.publish(hn, hostname);
+					}
+				    }
 				}
 			    }
 			}
@@ -306,7 +328,8 @@ ProvisionTask::ProvisionTask(
     unsigned char const *	key_,
     size_t			keySize_,
     char const *		responseFavicon_,
-    size_t			responseFaviconSize_)
+    size_t			responseFaviconSize_,
+    KeyValueBroker &		keyValueBroker_)
 :
     AsioTask("provisionTask", 5, 8192, 0),
     cert(cert_),
@@ -315,6 +338,7 @@ ProvisionTask::ProvisionTask(
     keySize(keySize_),
     responseFavicon(responseFavicon_),
     responseFaviconSize(responseFaviconSize_),
+    keyValueBroker(keyValueBroker_),
     ctx(SSL_CTX_new(TLS_server_method()), &SSL_CTX_free),
     acceptor(io, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), 443)),
     client(io),

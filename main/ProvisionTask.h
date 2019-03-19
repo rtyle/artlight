@@ -9,6 +9,7 @@
 #include <asio/ip/tcp.hpp>
 
 #include "AsioTask.h"
+#include "KeyValueBroker.h"
 
 /// A ProvisionTask is an AsioTask that implements an HTTPS server
 /// in Wi-Fi Access Point (AP) mode
@@ -26,6 +27,7 @@ private:
     size_t const		keySize;
     char const * const		responseFavicon;
     size_t const		responseFaviconSize;
+    KeyValueBroker &		keyValueBroker;
     std::unique_ptr<SSL_CTX, decltype(&SSL_CTX_free)> ctx;
     asio::ip::tcp::acceptor	acceptor;
     asio::ip::tcp::socket	client;
@@ -43,8 +45,9 @@ public:
 	size_t			certSize,
 	unsigned char const *	key,
 	size_t			keySize,
-	char const *		responseFavicon = nullptr,
-	size_t			responseFaviconSize = 0);
+	char const *		responseFavicon,
+	size_t			responseFaviconSize,
+	KeyValueBroker &	keyValueBroker);
 
     /* virtual */ ~ProvisionTask();
 };
