@@ -36,20 +36,29 @@ MDNS::Service::~Service() {
     ESP_ERROR_CHECK(mdns_service_remove(type, protocol));
 }
 
+MDNS::Host::Host() {
+    ESP_ERROR_CHECK(mdns_init());
+}
+
+MDNS::Host::~Host() {
+    mdns_free();
+}
+
 MDNS::MDNS(
+    KeyValueBroker &	keyValueBroker,
     esp_mac_type_t	interface,
     char const *	hostname,
     char const *	instance)
-{
-    static unsigned constexpr interfaces = 0
-	| 1 << ESP_MAC_WIFI_STA
-	| 1 << ESP_MAC_WIFI_SOFTAP
-	| 1 << ESP_MAC_BT
-	| 1 << ESP_MAC_ETH
-	;
-    ESP_ERROR_CHECK(mdns_init());
-    std::ostringstream os;
-    if (!hostname) {
+:
+    host(),
+    defaultHostname([this, interface](){
+	static unsigned constexpr interfaces = 0
+	    | 1 << ESP_MAC_WIFI_STA
+	    | 1 << ESP_MAC_WIFI_SOFTAP
+	    | 1 << ESP_MAC_BT
+	    | 1 << ESP_MAC_ETH
+	    ;
+	std::ostringstream os;
 	os << "esp";
 	if ((1 << interface) & interfaces) {
 	    os << "_";
@@ -64,16 +73,18 @@ MDNS::MDNS(
 	    os << std::hex << std::setfill('0');
 	    for (auto e: mac.suffix) os << std::setw(2) << static_cast<int>(e);
 	}
-	hostname = os.str().c_str();
+	return os.str();
+    }()),
+    hostnameObserver {keyValueBroker, "_hostname",
+	hostname ? hostname : defaultHostname.c_str(),
+	[this](char const * hostname){
+	    ESP_LOGI("mDNS", "hostname %s", hostname);
+	    ESP_ERROR_CHECK(mdns_hostname_set(hostname));
+	}
     }
-    ESP_LOGI("mDNS", "hostname %s", hostname);
-    ESP_ERROR_CHECK(mdns_hostname_set(hostname));
+{
     if (instance) {
 	ESP_LOGI("mDNS", "instance %s", instance);
 	ESP_ERROR_CHECK(mdns_instance_name_set(instance));
     }
-}
-
-MDNS::~MDNS() {
-    mdns_free();
 }

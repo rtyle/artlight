@@ -215,7 +215,7 @@ bool ProvisionTask::readRequest() {
 					if (*hostname) {
 					    ESP_LOGI(name,
 						"publish %s%s", hn, hostname);
-					    keyValueBroker.publish(hn, hostname);
+					    keyValueBroker.publish("_hostname", hostname);
 					}
 				    }
 				}

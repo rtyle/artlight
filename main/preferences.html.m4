@@ -161,6 +161,17 @@ ifelse(`cornhole', ArtLightApplication, dnl
 				</div>
 			</fieldset>
 			<fieldset>
+				<legend>Network</legend>
+				<div>
+					<label class='tab0' for='_hostname'>mDNS Hostname</label>
+					<input type='text' id='_hostname' name='_hostname' minlength='1' maxlength='64' placeholder='1 to 64 characters'/>
+				</div>
+				<div>
+					<label class='tab0' for='_port'>Port</label>
+					<input type='number' id='_port' name='_port' min='1024' max='49151' placeholder=''/>
+				</div>
+			</fieldset>
+			<fieldset>
 				<legend>Time Acquisition</legend>
 				<div>
 					<label class='tab0' for='timezone'>Time Zone</label>

@@ -85,7 +85,7 @@ public:
 	Connected(Main & main_)
 	:
 	    main(main_),
-	    mdns(),
+	    mdns(main.keyValueBroker),
 	    timeUpdate("timeUpdate", main.keyValueBroker),
 	    otaTask(CONFIG_OTA_URL, otaCertificate, main.keyValueBroker),
 	    preferences(preferencesHtml, main.keyValueBroker,
