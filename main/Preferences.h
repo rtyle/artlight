@@ -52,11 +52,14 @@ private:
     char const * const	favicon;
     size_t const	faviconSize;
     MDNS::Service	mdnsService;
-    Httpd::Uri const	uri;
-    Httpd::Uri const	uriPost;
+    Httpd::Uri const	uri[2];
+    Httpd::Uri const	uriPost[2];
     Httpd::Uri const	dataUri;
     Httpd::Uri const	dataDefaultUri;
     Httpd::Uri const	faviconUri;
+
+    esp_err_t get(httpd_req_t * req);
+    esp_err_t post(httpd_req_t * req);
 public:
     Preferences(
 	char const *		html,
