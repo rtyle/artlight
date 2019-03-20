@@ -36,7 +36,7 @@ NVSKeyValueBroker::NVSKeyValueBroker(char const * name_)
 	KeyValueBroker::set(key, copy.get());
 	value = copy.get();
     } catch (esp_err_t & e) {
-	if (ESP_ERR_NVS_NOT_FOUND) return false;
+	if (ESP_ERR_NVS_NOT_FOUND == e) return false;
 	throw;
     }
     return true;
