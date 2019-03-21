@@ -9,7 +9,7 @@ class KeyValueBroker {
 public:
     class Observer {
     public:
-	typedef std::function<void(char const *)> Observe;
+	using Observe = std::function<void(char const *)>;
 
 	KeyValueBroker &	keyValueBroker;
 	char const * const	key;
@@ -50,7 +50,7 @@ protected:
 
 private:
     std::recursive_mutex mutex;
-    typedef std::set<Observer const *> Observers;
+    using Observers = std::set<Observer const *>;
     std::map<std::string, Observers *> observersFor;
     std::map<std::string, std::string> valueFor;
     std::map<std::string, std::string> defaultValueFor;

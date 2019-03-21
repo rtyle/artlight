@@ -48,7 +48,7 @@ namespace Event {
 
     class Observer {
     public:
-	typedef std::function<esp_err_t(system_event_t const *)> Observe;
+	using Observe = std::function<esp_err_t(system_event_t const *)>;
 	system_event_id_t const	id;
 	Observe const		observe;
 	Observer(system_event_id_t, Observe && observe);
@@ -68,7 +68,7 @@ namespace Event {
 	static esp_err_t reactToThat(void * that, system_event_t *);
 
 	std::mutex mutex;
-	typedef std::set<Observer const *> Observers;
+	using Observers = std::set<Observer const *>;
 	std::map<system_event_id_t, Observers *> observersFor;
 
 	Reactor();

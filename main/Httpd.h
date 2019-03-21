@@ -44,7 +44,7 @@ public:
     /// An Httpd::Uri binds a handler to a uri/method for an Httpd instance.
     struct Uri : public httpd_uri_t {
     public:
-	typedef std::function<esp_err_t(httpd_req_t *)> Handler;
+	using Handler = std::function<esp_err_t(httpd_req_t *)>;
     private:
 	Httpd &			httpd;
 	Handler const		handler;
