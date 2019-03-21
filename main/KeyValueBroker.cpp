@@ -7,9 +7,11 @@
 
 KeyValueBroker::KeyValueBroker(char const * name_)
 :
-    name	(name_),
-    observersFor(),
-    valueFor	()
+    name	(	name_),
+    observersFor	(),
+    remoteObservers	(),
+    valueFor		(),
+    defaultValueFor	()
 {}
 
 KeyValueBroker::~KeyValueBroker() {}
@@ -107,7 +109,28 @@ void KeyValueBroker::publish(
 	auto observers = observersFor.find(key);
 	if (observers != observersFor.end()) {
 	    for (auto observer: *observers->second) {
-		ESP_LOGI(name, "publish %s %s", observer->key, value);
+		ESP_LOGI(name, "publish observe %s %s", observer->key, value);
+		(*observer)(value);
+	    }
+	}
+	for (auto remoteObserver: remoteObservers) {
+	    ESP_LOGI(name, "publish remoteObserve %s %s", key, value);
+	    (*remoteObserver)(key, value);
+	}
+    }
+}
+
+void KeyValueBroker::remotePublish(
+    char const *	key,
+    char const *	value)
+{
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    if (set(key, value)) {
+	auto observers = observersFor.find(key);
+	if (observers != observersFor.end()) {
+	    for (auto observer: *observers->second) {
+		ESP_LOGI(name, "remotePublish observe %s %s",
+		    observer->key, value);
 		(*observer)(value);
 	    }
 	}
@@ -157,6 +180,22 @@ void KeyValueBroker::unsubscribe(Observer const & observer) {
     }
 }
 
+void KeyValueBroker::remoteSubscribe(RemoteObserver const & remoteObserver) {
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    for (auto kv: valueFor) {
+	remoteObserver(kv.first.c_str(), kv.second.c_str());
+    }
+    remoteObservers.insert(&remoteObserver);
+}
+
+void KeyValueBroker::remoteUnsubscribe(RemoteObserver const & remoteObserver) {
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    auto remoteObserverIt = remoteObservers.find(&remoteObserver);
+    if (remoteObserverIt != remoteObservers.end()) {
+	remoteObservers.erase(remoteObserverIt);
+    }
+}
+
 KeyValueBroker::Observer::Observer(
     KeyValueBroker &	keyValueBroker_,
     char const *	key_,
@@ -177,4 +216,23 @@ KeyValueBroker::Observer::~Observer() {
 
 void KeyValueBroker::Observer::operator() (char const * value) const {
     observe(value);
+}
+
+KeyValueBroker::RemoteObserver::RemoteObserver(
+    KeyValueBroker &	keyValueBroker_,
+    Observe &&		observe_)
+:
+    keyValueBroker	(keyValueBroker_),
+    observe		(std::move(observe_))
+{
+    keyValueBroker.remoteSubscribe(*this);
+}
+
+KeyValueBroker::RemoteObserver::~RemoteObserver() {
+    keyValueBroker.remoteUnsubscribe(*this);
+}
+
+void KeyValueBroker::RemoteObserver::operator() (
+	char const * key, char const * value) const {
+    observe(key, value);
 }
