@@ -131,6 +131,6 @@
 
 	# update later
 
-		git checkout master
-		git pull
+		git checkout v3.2-beta3
+		git pull origin v3.2-beta3
 		git submodule update --init --recursive
