@@ -10,6 +10,7 @@
 #include "MDNS.h"
 #include "NVSKeyValueBroker.h"
 #include "OtaTask.h"
+#include "PeerTask.h"
 #include "ProvisionTask.h"
 #include "Preferences.h"
 #include "Qio.h"
@@ -82,6 +83,7 @@ public:
 	TimeUpdate timeUpdate;
 	OtaTask otaTask;
 	Preferences preferences;
+	PeerTask peerTask;
 	Connected(Main & main_)
 	:
 	    main(main_),
@@ -90,9 +92,11 @@ public:
 	    otaTask(CONFIG_OTA_URL, otaCertificate, main.keyValueBroker),
 	    preferences(preferencesHtml, main.keyValueBroker,
 		preferencesFavicon0,
-		    preferencesFavicon1 - preferencesFavicon0)
+		preferencesFavicon1 - preferencesFavicon0),
+	    peerTask(main.keyValueBroker)
 	{
 	    otaTask.start();
+	    peerTask.start();
 	}
 	~Connected() {
 	    ESP_LOGI(main.name, "~Connected");
