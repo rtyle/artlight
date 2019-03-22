@@ -65,7 +65,7 @@ Bus::Bus(
     host	(host_),
     dmaChannel	(dmaChannel_)
 {
-    ESP_ERROR_CHECK(spi_bus_initialize(host, &config, dmaChannel))
+    ESP_ERROR_CHECK(spi_bus_initialize(host, &config, dmaChannel));
 }
 
 Bus::operator spi_host_device_t() const {return host;}
