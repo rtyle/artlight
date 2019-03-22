@@ -15,6 +15,7 @@ private:
 
     char				receiveMessage[128];
     asio::ip::udp::endpoint		receiveEndpoint;
+
     void receive();
 public:
 

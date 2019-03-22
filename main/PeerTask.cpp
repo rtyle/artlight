@@ -24,7 +24,7 @@ void PeerTask::receive() {
 		    if (length != keySize + strlen(value) + 1) {
 			ESP_LOGE(name, "receive bad message");
 		    } else {
-			ESP_LOGI(name, "receive %s %s", key, value);
+			ESP_LOGI(name, "receive from %d %s %s", receiveEndpoint.port(), key, value);
 			keyValueBroker.remotePublish(key, value);
 		    }
 		}
@@ -80,7 +80,10 @@ PeerTask::PeerTask(
 			});
 		});
 	    }
-	})
+	}),
+
+    receiveMessage {},
+    receiveEndpoint()
 {
     receive();
 }
