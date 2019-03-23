@@ -6,11 +6,10 @@
 #include "fromString.h"
 #include "PeerTask.h"
 
-void PeerTask::receive() {e
-    ESP_LOGI(name, "receiveEndpoint %p", &receiveEndpoint);
+void PeerTask::receive() {
     peer.async_receive_from(
 	asio::buffer(receiveMessage, sizeof receiveMessage - 1),
-	// sender's endpoint will not be returned because of a lwip_recvmsg bug
+	// receiveEndpoint will not be returned because of a lwip_recvmsg bug
 	// https://savannah.nongnu.org/bugs/index.php?55987
 	receiveEndpoint,
 	[this](std::error_code error, std::size_t length){
@@ -27,8 +26,8 @@ void PeerTask::receive() {e
 		    if (length != keySize + strlen(value) + 1) {
 			ESP_LOGE(name, "receive bad message");
 		    } else {
-			ESP_LOGI(name, "receive from %s %s", key, value);
-			keyValueBroker.remotePublish(key, value);
+			ESP_LOGI(name, "receive %s %s", key, value);
+			keyValueBroker.publish(key, value, true);
 		    }
 		}
 	    }
@@ -60,9 +59,10 @@ PeerTask::PeerTask(
 	    }
 	}),
 
-    remoteObserver	(keyValueBroker,
-	[this](char const * key, char const * value) {
-	    if ('_' != *key) {
+    generalObserver	(keyValueBroker,
+	[this](char const * key, char const * value, bool fromPeer) {
+	    // keys that start with an underscore are not for our peers
+	    if (!fromPeer && '_' != *key) {
 		size_t keySize = strlen(key) + 1;
 		size_t messageSize = keySize + strlen(value) + 1;
 		char * message = new char[messageSize];

@@ -11,7 +11,7 @@ private:
     asio::ip::udp::endpoint		sendEndpoint;
     KeyValueBroker &			keyValueBroker;
     KeyValueBroker::Observer		portObserver;
-    KeyValueBroker::RemoteObserver	remoteObserver;
+    KeyValueBroker::GeneralObserver	generalObserver;
 
     char				receiveMessage[128];
     asio::ip::udp::endpoint		receiveEndpoint;

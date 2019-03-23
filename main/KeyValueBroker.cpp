@@ -9,7 +9,7 @@ KeyValueBroker::KeyValueBroker(char const * name_)
 :
     name	(	name_),
     observersFor	(),
-    remoteObservers	(),
+    generalObservers	(),
     valueFor		(),
     defaultValueFor	()
 {}
@@ -102,37 +102,22 @@ std::string KeyValueBroker::serializeDefault() {
 
 void KeyValueBroker::publish(
     char const *	key,
-    char const *	value)
+    char const *	value,
+    bool		fromPeer)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex);
     if (set(key, value)) {
 	auto observers = observersFor.find(key);
 	if (observers != observersFor.end()) {
 	    for (auto observer: *observers->second) {
-		ESP_LOGI(name, "publish observe %s %s", observer->key, value);
+		ESP_LOGI(name, "publish observer %s %s", observer->key, value);
 		(*observer)(value);
 	    }
 	}
-	for (auto remoteObserver: remoteObservers) {
-	    ESP_LOGI(name, "publish remoteObserve %s %s", key, value);
-	    (*remoteObserver)(key, value);
-	}
-    }
-}
-
-void KeyValueBroker::remotePublish(
-    char const *	key,
-    char const *	value)
-{
-    std::lock_guard<std::recursive_mutex> lock(mutex);
-    if (set(key, value)) {
-	auto observers = observersFor.find(key);
-	if (observers != observersFor.end()) {
-	    for (auto observer: *observers->second) {
-		ESP_LOGI(name, "remotePublish observe %s %s",
-		    observer->key, value);
-		(*observer)(value);
-	    }
+	for (auto generalObserver: generalObservers) {
+	    ESP_LOGI(name, "publish generalObserver %s %s %d",
+		key, value, static_cast<int>(fromPeer));
+	    (*generalObserver)(key, value, fromPeer);
 	}
     }
 }
@@ -180,19 +165,19 @@ void KeyValueBroker::unsubscribe(Observer const & observer) {
     }
 }
 
-void KeyValueBroker::remoteSubscribe(RemoteObserver const & remoteObserver) {
+void KeyValueBroker::generalSubscribe(GeneralObserver const & generalObserver) {
     std::lock_guard<std::recursive_mutex> lock(mutex);
     for (auto kv: valueFor) {
-	remoteObserver(kv.first.c_str(), kv.second.c_str());
+	generalObserver(kv.first.c_str(), kv.second.c_str());
     }
-    remoteObservers.insert(&remoteObserver);
+    generalObservers.insert(&generalObserver);
 }
 
-void KeyValueBroker::remoteUnsubscribe(RemoteObserver const & remoteObserver) {
+void KeyValueBroker::generalUnsubscribe(GeneralObserver const & generalObserver) {
     std::lock_guard<std::recursive_mutex> lock(mutex);
-    auto remoteObserverIt = remoteObservers.find(&remoteObserver);
-    if (remoteObserverIt != remoteObservers.end()) {
-	remoteObservers.erase(remoteObserverIt);
+    auto generalObserverIt = generalObservers.find(&generalObserver);
+    if (generalObserverIt != generalObservers.end()) {
+	generalObservers.erase(generalObserverIt);
     }
 }
 
@@ -218,21 +203,21 @@ void KeyValueBroker::Observer::operator() (char const * value) const {
     observe(value);
 }
 
-KeyValueBroker::RemoteObserver::RemoteObserver(
+KeyValueBroker::GeneralObserver::GeneralObserver(
     KeyValueBroker &	keyValueBroker_,
     Observe &&		observe_)
 :
     keyValueBroker	(keyValueBroker_),
     observe		(std::move(observe_))
 {
-    keyValueBroker.remoteSubscribe(*this);
+    keyValueBroker.generalSubscribe(*this);
 }
 
-KeyValueBroker::RemoteObserver::~RemoteObserver() {
-    keyValueBroker.remoteUnsubscribe(*this);
+KeyValueBroker::GeneralObserver::~GeneralObserver() {
+    keyValueBroker.generalUnsubscribe(*this);
 }
 
-void KeyValueBroker::RemoteObserver::operator() (
-	char const * key, char const * value) const {
-    observe(key, value);
+void KeyValueBroker::GeneralObserver::operator() (
+	char const * key, char const * value, bool fromPeer) const {
+    observe(key, value, fromPeer);
 }
