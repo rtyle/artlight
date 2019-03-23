@@ -71,9 +71,11 @@ char const * const shapeKey[] {
 
 void ArtTask::widthObserved(size_t index, char const * value_) {
     float value = fromString<float>(value_);
-    io.post([this, index, value](){
-	width[index] = value;
-    });
+    if (0.0f <= value && value <= 8.0f) {
+	io.post([this, index, value](){
+	    width[index] = value;
+	});
+    }
 }
 
 void ArtTask::colorObserved(size_t index, char const * value_) {
