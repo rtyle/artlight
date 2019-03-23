@@ -44,7 +44,7 @@ void updateLedChannelRGB(LEDC::Channel (&ledChannels)[3], LEDI const & color) {
     }
 }
 
-static unsigned constexpr maxScore = 21;
+static unsigned constexpr scoreMax = 21;
 
 void CornholeArtTask::update() {
     uint64_t microsecondsSinceBoot = esp_timer_get_time();
@@ -74,14 +74,14 @@ void CornholeArtTask::update() {
 
     float position[3] {};
     if (score[0] || score[1]) {
-	position[0] = score[0] / static_cast<float>(maxScore);
-	position[1] = score[1] / static_cast<float>(maxScore);
+	position[0] = score[0] / static_cast<float>(scoreMax);
+	position[1] = score[1] / static_cast<float>(scoreMax);
 	position[2] = position[0] - position[1];
 	if (score[0] != score[1]) {
-	    if (maxScore <= score[0]) {
+	    if (scoreMax <= score[0]) {
 		widthInRing[0] *= 3.0f;
 		widthInRing[1]  = 0.0f;
-	    } else if (maxScore <= score[1]) {
+	    } else if (scoreMax <= score[1]) {
 		widthInRing[1] *= 3.0f;
 		widthInRing[0]  = 0.0f;
 	    }
@@ -182,7 +182,7 @@ void CornholeArtTask::scoreIncrement(size_t index, unsigned count) {
     ESP_LOGI(name, "scoreIncrement %d %d", index, count);
     io.post([this, index, count](){
 	// increment the score but not above max
-	unsigned value = std::min(maxScore, score[index] + 1 + count);
+	unsigned value = std::min(scoreMax, score[index] + 1 + count);
 	std::ostringstream os;
 	os << value;
 	keyValueBroker.publish(scoreKey[index], os.str().c_str());
@@ -208,9 +208,11 @@ void CornholeArtTask::scoreDecrement(size_t index, int count) {
 void CornholeArtTask::scoreObserved(size_t index, char const * value_) {
     ESP_LOGI(name, "scoreObserved %d %s", index, value_);
     unsigned value = fromString<unsigned>(value_);
-    io.post([this, index, value](){
-	score[index] = value;
-    });
+    if (value <= scoreMax) {
+	io.post([this, index, value](){
+	    score[index] = value;
+	});
+    }
 }
 
 static unsigned constexpr bounceDuration	=  25000;
