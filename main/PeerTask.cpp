@@ -6,10 +6,13 @@
 #include "fromString.h"
 #include "PeerTask.h"
 
-void PeerTask::receive() {
+void PeerTask::receive() {e
+    ESP_LOGI(name, "receiveEndpoint %p", &receiveEndpoint);
     peer.async_receive_from(
 	asio::buffer(receiveMessage, sizeof receiveMessage - 1),
-	receiveEndpoint,	// not modified!?!
+	// sender's endpoint will not be returned because of a lwip_recvmsg bug
+	// https://savannah.nongnu.org/bugs/index.php?55987
+	receiveEndpoint,
 	[this](std::error_code error, std::size_t length){
 	    if (error) {
 		ESP_LOGE(name, "receive error: %s", error.message().c_str());
@@ -24,7 +27,7 @@ void PeerTask::receive() {
 		    if (length != keySize + strlen(value) + 1) {
 			ESP_LOGE(name, "receive bad message");
 		    } else {
-			ESP_LOGI(name, "receive from %d %s %s", receiveEndpoint.port(), key, value);
+			ESP_LOGI(name, "receive from %s %s", key, value);
 			keyValueBroker.remotePublish(key, value);
 		    }
 		}
