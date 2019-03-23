@@ -71,7 +71,7 @@ ifelse(`cornhole', ArtLightApplication, dnl
 				$('#dataDefault')	.click(function() {fill('dataDefault'	)});
 				$('input:checkbox').on('change', function(e) {$(this).next().val(0 + $(this).prop('checked'))});
 				$('input[type="color"], input[type="number"], input[type="range"]').on('input', function(e) {
-					if ($(this).hasClass(':valid')) {
+					if (e.target.validity.valid) {
 						$.ajax({type: 'POST', data: {[$(this).attr('name')]: $(this).val()}})
 					}
 				});
