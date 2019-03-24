@@ -189,20 +189,24 @@ ArtTask::ArtTask(
     dimLevel(16),
     dimLevelObserver(keyValueBroker, "dimLevel", "16",
 	[this](char const * value){
-	    unsigned dimLevel_ = std::strtoul(value, nullptr, 10);
-	    io.post([this, dimLevel_](){
-		dimLevel = dimLevel_;
-	    });
+	    unsigned const level = std::strtoul(value, nullptr, 10);
+		if (3 <= level && level <= 16) {
+		io.post([this, level](){
+		    dimLevel = level;
+		});
+	    }
 	}),
     gammaEncode(2.0),
     gamma(20),
     gammaObserver(keyValueBroker, "gamma", "20",
 	[this](char const * value){
-	    int gamma_ = std::strtoul(value, nullptr, 10);
-	    io.post([this, gamma_](){
-		gamma = gamma_;
-		gammaEncode.gamma(gamma / 10.0f);
-	    });
+	    unsigned const level = std::strtoul(value, nullptr, 10);
+	    if (5 <= level && level <= 30) {
+		io.post([this, level](){
+		    gamma = level;
+		    gammaEncode.gamma(gamma / 10.0f);
+		});
+	    }
 	}),
 
     smoothTime	("smoothTime", 4096)
