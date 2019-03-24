@@ -1,4 +1,5 @@
 #include <cstdarg>
+#include <cstring>
 #include <iomanip>
 #include <sstream>
 
@@ -78,8 +79,10 @@ MDNS::MDNS(
     hostnameObserver {keyValueBroker, "_hostname",
 	hostname ? hostname : defaultHostname.c_str(),
 	[this](char const * hostname){
-	    ESP_LOGI("mDNS", "hostname %s", hostname);
-	    ESP_ERROR_CHECK(mdns_hostname_set(hostname));
+	    if (hostname && *hostname && 64 >= std::strlen(hostname)) {
+		ESP_LOGI("mDNS", "hostname %s", hostname);
+		ESP_ERROR_CHECK(mdns_hostname_set(hostname));
+	    }
 	}
     }
 {
