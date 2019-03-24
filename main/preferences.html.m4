@@ -17,20 +17,26 @@
 				width:		32em;
 			}
 			input:invalid {
-				border: 2px solid red;
+				border:		2px solid red;
 			}
 		</style>
+ifelse(`cornhole', ArtLightApplication, dnl
+		<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.css'/>
+)dnl
 	</head>
 	<body>
-		<script src='http://code.jquery.com/jquery-3.3.1.js'
-			integrity='sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60='
+		<script
+			src="http://code.jquery.com/jquery-3.3.1.min.js"
+			integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
 			crossorigin="anonymous"></script>
-		
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.js'></script>
+ifelse(`cornhole', ArtLightApplication, dnl
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/jQuery-Knob/1.2.13/jquery.knob.min.js'></script>
+)dnl
 		<script>
 			$.fn.otherwise = function() {
 				return this.end().not(this);
 			}
-	
 			function fill(url) {
 				$.ajax({
 					url: 		url,
@@ -51,6 +57,9 @@
 									.otherwise()
 										.val(value);
 						}
+ifelse(`cornhole', ArtLightApplication, dnl
+						$('.score').trigger('change');
+)dnl
 					})
 					.fail(function(xhr, status, error){
 						// alert('Unable to load values into form');
@@ -65,42 +74,41 @@ ifelse(`cornhole', ArtLightApplication, dnl
 				if (window.location.pathname == '/') {
 					$('`#'preferences').hide();
 				}
+				$('.score').knob({
+					'min':          0,
+					'max':          21,
+					'cursor':       true,
+					'thickness':    '.3',
+					'lineCap':      'round',
+					'release': function(value) {
+						$.ajax({type: 'POST', data: {[this.$.attr('name')]: value}})
+					}
+				});
 )dnl
 				fill('data');
 				$('#data'	)	.click(function() {fill('data'		)});
 				$('#dataDefault')	.click(function() {fill('dataDefault'	)});
 				$('input:checkbox').on('change', function(e) {$(this).next().val(0 + $(this).prop('checked'))});
-				$('input[type="color"], input[type="number"], input[type="range"]').on('input', function(e) {
-					if (e.target.validity.valid) {
-						$.ajax({type: 'POST', data: {[$(this).attr('name')]: $(this).val()}})
+				$('input[type="color"], input[type="number"], input[type="range"]').not('.score').on('input', function(e) {
+					if (this.validity.valid) {
+						$.ajax({type: 'POST', data: {[$(this).attr('name')]: this.value}})
 					}
 				});
-				$('select').on('input', function(e) {$.ajax({type: 'POST', data: {[$(this).attr('name')]: $(this).val()}})});
+				$('select').on('input', function(e) {$.ajax({type: 'POST', data: {[$(this).attr('name')]: this.value}})});
 			});
 		</script>
-
-		<H1>Preferences</H1>
+ifelse(`cornhole', ArtLightApplication, dnl
+		<H1>Cornhole</H1>
+		<input type='number' class='score' id='aScore' name='aScore' value='0' required='true' min='0' max='21'>
+		<input type='number' class='score' id='bScore' name='bScore' value='0' required='true' min='0' max='21'>
+)dnl
+		<div id='preferences'>
+		<H2>Preferences</H1>
 		<div>
 			<button id='dataDefault'>Fill with Default Values</button>
 			<button id='data'	>Fill with Current Values</button>
 		</div>
 		<form method='post'>
-ifelse(`cornhole', ArtLightApplication, dnl
-			<fieldset>
-				<legend>Cornhole</legend>
-				<div>
-					<span class='tab0'>A</span>
-					<label for='aScore'>Score</label>
-					<input type='number' id='aScore' name='aScore' required='true' min='0' max='21' step='1'>
-				</div>
-				<div>
-					<span class='tab0'>B</span>
-					<label for='bScore'>Score</label>
-					<input type='number' id='bScore' name='bScore' required='true' min='0' max='21' step='1'>
-				</div>
-			</fieldset>
-)dnl
-			<div id='preferences'>
 			<fieldset>
 				<legend>Presentation</legend>
 				<div>
@@ -206,10 +214,10 @@ ifelse(`cornhole', ArtLightApplication, dnl
 					<input type='hidden' name='otaStart'/>
 				</div>
 			</fieldset>
-			</div>
 			<div>
 				<input type='submit'/>
 			</div>
 		</form>
-		</body>
+		</div>
+	</body>
 </html>
