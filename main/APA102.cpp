@@ -15,6 +15,15 @@ uint8_t nibble(char c) {
     }
 }
 
+bool isColor(char const * c) {
+    if (*c++ != '#') return false;
+    for (auto i = 6; i--; c++) {
+	if (!(std::isdigit(*c) || std::isxdigit(*c))) return false;
+    }
+    if (*c) return false;
+    return true;
+}
+
 // construct LED<uint8_t> directly from encoding
 template <> LED<uint8_t>::LED(uint32_t encoding_)
     : encoding(encoding_) {}

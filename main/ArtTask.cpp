@@ -79,10 +79,12 @@ void ArtTask::widthObserved(size_t index, char const * value_) {
 }
 
 void ArtTask::colorObserved(size_t index, char const * value_) {
-    APA102::LED<> value(value_);
-    io.post([this, index, value](){
-	color[index] = value;
-    });
+    if (APA102::isColor(value_)) {
+	APA102::LED<> value(value_);
+	io.post([this, index, value](){
+	    color[index] = value;
+	});
+    }
 }
 
 void ArtTask::shapeObserved(size_t index, char const * value_) {

@@ -8,8 +8,11 @@
 
 namespace APA102 {
 
-// decode a hex nibble if we can from c (0-15); otherwise, 0
+/// decode a hex nibble if we can from c (0-15); otherwise, 0
 uint8_t nibble(char c);
+
+/// Return true if color can be used to construct an LED
+bool isColor(char const * color);
 
 // APA102C protocol used by adafruit dotstar devices
 
