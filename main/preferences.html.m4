@@ -55,6 +55,9 @@ ifelse(`cornhole', ArtLightApplication, dnl
 				if (id == 'aColor') {$('#aScore').trigger('configure', {'fgColor': value})}
 				if (id == 'bColor') {$('#bScore').trigger('configure', {'fgColor': value})}
 )dnl
+				if (id == 'aColor') {$('#aColor').spectrum('set', value)}
+				if (id == 'bColor') {$('#bColor').spectrum('set', value)}
+				if (id == 'cColor') {$('#cColor').spectrum('set', value)}
 			}
 			function fill(url) {
 				$.ajax({
@@ -78,49 +81,71 @@ ifelse(`cornhole', ArtLightApplication, dnl
 	
 			$(document).ready(function() {
 ifelse(`cornhole', ArtLightApplication, dnl
-				scoreSize = 200;
+				knobSize = 200;
 				if ('/' == window.location.pathname) {
 					$('#preferences').hide();
-					scoreSize = 600;
+					knobSize = 600;
 				}
-				$('.score').knob({
+				$('.knob').knob({
 					'min':          0,
 					'max':          21,
-					'width':	scoreSize,
-					'height':	scoreSize,
+					'width':	knobSize,
+					'height':	knobSize,
 					'cursor':       20,
 					'thickness':    '.3',
 					'bgColor':	'black',
 					'release': function(value) {
-						$.ajax({type: 'POST', data: {[this.$.attr('name')]: value}})
+						$.ajax({type: 'POST', data: {[this.id]: value}})
 					}
 				});
-				$('#aColor').on('input', function(e) {
-                                        if (this.validity.valid) {
-						$('#aScore').trigger('configure', {'fgColor': this.value});
-                                        }
-                                });
-				$('#bColor').on('input', function(e) {
-                                        if (this.validity.valid) {
-						$('#bScore').trigger('configure', {'fgColor': this.value});
-                                        }
-                                });
 )dnl
+				var toKnob = {
+					aColor:	'#aScore',
+					bColor:	'#bScore',
+				};
+				$('.spectrum').spectrum({
+					showInitial:		true,
+					showPaletteOnly:        true,
+					togglePaletteOnly:      true,
+					palette:                function(){
+						var v = 100;
+						var hs = [];
+						var hz = 18;
+						var sz = 8;
+						for (hi = 0; hi < hz; ++hi) {
+							var ss = [];
+							var h = 360.0 * hi / hz;
+							for (si = 0; si < sz; ++si) {
+								var s = 1.0 - (si / sz);
+								ss.push('hsv ' + h + ' ' + s + ' ' + v);
+							}
+							hs.push(ss);
+						}
+						return hs;
+					}(),
+					move:	function(value) {
+						var color = value.toHexString();
+						$.ajax({type: 'POST', data: {[this.id]: color}})
+ifelse(`cornhole', ArtLightApplication, dnl
+						$(toKnob[this.id]).trigger('configure', {'fgColor': color});
+)dnl
+					},
+				});
 				$('#data'	)	.click(function() {fill('data'		)});
 				$('#dataDefault')	.click(function() {fill('dataDefault'	)});
 				$('input:checkbox').on('change', function(e) {$(this).next().val(0 + $(this).prop('checked'))});
-				$('input[type="color"], input[type="number"], input[type="range"]').not('.score').on('input', function(e) {
+				$('input[type="number"], input[type="range"]').not('.knob').on('input', function(e) {
 					if (this.validity.valid) {
-						$.ajax({type: 'POST', data: {[$(this).attr('name')]: this.value}})
+						$.ajax({type: 'POST', data: {[this.id]: this.value}})
 					}
 				});
-				$('select').on('input', function(e) {$.ajax({type: 'POST', data: {[$(this).attr('name')]: this.value}})});
+				$('select').on('input', function(e) {$.ajax({type: 'POST', data: {[this.id]: this.value}})});
 				fill('data');
 			});
 		</script>
 ifelse(`cornhole', ArtLightApplication, dnl
-		<input type='number' class='score' id='aScore' name='aScore' value='0' required='true' min='0' max='21'>
-		<input type='number' class='score' id='bScore' name='bScore' value='0' required='true' min='0' max='21'>
+		<input type='number' class='knob' id='aScore' name='aScore' value='0' required='true' min='0' max='21'>
+		<input type='number' class='knob' id='bScore' name='bScore' value='0' required='true' min='0' max='21'>
 )dnl
 		<div id='preferences'>
 		<H2>Preferences</H1>
@@ -136,7 +161,7 @@ ifelse(`cornhole', ArtLightApplication, dnl
 					<label for='aWidth'>Width</label>
 					<input type='range' id='aWidth' name='aWidth' required='true' min='0' max='8' step='1'>
 					<label for='aColor'>Color</label>
-					<input type='color' id='aColor' name='aColor' required='true' pattern='#[0-9a-f]{6}'/>
+					<input type='color' class='spectrum' id='aColor' name='aColor' required='true' value='#ffffff', pattern='#[0-9a-f]{6}'/>
 					<label for='aShape'>Shape</label>
 					<select id='aShape' name='aShape'>
 						<option value='bell'>Bell</option>
@@ -148,7 +173,7 @@ ifelse(`cornhole', ArtLightApplication, dnl
 					<label for='bWidth'>Width</label>
 					<input type='range' id='bWidth' name='bWidth' required='true' min='0' max='8' step='1'>
 					<label for='bColor'>Color</label>
-					<input type='color' id='bColor' name='bColor' required='true' pattern='#[0-9a-f]{6}'/>
+					<input type='color' class='spectrum' id='bColor' name='bColor' required='true' value='#ffffff', pattern='#[0-9a-f]{6}'/>
 					<label for='bShape'>Shape</label>
 					<select id='bShape' name='bShape'>
 						<option value='bell'>Bell</option>
@@ -160,7 +185,7 @@ ifelse(`cornhole', ArtLightApplication, dnl
 					<label for='cWidth'>Width</label>
 					<input type='range' id='cWidth' name='cWidth' required='true' min='0' max='8' step='1'>
 					<label for='cColor'>Color</label>
-					<input type='color' id='cColor' name='cColor' required='true' pattern='#[0-9a-f]{6}'/>
+					<input type='color' class='spectrum' id='cColor' name='cColor' required='true' value='#ffffff', pattern='#[0-9a-f]{6}'/>
 					<label for='cShape'>Shape</label>
 					<select id='cShape' name='cShape'>
 						<option value='bell'>Bell</option>
