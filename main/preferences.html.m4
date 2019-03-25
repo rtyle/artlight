@@ -77,6 +77,8 @@ ifelse(`cornhole', ArtLightApplication, dnl
 					$('`#'preferences').hide();
 				}
 				$('.score').knob({
+					'width':	800,
+					'height':	800,
 					'min':          0,
 					'max':          21,
 					'cursor':       true,
@@ -111,7 +113,6 @@ ifelse(`cornhole', ArtLightApplication, dnl
 			});
 		</script>
 ifelse(`cornhole', ArtLightApplication, dnl
-		<H1>Cornhole</H1>
 		<input type='number' class='score' id='aScore' name='aScore' value='0' required='true' min='0' max='21'>
 		<input type='number' class='score' id='bScore' name='bScore' value='0' required='true' min='0' max='21'>
 )dnl
