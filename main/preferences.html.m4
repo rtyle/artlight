@@ -21,9 +21,7 @@ changecom()dnl
 				border:		2px solid red;
 			}
 		</style>
-ifelse(`cornhole', ArtLightApplication, dnl
 		<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.css'/>
-)dnl
 	</head>
 	<body>
 		<script
