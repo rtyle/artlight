@@ -1,3 +1,4 @@
+changecom()dnl
 <!DOCTYPE html>
 <html>
 	<head>
@@ -37,6 +38,24 @@ ifelse(`cornhole', ArtLightApplication, dnl
 			$.fn.otherwise = function() {
 				return this.end().not(this);
 			}
+			function update(id, value) {
+				console.log(id + '=' + value);
+				if (value.startsWith('_'))
+					$('#' + id + value).prop('checked', true);
+				else
+					$('#' + id)
+						.filter('input[type="checkbox"]')
+							.prop('checked', parseInt(value, 10))
+							.next().val(parseInt(value, 10)).end()
+						.otherwise()
+							.val(value);
+ifelse(`cornhole', ArtLightApplication, dnl
+				if (id == 'aScore') {$('#aScore').trigger('change')}
+				if (id == 'bScore') {$('#bScore').trigger('change')}
+				if (id == 'aColor') {$('#aScore').trigger('configure', {'fgColor': value})}
+				if (id == 'bColor') {$('#bScore').trigger('configure', {'fgColor': value})}
+)dnl
+			}
 			function fill(url) {
 				$.ajax({
 					url: 		url,
@@ -46,22 +65,8 @@ ifelse(`cornhole', ArtLightApplication, dnl
 				})
 					.done(function(idValues) {
 						for (const [id, value] of Object.entries(idValues)) {
-							console.log(id + '=' + value);
-							if (value.startsWith('_'))
-								$('#' + id + value).prop('checked', true);
-							else
-								$('#' + id)
-									.filter('input[type="checkbox"]')
-										.prop('checked', parseInt(value, 10))
-										.next().val(parseInt(value, 10)).end()
-									.otherwise()
-										.val(value);
+							update(id, value);
 						}
-ifelse(`cornhole', ArtLightApplication, dnl
-						$('.score').trigger('change');
-						$('`#'aScore').trigger('configure', {'fgColor': $('`#'aColor').val()});
-						$('`#'bScore').trigger('configure', {'fgColor': $('`#'bColor').val()});
-)dnl
 					})
 					.fail(function(xhr, status, error){
 						// alert('Unable to load values into form');
@@ -73,30 +78,31 @@ ifelse(`cornhole', ArtLightApplication, dnl
 	
 			$(document).ready(function() {
 ifelse(`cornhole', ArtLightApplication, dnl
-				if (window.location.pathname == '/') {
-					$('`#'preferences').hide();
+				scoreSize = 200;
+				if ('/' == window.location.pathname) {
+					$('#preferences').hide();
+					scoreSize = 600;
 				}
 				$('.score').knob({
-					'width':	800,
-					'height':	800,
 					'min':          0,
 					'max':          21,
-					'cursor':       true,
+					'width':	scoreSize,
+					'height':	scoreSize,
+					'cursor':       20,
 					'thickness':    '.3',
-					'lineCap':      'round',
 					'bgColor':	'black',
 					'release': function(value) {
 						$.ajax({type: 'POST', data: {[this.$.attr('name')]: value}})
 					}
 				});
-				$('`#'aColor').on('input', function(e) {
+				$('#aColor').on('input', function(e) {
                                         if (this.validity.valid) {
-						$('`#'aScore').trigger('configure', {'fgColor': this.value});
+						$('#aScore').trigger('configure', {'fgColor': this.value});
                                         }
                                 });
-				$('`#'bColor').on('input', function(e) {
+				$('#bColor').on('input', function(e) {
                                         if (this.validity.valid) {
-						$('`#'bScore').trigger('configure', {'fgColor': this.value});
+						$('#bScore').trigger('configure', {'fgColor': this.value});
                                         }
                                 });
 )dnl
