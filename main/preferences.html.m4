@@ -161,7 +161,7 @@ ifelse(`cornhole', ArtLightApplication, dnl
 					<label for='aWidth'>Width</label>
 					<input type='range' id='aWidth' name='aWidth' required='true' min='0' max='8' step='1'/>
 					<label for='aColor'>Color</label>
-					<input type='color' class='spectrum' id='aColor' name='aColor' required='true' value='#ffffff'/>
+					<input type='text' class='spectrum' id='aColor' name='aColor' required='true' value='#ffffff'/>
 					<label for='aShape'>Shape</label>
 					<select id='aShape' name='aShape'>
 						<option value='bell'>Bell</option>
@@ -173,7 +173,7 @@ ifelse(`cornhole', ArtLightApplication, dnl
 					<label for='bWidth'>Width</label>
 					<input type='range' id='bWidth' name='bWidth' required='true' min='0' max='8' step='1'/>
 					<label for='bColor'>Color</label>
-					<input type='color' class='spectrum' id='bColor' name='bColor' required='true' value='#ffffff'/>
+					<input type='text' class='spectrum' id='bColor' name='bColor' required='true' value='#ffffff'/>
 					<label for='bShape'>Shape</label>
 					<select id='bShape' name='bShape'>
 						<option value='bell'>Bell</option>
@@ -185,7 +185,7 @@ ifelse(`cornhole', ArtLightApplication, dnl
 					<label for='cWidth'>Width</label>
 					<input type='range' id='cWidth' name='cWidth' required='true' min='0' max='8' step='1'/>
 					<label for='cColor'>Color</label>
-					<input type='color' class='spectrum' id='cColor' name='cColor' required='true' value='#ffffff'/>
+					<input type='text' class='spectrum' id='cColor' name='cColor' required='true' value='#ffffff'/>
 					<label for='cShape'>Shape</label>
 					<select id='cShape' name='cShape'>
 						<option value='bell'>Bell</option>
