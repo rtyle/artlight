@@ -59,6 +59,8 @@ ifelse(`cornhole', ArtLightApplication, dnl
 						}
 ifelse(`cornhole', ArtLightApplication, dnl
 						$('.score').trigger('change');
+						$('`#'aScore').trigger('configure', {'fgColor': $('`#'aColor').val()});
+						$('`#'bScore').trigger('configure', {'fgColor': $('`#'bColor').val()});
 )dnl
 					})
 					.fail(function(xhr, status, error){
@@ -80,12 +82,22 @@ ifelse(`cornhole', ArtLightApplication, dnl
 					'cursor':       true,
 					'thickness':    '.3',
 					'lineCap':      'round',
+					'bgColor':	'black',
 					'release': function(value) {
 						$.ajax({type: 'POST', data: {[this.$.attr('name')]: value}})
 					}
 				});
+				$('`#'aColor').on('input', function(e) {
+                                        if (this.validity.valid) {
+						$('`#'aScore').trigger('configure', {'fgColor': this.value});
+                                        }
+                                });
+				$('`#'bColor').on('input', function(e) {
+                                        if (this.validity.valid) {
+						$('`#'bScore').trigger('configure', {'fgColor': this.value});
+                                        }
+                                });
 )dnl
-				fill('data');
 				$('#data'	)	.click(function() {fill('data'		)});
 				$('#dataDefault')	.click(function() {fill('dataDefault'	)});
 				$('input:checkbox').on('change', function(e) {$(this).next().val(0 + $(this).prop('checked'))});
@@ -95,6 +107,7 @@ ifelse(`cornhole', ArtLightApplication, dnl
 					}
 				});
 				$('select').on('input', function(e) {$.ajax({type: 'POST', data: {[$(this).attr('name')]: this.value}})});
+				fill('data');
 			});
 		</script>
 ifelse(`cornhole', ArtLightApplication, dnl
