@@ -4,7 +4,7 @@ changecom()dnl
 	<head>
 		<meta charset='utf-8'/>
 		<style>
-			fieldset, div {
+			fieldset {
 				margin-top:	4px;
 				margin-bottom:	4px;
 			}
