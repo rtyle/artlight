@@ -159,9 +159,9 @@ ifelse(`cornhole', ArtLightApplication, dnl
 				<div>
 					<span class='tab0'>A</span>
 					<label for='aWidth'>Width</label>
-					<input type='range' id='aWidth' name='aWidth' required='true' min='0' max='8' step='1'>
+					<input type='range' id='aWidth' name='aWidth' required='true' min='0' max='8' step='1'/>
 					<label for='aColor'>Color</label>
-					<input type='color' class='spectrum' id='aColor' name='aColor' required='true' value='#ffffff', pattern='#[0-9a-f]{6}'/>
+					<input type='color' class='spectrum' id='aColor' name='aColor' required='true' value='#ffffff'/>
 					<label for='aShape'>Shape</label>
 					<select id='aShape' name='aShape'>
 						<option value='bell'>Bell</option>
@@ -171,9 +171,9 @@ ifelse(`cornhole', ArtLightApplication, dnl
 				<div>
 					<span class='tab0'>B</span>
 					<label for='bWidth'>Width</label>
-					<input type='range' id='bWidth' name='bWidth' required='true' min='0' max='8' step='1'>
+					<input type='range' id='bWidth' name='bWidth' required='true' min='0' max='8' step='1'/>
 					<label for='bColor'>Color</label>
-					<input type='color' class='spectrum' id='bColor' name='bColor' required='true' value='#ffffff', pattern='#[0-9a-f]{6}'/>
+					<input type='color' class='spectrum' id='bColor' name='bColor' required='true' value='#ffffff'/>
 					<label for='bShape'>Shape</label>
 					<select id='bShape' name='bShape'>
 						<option value='bell'>Bell</option>
@@ -183,9 +183,9 @@ ifelse(`cornhole', ArtLightApplication, dnl
 				<div>
 					<span class='tab0'>C</span>
 					<label for='cWidth'>Width</label>
-					<input type='range' id='cWidth' name='cWidth' required='true' min='0' max='8' step='1'>
+					<input type='range' id='cWidth' name='cWidth' required='true' min='0' max='8' step='1'/>
 					<label for='cColor'>Color</label>
-					<input type='color' class='spectrum' id='cColor' name='cColor' required='true' value='#ffffff', pattern='#[0-9a-f]{6}'/>
+					<input type='color' class='spectrum' id='cColor' name='cColor' required='true' value='#ffffff'/>
 					<label for='cShape'>Shape</label>
 					<select id='cShape' name='cShape'>
 						<option value='bell'>Bell</option>
@@ -208,12 +208,12 @@ ifelse(`cornhole', ArtLightApplication, dnl
 						<option value='automatic'>Automatic</option>
 						<option value='manual'>Manual</option>
 					</select>
-					<input type='range' id='dimLevel' name='dimLevel' required='true' min='3' max='16'>
+					<input type='range' id='dimLevel' name='dimLevel' required='true' min='3' max='16'/>
 					<label for='dimLevel'>Manual Level</label>
 				</div>
 				<div>
 					<span class='tab0'>Gamma</span>
-					<input type='range' id='gamma' name='gamma' required='true' min='5' max='30'>
+					<input type='range' id='gamma' name='gamma' required='true' min='5' max='30'/>
 					<label for='gamma'>Correction</label>
 					<a href='https://en.wikipedia.org/wiki/Gamma_correction'>Help</a>
 				</div>
