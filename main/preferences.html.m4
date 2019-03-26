@@ -1,4 +1,5 @@
 changecom()dnl
+changequote(`«', `»')dnl
 <!DOCTYPE html>
 <html>
 	<head>
@@ -29,9 +30,9 @@ changecom()dnl
 			integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
 			crossorigin="anonymous"></script>
 		<script src='https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.js'></script>
-ifelse(`cornhole', ArtLightApplication, dnl
+ifelse(«cornhole», ArtLightApplication, «dnl
 		<script src='https://cdnjs.cloudflare.com/ajax/libs/jQuery-Knob/1.2.13/jquery.knob.min.js'></script>
-)dnl
+»)dnl
 		<script>
 			$.fn.otherwise = function() {
 				return this.end().not(this);
@@ -47,12 +48,12 @@ ifelse(`cornhole', ArtLightApplication, dnl
 							.next().val(parseInt(value, 10)).end()
 						.otherwise()
 							.val(value);
-ifelse(`cornhole', ArtLightApplication, dnl
+ifelse(«cornhole», ArtLightApplication, «dnl
 				if (id == 'aScore') {$('#aScore').trigger('change')}
 				if (id == 'bScore') {$('#bScore').trigger('change')}
 				if (id == 'aColor') {$('#aScore').trigger('configure', {'fgColor': value})}
 				if (id == 'bColor') {$('#bScore').trigger('configure', {'fgColor': value})}
-)dnl
+»)dnl
 				if (id == 'aColor') {$('#aColor').spectrum('set', value)}
 				if (id == 'bColor') {$('#bColor').spectrum('set', value)}
 				if (id == 'cColor') {$('#cColor').spectrum('set', value)}
@@ -78,7 +79,7 @@ ifelse(`cornhole', ArtLightApplication, dnl
 			}
 	
 			$(document).ready(function() {
-ifelse(`cornhole', ArtLightApplication, dnl
+ifelse(«cornhole», ArtLightApplication, «dnl
 				knobSize = 200;
 				if ('/' == window.location.pathname) {
 					$('#preferences').hide();
@@ -96,11 +97,11 @@ ifelse(`cornhole', ArtLightApplication, dnl
 						$.ajax({type: 'POST', data: {[this.$.attr('id')]: value}})
 					}
 				});
-)dnl
 				var toKnob = {
 					aColor:	'#aScore',
 					bColor:	'#bScore',
 				};
+»)dnl
 				$('.spectrum').spectrum({
 					cancelText:		'',
 					chooseText:		'OK',
@@ -126,9 +127,9 @@ ifelse(`cornhole', ArtLightApplication, dnl
 					move:	function(value) {
 						var color = value.toHexString();
 						$.ajax({type: 'POST', data: {[this.id]: color}})
-ifelse(`cornhole', ArtLightApplication, dnl
+ifelse(«cornhole», ArtLightApplication, «dnl
 						$(toKnob[this.id]).trigger('configure', {'fgColor': color});
-)dnl
+»)dnl
 					},
 				});
 				$('#data'	)	.click(function() {fill('data'		)});
@@ -143,10 +144,10 @@ ifelse(`cornhole', ArtLightApplication, dnl
 				fill('data');
 			});
 		</script>
-ifelse(`cornhole', ArtLightApplication, dnl
+ifelse(«cornhole», ArtLightApplication, «dnl
 		<input type='number' class='knob' id='aScore' name='aScore' value='0' required='true' min='0' max='21'>
 		<input type='number' class='knob' id='bScore' name='bScore' value='0' required='true' min='0' max='21'>
-)dnl
+»)dnl
 		<div id='preferences'>
 		<H2>Preferences</H1>
 		<div>
