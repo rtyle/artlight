@@ -102,6 +102,8 @@ ifelse(`cornhole', ArtLightApplication, dnl
 					bColor:	'#bScore',
 				};
 				$('.spectrum').spectrum({
+					cancelText:		'',
+					chooseText:		'OK',
 					showInitial:		true,
 					showPaletteOnly:        true,
 					togglePaletteOnly:      true,
