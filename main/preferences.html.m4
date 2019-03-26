@@ -93,7 +93,7 @@ ifelse(`cornhole', ArtLightApplication, dnl
 					'thickness':    '.3',
 					'bgColor':	'black',
 					'release': function(value) {
-						$.ajax({type: 'POST', data: {[this.id]: value}})
+						$.ajax({type: 'POST', data: {[this.$.attr('id')]: value}})
 					}
 				});
 )dnl
