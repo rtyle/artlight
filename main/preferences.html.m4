@@ -36,7 +36,7 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 		<script>
 			function update(id, value) {
 				console.log(id + '=' + value);
-				$('#' + id).val(value);
+				$('#' + id).not('input[type="button"]').val(value);
 ifelse(«cornhole», ArtLightApplication, «dnl
 				if (id == 'aScore') {$('#aScore').trigger('change')}
 				if (id == 'bScore') {$('#bScore').trigger('change')}
@@ -250,8 +250,7 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 					<input type='text' id='otaUrl' name='otaUrl' required='true' minlength='7' maxlength='64' placeholder='https://server:port/image.bin'/>
 				</div>
 				<div>
-					<label class='tab0' for='otaStart'>Start</label>
-					<input type='button' id='otaStart'/>
+					<input type='button' id='otaStart' value='Start'/>
 				</div>
 			</fieldset>
 			<div>
