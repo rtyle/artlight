@@ -34,20 +34,9 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 		<script src='https://cdnjs.cloudflare.com/ajax/libs/jQuery-Knob/1.2.13/jquery.knob.min.js'></script>
 »)dnl
 		<script>
-			$.fn.otherwise = function() {
-				return this.end().not(this);
-			}
 			function update(id, value) {
 				console.log(id + '=' + value);
-				if (value.startsWith('_'))
-					$('#' + id + value).prop('checked', true);
-				else
-					$('#' + id)
-						.filter('input[type="checkbox"]')
-							.prop('checked', parseInt(value, 10))
-							.next().val(parseInt(value, 10)).end()
-						.otherwise()
-							.val(value);
+				$('#' + id).val(value);
 ifelse(«cornhole», ArtLightApplication, «dnl
 				if (id == 'aScore') {$('#aScore').trigger('change')}
 				if (id == 'bScore') {$('#bScore').trigger('change')}
@@ -134,6 +123,12 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 				});
 				$('#data'	)	.click(function() {fill('data'		)});
 				$('#dataDefault')	.click(function() {fill('dataDefault'	)});
+				$('#otaStart'	)	.click(function() {
+					$.ajax({type: 'POST', data: {
+						otaUrl: $('#otaUrl').val(),
+						[this.id]: '1',
+					}})
+				});
 				$('input:checkbox').on('change', function(e) {$(this).next().val(0 + $(this).prop('checked'))});
 				$('input[type="number"], input[type="range"]').not('.knob').on('input', function(e) {
 					if (this.validity.valid) {
@@ -256,8 +251,7 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 				</div>
 				<div>
 					<label class='tab0' for='otaStart'>Start</label>
-					<input type='checkbox' id='otaStart'/>
-					<input type='hidden' name='otaStart'/>
+					<input type='button' id='otaStart'/>
 				</div>
 			</fieldset>
 			<div>
