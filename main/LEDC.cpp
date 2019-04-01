@@ -36,7 +36,7 @@ Timer::Timer(
     timer_num	(
 	[this](){
 	    auto free_ = &free[speed_mode];
-	    for (auto & timer_num_: *free_) {
+	    for (auto timer_num_: *free_) {
 		free_->pop_front();
 		return timer_num_;
 	    }
@@ -116,7 +116,7 @@ Channel::Channel(
     speed_mode(timer.speed_mode),
     channel([this](){
 	    auto free_ = &free[speed_mode];
-	    for (auto & channel_: *free_) {
+	    for (auto channel_: *free_) {
 		free_->pop_front();
 		return channel_;
 	    }
