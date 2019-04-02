@@ -34,18 +34,20 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 		<script src='https://cdnjs.cloudflare.com/ajax/libs/jQuery-Knob/1.2.13/jquery.knob.min.js'></script>
 »)dnl
 		<script>
-			function update(id, value) {
-				console.log(id + '=' + value);
-				$('#' + id).not('input[type="button"]').val(value);
+			function update(idValues) {
+				for (const [id, value] of Object.entries(idValues)) {
+					console.log(id + '=' + value);
+					$('#' + id).not('input[type="button"]').val(value);
 ifelse(«cornhole», ArtLightApplication, «dnl
-				if (id == 'aScore') {$('#aScore').trigger('change')}
-				if (id == 'bScore') {$('#bScore').trigger('change')}
-				if (id == 'aColor') {$('#aScore').trigger('configure', {'fgColor': value})}
-				if (id == 'bColor') {$('#bScore').trigger('configure', {'fgColor': value})}
+					if (id == 'aScore') {$('#aScore').trigger('change')}
+					if (id == 'bScore') {$('#bScore').trigger('change')}
+					if (id == 'aColor') {$('#aScore').trigger('configure', {'fgColor': value})}
+					if (id == 'bColor') {$('#bScore').trigger('configure', {'fgColor': value})}
 »)dnl
-				if (id == 'aColor') {$('#aColor').spectrum('set', value)}
-				if (id == 'bColor') {$('#bColor').spectrum('set', value)}
-				if (id == 'cColor') {$('#cColor').spectrum('set', value)}
+					if (id == 'aColor') {$('#aColor').spectrum('set', value)}
+					if (id == 'bColor') {$('#bColor').spectrum('set', value)}
+					if (id == 'cColor') {$('#cColor').spectrum('set', value)}
+				}
 			}
 			function fill(url) {
 				$.ajax({
@@ -54,11 +56,7 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 					dataType:	'json',
 					cache:		false,
 				})
-					.done(function(idValues) {
-						for (const [id, value] of Object.entries(idValues)) {
-							update(id, value);
-						}
-					})
+					.done(update)
 					.fail(function(xhr, status, error){
 						// alert('Unable to load values into form');
 						console.log('error: '  + error);
@@ -137,6 +135,7 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 				});
 				$('select').on('input', function(e) {$.ajax({type: 'POST', data: {[this.id]: this.value}})});
 				fill('data');
+				new WebSocket('ws://' + window.location.hostname + ':81').onmessage = function(e) {update(JSON.parse(e.data))}
 			});
 		</script>
 ifelse(«cornhole», ArtLightApplication, «dnl
