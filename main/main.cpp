@@ -16,6 +16,7 @@
 #include "Qio.h"
 #include "SPI.h"
 #include "TimeUpdate.h"
+#include "WebSocketTask.h"
 #include "Wifi.h"
 
 // ArtLightApplication_h must be defined as the include file that declares
@@ -84,6 +85,7 @@ public:
 	OtaTask otaTask;
 	Preferences preferences;
 	PeerTask peerTask;
+	WebSocketTask webSocketTask;
 	Connected(Main & main_)
 	:
 	    main(main_),
@@ -93,10 +95,12 @@ public:
 	    preferences(preferencesHtml, main.keyValueBroker,
 		preferencesFavicon0,
 		preferencesFavicon1 - preferencesFavicon0),
-	    peerTask(main.keyValueBroker)
+	    peerTask(main.keyValueBroker),
+	    webSocketTask()
 	{
 	    otaTask.start();
 	    peerTask.start();
+	    webSocketTask.start();
 	}
 	~Connected() {
 	    ESP_LOGI(main.name, "~Connected");
