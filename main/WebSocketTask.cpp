@@ -108,7 +108,7 @@ void WebSocketTask::Session::send(
     );
 }
 
-// process message and return true if the Session should be dropped
+// process message and return true if it was handled.
 bool WebSocketTask::Session::process(
     Frame const &	frame,
     size_t		length,
@@ -130,36 +130,33 @@ bool WebSocketTask::Session::process(
 		    socket.native_handle(), ntohs(status));
 		send(&status, sizeof status, close);
 	    }
-	    dropHold();
-	    return true;
 	}
 	break;
     case ping:
+	ESP_LOGI(webSocketTask.name, "socket %d send pong",
+	    socket.native_handle());
 	if (!length) {
 	    send(nullptr, 0, pong);
 	} else {
 	    auto message = std::make_shared<char>(length);
 	    std::istream istream(&payload);
 	    istream.read(message.get(), length);
-	    ESP_LOGI(webSocketTask.name, "socket %d send pong",
-		socket.native_handle());
 	    send(message.get(), length, pong);
 	}
-	break;
+	return true;
     default: {
 	    ESP_LOGE(webSocketTask.name, "socket %d send close protocol error",
 		socket.native_handle());
 	    uint16_t status = htons(CloseStatus::protocolError);
 	    send(&status, sizeof status, close);
-	    dropHold();
-	    return true;
 	}
 	break;
     }
+    dropHold();
     return false;
 }
 
-// process buffered messages and return true if the Session should be dropped
+// process buffered messages and return true if they were handled
 bool WebSocketTask::Session::processBuffered() {
     for (;;) {
 	size_t frameLength = 0;
@@ -184,7 +181,7 @@ bool WebSocketTask::Session::processBuffered() {
 	    uint16_t status = htons(CloseStatus::sizeError);
 	    send(&status, sizeof status, close);
 	    dropHold();
-	    return true;
+	    return false;
 	}
 
 	uint8_t mask[4] {};
@@ -207,14 +204,14 @@ bool WebSocketTask::Session::processBuffered() {
 	    InputFilter<Unmask>(streambuf, Unmask(payloadLength, mask)));
 	streambuf.consume(payloadLength);
 	if (close) {
-	    return true;
+	    return false;
 	}
     }
-    return false;
+    return true;
 }
 
 void WebSocketTask::Session::receive() {
-    if (processBuffered()) return;
+    if (!processBuffered()) return;
     auto hold(shared_from_this());
     asio::async_read(socket, streambuf,
 	[this](
