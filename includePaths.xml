@@ -17,6 +17,7 @@
 <includepath>${IDF_PATH}/components/lwip/include/apps</includepath>
 <includepath>${IDF_PATH}/components/lwip/port/esp32/include</includepath>
 <includepath>${IDF_PATH}/components/lwip/lwip/src/include</includepath>
+<includepath>${IDF_PATH}/components/mbedtls/mbedtls/include</includepath>
 <includepath>${IDF_PATH}/components/mdns/include</includepath>
 <includepath>${IDF_PATH}/components/newlib/platform_include</includepath>
 <includepath>${IDF_PATH}/components/nvs_flash/include</includepath>
@@ -46,6 +47,7 @@
 <includepath>${IDF_PATH}/components/lwip/include/apps</includepath>
 <includepath>${IDF_PATH}/components/lwip/port/esp32/include</includepath>
 <includepath>${IDF_PATH}/components/lwip/lwip/src/include</includepath>
+<includepath>${IDF_PATH}/components/mbedtls/mbedtls/include</includepath>
 <includepath>${IDF_PATH}/components/mdns/include</includepath>
 <includepath>${IDF_PATH}/components/newlib/platform_include</includepath>
 <includepath>${IDF_PATH}/components/nvs_flash/include</includepath>
