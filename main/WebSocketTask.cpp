@@ -108,7 +108,7 @@ void WebSocketTask::Session::send(
     );
 }
 
-// process message and return true if successful
+// process message and return true if communication should continue
 bool WebSocketTask::Session::process(
     Frame const &	frame,
     size_t		length,
@@ -156,7 +156,7 @@ bool WebSocketTask::Session::process(
     return false;
 }
 
-// process buffered input and return true if successful
+// process buffered input and return true if communication should continue
 bool WebSocketTask::Session::processBuffered() {
     for (;;) {
 	size_t frameLength = 0;
