@@ -54,6 +54,8 @@ public:
 	char const *	value,
 	bool		fromPeer = false);
 
+    static std::string serialize(char const * key, char const * value);
+
     std::string serialize();
     std::string serializeDefault();
 

@@ -92,6 +92,19 @@ static std::string serialize(std::map<std::string, std::string> const & map) {
     return stream.str();
 }
 
+std::string KeyValueBroker::serialize(char const * key, char const * value) {
+    std::ostringstream stream;
+    stream << '{';
+    stream
+	<< '"'
+	<< std::string(key)
+	<< R"----(":")----"
+	<< std::string(value)
+	<< '"';
+    stream << '}';
+    return stream.str();
+}
+
 std::string KeyValueBroker::serialize() {
     return ::serialize(valueFor);
 }
