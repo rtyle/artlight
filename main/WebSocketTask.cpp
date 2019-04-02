@@ -113,43 +113,46 @@ bool WebSocketTask::Session::process(
     std::streambuf &&	payload)
 {
     // RFC 6455: All control frames ... MUST NOT be fragmented
-    if (frame.fin) {
-	switch (frame.opCode) {
-	case close: {
-		if (2 > length) {
-		    ESP_LOGI(webSocketTask.name, "socket %d send close",
-			socket.native_handle());
-		    send(nullptr, 0, close);
-		} else {
-		    uint16_t status;
-		    std::istream istream(&payload);
-		    istream.read(reinterpret_cast<char *>(&status),
-			sizeof status);
-		    ESP_LOGI(webSocketTask.name, "socket %d send close %d",
-			socket.native_handle(), ntohs(status));
-		    send(&status, sizeof status, close);
-		}
-		dropHold();
-		return true;
-	    }
-	    break;
-	case ping:
-	    if (!length) {
-		send(nullptr, 0, pong);
-	    } else {
-		auto message = std::make_shared<char>(length);
-		std::istream istream(&payload);
-		istream.read(message.get(), length);
-		ESP_LOGI(webSocketTask.name, "socket %d send pong",
+    switch (frame.opCode) {
+    case close: {
+	    if (2 > length) {
+		ESP_LOGI(webSocketTask.name, "socket %d send close",
 		    socket.native_handle());
-		send(message.get(), length, pong);
+		send(nullptr, 0, close);
+	    } else {
+		uint16_t status;
+		std::istream istream(&payload);
+		istream.read(reinterpret_cast<char *>(&status),
+		    sizeof status);
+		ESP_LOGI(webSocketTask.name, "socket %d send close %d",
+		    socket.native_handle(), ntohs(status));
+		send(&status, sizeof status, close);
 	    }
-	    break;
-	default:
-	    ESP_LOGE(webSocketTask.name, "socket %d ignore opcode %d",
-		socket.native_handle(), static_cast<int>(frame.opCode));
-	    break;
+	    dropHold();
+	    return true;
 	}
+	break;
+    case ping:
+	if (!length) {
+	    send(nullptr, 0, pong);
+	} else {
+	    auto message = std::make_shared<char>(length);
+	    std::istream istream(&payload);
+	    istream.read(message.get(), length);
+	    ESP_LOGI(webSocketTask.name, "socket %d send pong",
+		socket.native_handle());
+	    send(message.get(), length, pong);
+	}
+	break;
+    default: {
+	    ESP_LOGE(webSocketTask.name, "socket %d send close protocol error",
+		socket.native_handle());
+	    uint16_t status = htons(CloseStatus::protocolError);
+	    send(&status, sizeof status, close);
+	    dropHold();
+	    return true;
+	}
+	break;
     }
     return false;
 }
