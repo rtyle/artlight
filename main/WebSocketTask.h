@@ -3,10 +3,12 @@
 #include <set>
 
 #include "AsioTask.h"
+#include "KeyValueBroker.h"
 
 class WebSocketTask : public AsioTask {
 private:
     asio::ip::tcp::acceptor	acceptor;
+    KeyValueBroker::GeneralObserver	generalObserver;
 
     enum CloseStatus: uint16_t {
 	normal			= 1000,
@@ -101,6 +103,7 @@ private:
 
 public:
 
-    WebSocketTask();
+    WebSocketTask(KeyValueBroker &);
+
     ~WebSocketTask();
 };

@@ -345,6 +345,7 @@ void WebSocketTask::spray(
     OpCode		opCode,
     bool		fin)
 {
+    if (!heldSessions.size()) return;
     auto streambuf = std::make_shared<asio::streambuf>();
     std::ostream ostream(streambuf.get());
     Frame frame(length, opCode, fin);
@@ -367,10 +368,19 @@ void WebSocketTask::spray(
     }
 }
 
-WebSocketTask::WebSocketTask()
+WebSocketTask::WebSocketTask(KeyValueBroker & keyValueBroker)
 :
     AsioTask("webSocketTask", 5, 4096, 0),
-    acceptor(io, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), 81))
+    acceptor(io, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), 81)),
+    generalObserver(keyValueBroker,
+	[this](char const * key, char const * value, bool fromPeer) {
+	    std::string message = KeyValueBroker::serialize(key, value);
+	    io.post([this, message](){
+		ESP_LOGI(name, "spray %s", message.c_str());
+		spray(message.c_str(), message.size());
+	    });
+	}
+    )
 {
     ESP_LOGI(name, "socket %d port %d WebSocketTask::WebSocketTask",
 	acceptor.native_handle(), acceptor.local_endpoint().port());

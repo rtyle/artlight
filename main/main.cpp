@@ -96,7 +96,7 @@ public:
 		preferencesFavicon0,
 		preferencesFavicon1 - preferencesFavicon0),
 	    peerTask(main.keyValueBroker),
-	    webSocketTask()
+	    webSocketTask(main.keyValueBroker)
 	{
 	    otaTask.start();
 	    peerTask.start();
