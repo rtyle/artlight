@@ -44,7 +44,9 @@ void WebSocketTask::acceptSession() {
 	} else {
 	    ESP_LOGI(name, "socket %d accepted", socket.native_handle());
 	    // create a new Session and hold on to it while it is useful
-	    std::make_shared<Session>(*this, std::move(socket))->handshake();
+	    std::make_shared<Session>(
+		*this, std::forward<asio::ip::tcp::socket>(socket)
+	    )->handshake();
 	}
 	acceptSession();
     });
