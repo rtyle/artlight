@@ -45,7 +45,7 @@ void WebSocketTask::acceptSession() {
 	    ESP_LOGI(name, "socket %d accepted", socket.native_handle());
 	    // create a new Session and hold on to it while it is useful
 	    std::make_shared<Session>(
-		*this, std::forward<asio::ip::tcp::socket>(socket)
+		*this, std::move(socket)
 	    )->handshake();
 	}
 	acceptSession();
@@ -290,6 +290,8 @@ void WebSocketTask::Session::handshake() {
 		    size_t size;	// includes null terminator
 		    mbedtls_base64_encode(nullptr, 0, &size,
 			sha1, sizeof sha1);
+		    // cannot std::move a std::unique_ptr into a lambda capture
+		    // until C++14 so use a std::shared_ptr instead.
 		    std::shared_ptr<unsigned char> base64(new unsigned char[size]);
 		    size_t length;	// excludes null terminator
 		    mbedtls_base64_encode(base64.get(), size, &length,
