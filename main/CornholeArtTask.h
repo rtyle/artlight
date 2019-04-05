@@ -22,6 +22,19 @@ private:
     unsigned				score[2];
     KeyValueBroker::Observer const	scoreObserver[2];
 
+    struct Mode {
+    private:
+	static char const * const string[];
+    public:
+	enum Value {score, clock} value;
+	Mode(Value);
+	Mode(char const *);
+	char const * toString() const;
+    };
+    Mode				mode;
+    KeyValueBroker::Observer const	modeObserver;
+
+
     void scoreIncrement(size_t index, unsigned count);
     void scoreDecrement(size_t index, int count);
     void scoreObserved (size_t index, char const * value);

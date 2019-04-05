@@ -63,7 +63,7 @@ protected:
     KeyValueBroker::Observer const	colorObserver[3];
     KeyValueBroker::Observer const	shapeObserver[3];
 
-    Range range;
+    Range				range;
     KeyValueBroker::Observer const	rangeObserver;
     Dim					dim;
     KeyValueBroker::Observer const	dimObserver;

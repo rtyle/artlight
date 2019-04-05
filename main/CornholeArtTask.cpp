@@ -31,6 +31,22 @@ static Sawtooth inMinuteOf(60.0f);
 static Sawtooth inHourOf  (60.0f * 60.0f);
 static Sawtooth inDayOf   (60.0f * 60.0f * 12.0f);	/// 12 hour clock
 
+char const * const CornholeArtTask::Mode::string[] {"score", "clock",};
+CornholeArtTask::Mode::Mode(Value value_) : value(value_) {}
+CornholeArtTask::Mode::Mode(char const * value) : value(
+    [value](){
+	size_t i = 0;
+	for (auto e: string) {
+	    if (0 == std::strcmp(e, value)) return static_cast<Value>(i);
+	    ++i;
+	}
+	return score;
+    }()
+) {}
+char const * CornholeArtTask::Mode::toString() const {
+    return string[value];
+}
+
 void updateLedChannel(LEDC::Channel & ledChannel, uint32_t duty) {
     // do not use ledChannel.set_duty_and_update
     ledChannel.set_duty(duty);
@@ -73,7 +89,8 @@ void CornholeArtTask::update() {
     };
 
     float position[3] {};
-    if (score[0] || score[1]) {
+    switch (mode.value) {
+    case Mode::score: {
 	position[0] = score[0] / static_cast<float>(scoreMax);
 	position[1] = score[1] / static_cast<float>(scoreMax);
 	position[2] = position[0] - position[1];
@@ -87,13 +104,15 @@ void CornholeArtTask::update() {
 	    }
 	}
 	widthInRing[2] = 0.0f;
-    } else {
+    } break;
+    case Mode::clock: {
 	float secondsSinceTwelveLocaltime
 	    = smoothTime.millisecondsSinceTwelveLocaltime(microsecondsSinceBoot)
 		/ millisecondsPerSecond;
 	position[0] = hourPulse  (inDayOf   (secondsSinceTwelveLocaltime));
 	position[1] = minutePulse(inHourOf  (secondsSinceTwelveLocaltime));
 	position[2] = secondPulse(inMinuteOf(secondsSinceTwelveLocaltime));
+    } break;
     }
 
     std::list<std::function<LEDI(float)>> renderList;
@@ -285,7 +304,16 @@ CornholeArtTask::CornholeArtTask(
 	    [this](char const * value){scoreObserved(0, value);}},
 	{keyValueBroker, scoreKey[1], "0",
 	    [this](char const * value){scoreObserved(1, value);}},
-    }
+    },
+
+    mode(Mode::score),
+    modeObserver(keyValueBroker, "mode", mode.toString(),
+	[this](char const * value){
+	    Mode mode_(value);
+	    io.post([this, mode_](){
+		mode = mode_;
+	    });
+	})
 {
     pinTask.start();
 }

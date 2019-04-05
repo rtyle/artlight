@@ -69,7 +69,7 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 ifelse(«cornhole», ArtLightApplication, «dnl
 				knobSize = 200;
 				if ('/' == window.location.pathname) {
-					$('#preferences').hide();
+					$('.preferences').hide();
 					knobSize = 600;
 				}
 				$('.knob').knob({
@@ -142,13 +142,26 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 		<input type='number' class='knob' id='aScore' name='aScore' value='0' required='true' min='0' max='21'>
 		<input type='number' class='knob' id='bScore' name='bScore' value='0' required='true' min='0' max='21'>
 »)dnl
-		<div id='preferences'>
+		<div class='preferences'>
 		<H2>Preferences</H1>
 		<div>
 			<button id='dataDefault'>Fill with Default Values</button>
 			<button id='data'	>Fill with Current Values</button>
 		</div>
 		<form method='post'>
+			<fieldset>
+ifelse(«cornhole», ArtLightApplication, «dnl
+				<legend>Cornhole</legend>
+				<div>
+					<span class='tab0'>Ring</span>
+					<label for='mode'>Mode</label>
+					<select id='mode' name='mode'>
+						<option value='score'>Score</option>
+						<option value='clock'>Clock</option>
+					</select>
+				</div>
+			</fieldset>
+»)dnl
 			<fieldset>
 				<legend>Presentation</legend>
 				<div>
