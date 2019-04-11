@@ -34,6 +34,11 @@ private:
     Mode				mode;
     KeyValueBroker::Observer const	modeObserver;
 
+    uint64_t microsecondsSinceBootOfBoardEvent;
+    uint64_t microsecondsSinceBootOfHoleEvent;
+
+    void boardEvent();
+    void holeEvent();
 
     void scoreIncrement(size_t index, unsigned count);
     void scoreDecrement(size_t index, int count);

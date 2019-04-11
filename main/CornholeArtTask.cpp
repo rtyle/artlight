@@ -1,3 +1,4 @@
+#include <random>
 #include <sstream>
 
 #include <esp_log.h>
@@ -6,7 +7,7 @@
 #include "fromString.h"
 #include "Blend.h"
 #include "CornholeArtTask.h"
-#include "Dial.h"
+#include "Curve.h"
 #include "InRing.h"
 #include "Pulse.h"
 #include "Sawtooth.h"
@@ -19,6 +20,7 @@ static float constexpr phi	= (1.0f + std::sqrt(5.0f)) / 2.0f;
 static float constexpr sqrt2	= std::sqrt(2.0f);
 
 static auto constexpr millisecondsPerSecond	= 1000u;
+static auto constexpr microsecondsPerSecond	= 1000000.0f;
 
 static size_t constexpr ringSize = 80;
 
@@ -64,9 +66,9 @@ static unsigned constexpr scoreMax = 21;
 
 void CornholeArtTask::update() {
     uint64_t microsecondsSinceBoot = esp_timer_get_time();
-    float secondsSinceBoot = microsecondsSinceBoot / 1000000.0f;
+    float secondsSinceBoot = microsecondsSinceBoot / microsecondsPerSecond;
 
-    static BumpDial dial;
+    static BumpCurve bump;
 
     static LEDI black(0, 0, 0);
     Blend<LEDI> blend[] {
@@ -78,9 +80,9 @@ void CornholeArtTask::update() {
     float place = secondsSinceBoot / 9.0f;
 
     LEDC::Channel (*rgb)[3] = &ledChannel[0];
-    updateLedChannelRGB(*rgb++, blend[0](dial(place * phi  )));
-    updateLedChannelRGB(*rgb++, blend[1](dial(place * sqrt2)));
-    updateLedChannelRGB(*rgb++, blend[2](dial(place * 1.5f )));
+    updateLedChannelRGB(*rgb++, blend[0](bump(place * phi  )));
+    updateLedChannelRGB(*rgb++, blend[1](bump(place * sqrt2)));
+    updateLedChannelRGB(*rgb++, blend[2](bump(place * 1.5f )));
 
     float widthInRing[] {
 	width[0] / ringSize,
@@ -129,7 +131,7 @@ void CornholeArtTask::update() {
 	if (widthInRing[index]) {
 	    switch (shape[index].value) {
 	    case Shape::Value::bell: {
-		    BellDial dial(position[index], widthInRing[index]);
+		    BellCurve<Dial> dial(position[index], widthInRing[index]);
 		    renderList.push_back([&blend, index, dial](float place){
 			return blend[index](dial(place));
 		    });
@@ -147,6 +149,26 @@ void CornholeArtTask::update() {
 		break;
 	    }
 	}
+    }
+
+    static LEDI white(255, 255, 255);
+    Blend<LEDI> greyBlend(black, white);
+    float secondsSinceHoleEvent
+	= (microsecondsSinceBoot - microsecondsSinceBootOfHoleEvent)
+	    / microsecondsPerSecond;
+    std::mt19937 generator(microsecondsSinceBootOfHoleEvent);
+    std::uniform_real_distribution<float> distribute;
+    float nextPosition = distribute(generator);
+    for (unsigned i = 8; i--;) {
+	float dialInTime = RippleCurve<>(0.0f, 1.0 / 32.0f)(
+	    (secondsSinceHoleEvent - 4.0f * distribute(generator)) / 8.0f);
+	RippleCurve<Dial> dialInSpace(nextPosition, 0.1f);
+	nextPosition += phi;
+	renderList.push_back(
+	    [&greyBlend, dialInTime, dialInSpace](float place){
+		return greyBlend(dialInTime * dialInSpace(place));
+	    }
+	);
     }
 
     OrdinalsInRing inRing(ringSize);
@@ -193,6 +215,14 @@ void CornholeArtTask::update() {
     SPI::Transaction transaction1(spiDevice[1], SPI::Transaction::Config()
 	.tx_buffer_(&message)
 	.length_(message.length()));
+}
+
+void CornholeArtTask::boardEvent() {
+    microsecondsSinceBootOfBoardEvent = esp_timer_get_time();
+}
+
+void CornholeArtTask::holeEvent() {
+    microsecondsSinceBootOfHoleEvent = esp_timer_get_time();
 }
 
 static char const * const scoreKey[] = {"aScore", "bScore"};
@@ -261,20 +291,20 @@ CornholeArtTask::CornholeArtTask(
 
     button {
 	{pin[0], 0, bounceDuration, bufferDuration, holdDuration,
-	    [this](unsigned count){scoreIncrement(0, count);},
-	    [this](unsigned count){scoreDecrement(0, count);},
+	    [this](unsigned	count){scoreIncrement(0, count);},
+	    [this](int		count){scoreDecrement(0, count);},
 	},
 	{pin[1], 0, bounceDuration, bufferDuration, holdDuration,
-	    [this](unsigned count){scoreIncrement(1, count);},
-	    [this](unsigned count){scoreDecrement(1, count);},
+	    [this](unsigned	count){scoreIncrement(1, count);},
+	    [this](int		count){scoreDecrement(1, count);},
 	},
 	{pin[2], 0, bounceDuration, bufferDuration, holdDuration,
 	    [this](unsigned count){ESP_LOGI(name, "button c press %d", count);},
-	    [this](unsigned count){ESP_LOGI(name, "button c hold %d" , count);}
+	    [this](int count){ESP_LOGI(name, "button c hold %d" , count);}
 	},
 	{pin[3], 0, bounceDuration, bufferDuration, holdDuration,
-	    [this](unsigned count){ESP_LOGI(name, "button d press %d", count);},
-	    [this](unsigned count){ESP_LOGI(name, "button d hold %d" , count);}
+	    [this](unsigned	count){holeEvent();},
+	    [this](int		count){if (0 > count) holeEvent();}
 	},
     },
 
@@ -313,7 +343,10 @@ CornholeArtTask::CornholeArtTask(
 	    io.post([this, mode_](){
 		mode = mode_;
 	    });
-	})
+	}),
+
+	microsecondsSinceBootOfBoardEvent(0),
+	microsecondsSinceBootOfHoleEvent(0)
 {
     pinTask.start();
 }
