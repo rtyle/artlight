@@ -7,7 +7,7 @@ Button::Button(
     unsigned				bufferDuration_,
     unsigned				holdDuration_,
     std::function<void(unsigned)>	pressed_,
-    std::function<void(unsigned)>	held_)
+    std::function<void(int)>		held_)
 :
     ObservablePin::Observer(observablePin, [this](){update(false);}),
     downLevel		(downLevel_),

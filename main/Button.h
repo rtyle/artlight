@@ -54,7 +54,7 @@ public:
 	unsigned			bufferDuration,
 	unsigned			holdDuration,
 	std::function<void(unsigned)>	pressed,
-	std::function<void(unsigned)>	held);
+	std::function<void(int)>	held);
 
     /// Define an explicit move constructor
     /// because one will not be defined implicitly
