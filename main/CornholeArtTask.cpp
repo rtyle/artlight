@@ -153,23 +153,25 @@ void CornholeArtTask::update() {
     float secondsSinceHoleEvent
 	= (microsecondsSinceBoot - microsecondsSinceBootOfHoleEvent)
 	    / microsecondsPerSecond;
-    // seed a random number generator with microsecondsSinceBootOfHoleEvent
-    // to play out the animation until a hole event occurs at another time
-    std::mt19937 generator(microsecondsSinceBootOfHoleEvent);
-    std::uniform_real_distribution<float> distribute;
-    float nextPosition = distribute(generator);
-    for (unsigned i = 8; i--;) {
-	float dialInTime = RippleCurve<>(0.0f, 1.0f / 4.0f)(
-	    secondsSinceHoleEvent - 2.0f * distribute(generator));
-	RippleCurve<Dial> dialInSpace(nextPosition, 0.1f);
-	nextPosition += phi;
-	renderList.push_back(
-	    [dialInTime, dialInSpace](float place){
-		static LEDI white(255, 255, 255);
-		static Blend<LEDI> greyBlend(black, white);
-		return greyBlend(dialInTime * dialInSpace(place));
-	    }
-	);
+    if (4.0f > secondsSinceHoleEvent) {
+	// seed a random number generator with microsecondsSinceBootOfHoleEvent
+	// to play out the animation until a hole event occurs at another time
+	std::mt19937 generator(microsecondsSinceBootOfHoleEvent);
+	std::uniform_real_distribution<float> distribute;
+	float nextPosition = distribute(generator);
+	for (unsigned i = 8; i--;) {
+	    float dialInTime = RippleCurve<>(0.0f, 1.0f / 4.0f)(
+		secondsSinceHoleEvent - 2.0f * distribute(generator));
+	    RippleCurve<Dial> dialInSpace(nextPosition, 1.0f / 8.0f);
+	    nextPosition += phi;
+	    renderList.push_back(
+		[dialInTime, dialInSpace](float place){
+		    static LEDI white(255, 255, 255);
+		    static Blend<LEDI> greyBlend(black, white);
+		    return greyBlend(dialInTime * dialInSpace(place));
+		}
+	    );
+	}
     }
 
     OrdinalsInRing inRing(ringSize);
