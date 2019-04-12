@@ -156,12 +156,14 @@ void CornholeArtTask::update() {
     float secondsSinceHoleEvent
 	= (microsecondsSinceBoot - microsecondsSinceBootOfHoleEvent)
 	    / microsecondsPerSecond;
+    // seed a random number generator with microsecondsSinceBootOfHoleEvent
+    // to play out the animation until a hole event occurs at another time
     std::mt19937 generator(microsecondsSinceBootOfHoleEvent);
     std::uniform_real_distribution<float> distribute;
     float nextPosition = distribute(generator);
     for (unsigned i = 8; i--;) {
-	float dialInTime = RippleCurve<>(0.0f, 1.0 / 32.0f)(
-	    (secondsSinceHoleEvent - 4.0f * distribute(generator)) / 8.0f);
+	float dialInTime = RippleCurve<>(0.0f, 1.0f / 4.0f)(
+	    secondsSinceHoleEvent - 2.0f * distribute(generator));
 	RippleCurve<Dial> dialInSpace(nextPosition, 0.1f);
 	nextPosition += phi;
 	renderList.push_back(
