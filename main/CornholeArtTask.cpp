@@ -150,9 +150,6 @@ void CornholeArtTask::update() {
 	    }
 	}
     }
-
-    static LEDI white(255, 255, 255);
-    Blend<LEDI> greyBlend(black, white);
     float secondsSinceHoleEvent
 	= (microsecondsSinceBoot - microsecondsSinceBootOfHoleEvent)
 	    / microsecondsPerSecond;
@@ -167,7 +164,9 @@ void CornholeArtTask::update() {
 	RippleCurve<Dial> dialInSpace(nextPosition, 0.1f);
 	nextPosition += phi;
 	renderList.push_back(
-	    [&greyBlend, dialInTime, dialInSpace](float place){
+	    [dialInTime, dialInSpace](float place){
+		static LEDI white(255, 255, 255);
+		static Blend<LEDI> greyBlend(black, white);
 		return greyBlend(dialInTime * dialInSpace(place));
 	    }
 	);
