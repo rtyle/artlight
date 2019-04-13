@@ -147,6 +147,15 @@ void CornholeArtTask::update() {
 		    });
 		}
 		break;
+	    case Shape::Value::bloom: {
+		    BellCurve<Dial> bell(position[index], widthInRing[index]);
+		    BloomDial bloom(position[index], 1.0f / 1.0f,
+			scale[index] * secondsSinceBoot);
+		    renderList.push_back([&blend, index, bell, bloom](float place){
+			return blend[index](bell(place) * bloom(place));
+		    });
+		}
+		break;
 	    }
 	}
     }

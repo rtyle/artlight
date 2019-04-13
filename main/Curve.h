@@ -70,6 +70,23 @@ public:
 
 };
 
+/// BloomDial is a Dial whose function object composes
+/// a modified sine(width/offset + phase) function (bloom)
+/// with the Dial position (offset).
+/// Width measures the distance between the first and the last peaks (petals)
+/// when phase is 0.
+/// The peaks (petals) get closer and closer as the dial position is approached.
+/// Increasing the phase will cause the peaks to move outward from the dial
+/// position; decreasing the phase will cause them to move inward.
+class BloomDial : public Dial {
+private:
+    float const width;
+    float const phase;
+public:
+    BloomDial(float position = 0.0f, float width = 1.0f, float phase = 0.0f);
+    float operator()(float place) const override;
+};
+
 /// RippleCurve is a Curve (of type T) whose function object composes
 /// a modified sinc function (sin(x)/x)
 /// https://www.desmos.com/calculator/9ndsrd9psf

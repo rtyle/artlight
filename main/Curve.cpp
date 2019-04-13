@@ -72,6 +72,17 @@ float BellStandingWaveDial::operator()(float place) const {
 	* (rightWaveDial(place) + leftWaveDial(place)) / 2.0f;
 }
 
+BloomDial::BloomDial(float position, float width_, float phase_)
+    : Dial(position), width(pi * width_ / 4.0f), phase(tau * phase_) {}
+
+
+float BloomDial::operator()(float place) const {
+    float offset = std::abs(Dial::operator()(place));
+    return 0.0f == offset
+	? 1.0f
+	: (1.0f + std::sin((width / offset) + phase)) / 2.0f;
+}
+
 template <typename T>
 RippleCurve<T>::RippleCurve(
     float position, float width_) : T(position), width(width_) {}

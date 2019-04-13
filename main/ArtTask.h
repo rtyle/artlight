@@ -37,7 +37,7 @@ public:
     private:
 	static char const * const string[];
     public:
-	enum Value {bell, wave} value;
+	enum Value {bell, wave, bloom} value;
 	Shape(Value);
 	Shape(char const *);
 	char const * toString() const;

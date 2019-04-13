@@ -37,7 +37,7 @@ char const * ArtTask::Range::toString() const {
     return string[value];
 }
 
-char const * const ArtTask::Shape::string[] {"bell", "wave",};
+char const * const ArtTask::Shape::string[] {"bell", "wave", "bloom"};
 ArtTask::Shape::Shape(Value value_) : value(value_) {}
 ArtTask::Shape::Shape(char const * value) : value(
     [value](){

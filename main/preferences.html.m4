@@ -174,6 +174,7 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 					<select id='aShape' name='aShape'>
 						<option value='bell'>Bell</option>
 						<option value='wave'>Wave</option>
+						<option value='bloom'>Bloom</option>
 					</select>
 				</div>
 				<div>
@@ -186,6 +187,7 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 					<select id='bShape' name='bShape'>
 						<option value='bell'>Bell</option>
 						<option value='wave'>Wave</option>
+						<option value='bloom'>Bloom</option>
 					</select>
 				</div>
 				<div>
@@ -198,6 +200,7 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 					<select id='cShape' name='cShape'>
 						<option value='bell'>Bell</option>
 						<option value='wave'>Wave</option>
+						<option value='bloom'>Bloom</option>
 					</select>
 				</div>
 			</fieldset>
