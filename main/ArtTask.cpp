@@ -144,11 +144,11 @@ ArtTask::ArtTask(
     },
 
     widthObserver {
-	{keyValueBroker, widthKey[0], "4",
+	{keyValueBroker, widthKey[0], "8",
 	    [this](char const * value) {widthObserved(0, value);}},
-	{keyValueBroker, widthKey[1], "4",
+	{keyValueBroker, widthKey[1], "8",
 	    [this](char const * value) {widthObserved(1, value);}},
-	{keyValueBroker, widthKey[2], "2",
+	{keyValueBroker, widthKey[2], "4",
 	    [this](char const * value) {widthObserved(2, value);}},
     },
 
