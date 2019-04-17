@@ -27,10 +27,10 @@ float Dial::operator()(float place) const {
     return offset;
 }
 
-BumpCurve::BumpCurve(float position, float width_)
+BumpsCurve::BumpsCurve(float position, float width_)
     : Curve(position), width(2.0f * width_) {}
 
-float BumpCurve::operator()(float place) const {
+float BumpsCurve::operator()(float place) const {
     return std::abs(std::cos(tau * Curve::operator()(place) / width));
 }
 
