@@ -130,8 +130,6 @@ void CornholeArtTask::update() {
 	1.5f	/ 1.5f,		// == 1.0
     };
 
-    static BumpCurve bump(0.0f, 1.0f);
-
     for (size_t index = 0; index < 3; ++index) {
 	if (widthInRing[index]) {
 	    switch (shape_[index].value) {
@@ -154,9 +152,10 @@ void CornholeArtTask::update() {
 		break;
 	    case Shape::Value::bloom: {
 		    Dial dial(position[index]);
+		    BumpCurve bump(0.0f, widthInRing[index]);
 		    BloomCurve bloom(0.0f, widthInRing[index],
-			secondsSinceBoot / 2.0f);
-		    renderList.push_back([&blend, index, dial, bloom](float place){
+			scale[index] * secondsSinceBoot / 2.0f);
+		    renderList.push_back([&blend, index, dial, bump, bloom](float place){
 			float offset = dial(place);
 			return blend[index](bump(offset) * bloom(offset));
 		    });
@@ -175,9 +174,10 @@ void CornholeArtTask::update() {
     if (8.0f > secondsSinceHoleEvent) {
 	float dialInTime = BumpCurve(0.0f, 16.0f)(secondsSinceHoleEvent);
 	Dial dialInSpace(0.0f);
+	BumpCurve bump(0.0f, 1.0f);
 	BloomCurve bloom(0.0f, 1.0f, 0.5 + secondsSinceHoleEvent / 2.0f);
 	renderList.push_back(
-	    [dialInTime, dialInSpace, bloom](float place){
+	    [dialInTime, dialInSpace, bump, bloom](float place){
 		float offset = dialInSpace(place);
 		return greyBlend(dialInTime * bump(offset) * bloom(offset));
 	    }
