@@ -22,8 +22,19 @@ public:
     float operator()(float place) const override;
 };
 
+/// BumpCurve is a Curve whose function object composes
+/// a modified 1 - x**2 function (one non-negative bump of width)
+/// after the Curve position offset.
+class BumpCurve : Curve {
+private:
+    float const width;
+public:
+    BumpCurve(float position = 0.0f, float width_ = 1.0f);
+    float operator()(float place) const override;
+};
+
 /// BumpsCurve is a Curve whose function object composes
-/// a rectified cosine function (bumps of width)
+/// a rectified cosine function (repeating bumps of width)
 /// after the Curve position offset.
 class BumpsCurve : Curve {
 private:

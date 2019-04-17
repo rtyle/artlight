@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cmath>
 
 #include "Curve.h"
@@ -25,6 +26,14 @@ float Dial::operator()(float place) const {
     }
     if (offset >= 0.5f) offset -= 1.0f;
     return offset;
+}
+
+BumpCurve::BumpCurve(float position, float width_)
+    : Curve(position), width(width_ / 2.0f) {}
+
+float BumpCurve::operator()(float place) const {
+    float x = Curve::operator()(place) / width;
+    return std::max(0.0f, 1 - x * x);
 }
 
 BumpsCurve::BumpsCurve(float position, float width_)
