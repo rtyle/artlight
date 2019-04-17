@@ -82,20 +82,20 @@ public:
 
 };
 
-/// BloomDial is a Dial whose function object composes
-/// a modified sine(width/offset + phase) function (bloom)
-/// with the Dial position (offset).
+/// BloomCurve is a Curve whose function object is
+/// a modified sine(width/place + phase) function (bloom),
+/// offset at position.
 /// Width measures the distance between the first and the last peaks (petals)
 /// when phase is 0.
-/// The peaks (petals) get closer and closer as the dial position is approached.
-/// Increasing the phase will cause the peaks to move outward from the dial
+/// The peaks (petals) get closer and closer as curve's position is approached.
+/// Increasing the phase will cause the peaks to move outward from this
 /// position; decreasing the phase will cause them to move inward.
-class BloomDial : public Dial {
+class BloomCurve : public Curve {
 private:
     float const width;
     float const phase;
 public:
-    BloomDial(float position = 0.0f, float width = 1.0f, float phase = 0.0f);
+    BloomCurve(float position = 0.0f, float width = 1.0f, float phase = 0.0f);
     float operator()(float place) const override;
 };
 

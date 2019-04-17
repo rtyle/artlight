@@ -68,7 +68,7 @@ void CornholeArtTask::update() {
     uint64_t microsecondsSinceBoot = esp_timer_get_time();
     float secondsSinceBoot = microsecondsSinceBoot / microsecondsPerSecond;
 
-    static BumpCurve bump;
+    static BumpsCurve bumps;
 
     static LEDI black(0, 0, 0);
     Blend<LEDI> blend[] {
@@ -80,9 +80,9 @@ void CornholeArtTask::update() {
     float place = secondsSinceBoot / 9.0f;
 
     LEDC::Channel (*rgb)[3] = &ledChannel[0];
-    updateLedChannelRGB(*rgb++, blend[0](bump(place * phi  )));
-    updateLedChannelRGB(*rgb++, blend[1](bump(place * sqrt2)));
-    updateLedChannelRGB(*rgb++, blend[2](bump(place * 1.5f )));
+    updateLedChannelRGB(*rgb++, blend[0](bumps(place * phi  )));
+    updateLedChannelRGB(*rgb++, blend[1](bumps(place * sqrt2)));
+    updateLedChannelRGB(*rgb++, blend[2](bumps(place * 1.5f )));
 
     float widthInRing[] {
 	width[0] / ringSize,
@@ -90,6 +90,7 @@ void CornholeArtTask::update() {
 	width[2] / ringSize,
     };
 
+    Shape shape_[3] {shape[0], shape[1], shape[2]};
     float position[3] {};
     switch (mode.value) {
     case Mode::score: {
@@ -98,11 +99,13 @@ void CornholeArtTask::update() {
 	position[2] = position[0] - position[1];
 	if (score[0] != score[1]) {
 	    if (scoreMax <= score[0]) {
-		widthInRing[0] *= 3.0f;
 		widthInRing[1]  = 0.0f;
+		widthInRing[0]  = 1.0f;
+		shape_[0] = Shape::Value::bloom;
 	    } else if (scoreMax <= score[1]) {
-		widthInRing[1] *= 3.0f;
 		widthInRing[0]  = 0.0f;
+		widthInRing[1]  = 1.0f;
+		shape_[1] = Shape::Value::bloom;
 	    }
 	}
 	widthInRing[2] = 0.0f;
@@ -127,9 +130,11 @@ void CornholeArtTask::update() {
 	1.5f	/ 1.5f,		// == 1.0
     };
 
+    static BumpCurve bump(0.0f, 1.0f);
+
     for (size_t index = 0; index < 3; ++index) {
 	if (widthInRing[index]) {
-	    switch (shape[index].value) {
+	    switch (shape_[index].value) {
 	    case Shape::Value::bell: {
 		    BellCurve<Dial> dial(position[index], widthInRing[index]);
 		    renderList.push_back([&blend, index, dial](float place){
@@ -148,38 +153,56 @@ void CornholeArtTask::update() {
 		}
 		break;
 	    case Shape::Value::bloom: {
-		    BellCurve<Dial> bell(position[index], widthInRing[index]);
-		    BloomDial bloom(position[index], 1.0f / 1.0f,
-			scale[index] * secondsSinceBoot);
-		    renderList.push_back([&blend, index, bell, bloom](float place){
-			return blend[index](bell(place) * bloom(place));
+		    Dial dial(position[index]);
+		    BloomCurve bloom(0.0f, widthInRing[index],
+			secondsSinceBoot / 2.0f);
+		    renderList.push_back([&blend, index, dial, bloom](float place){
+			float offset = dial(place);
+			return blend[index](bump(offset) * bloom(offset));
 		    });
 		}
 		break;
 	    }
 	}
     }
+
+    static LEDI white(255, 255, 255);
+    static Blend<LEDI> greyBlend(black, white);
+
     float secondsSinceHoleEvent
 	= (microsecondsSinceBoot - microsecondsSinceBootOfHoleEvent)
 	    / microsecondsPerSecond;
-    if (4.0f > secondsSinceHoleEvent) {
-	// seed a random number generator with microsecondsSinceBootOfHoleEvent
-	// to play out the animation until a hole event occurs at another time
-	std::mt19937 generator(microsecondsSinceBootOfHoleEvent);
-	std::uniform_real_distribution<float> distribute;
-	float nextPosition = distribute(generator);
-	for (unsigned i = 8; i--;) {
-	    float dialInTime = RippleCurve<>(0.0f, 1.0f / 4.0f)(
-		secondsSinceHoleEvent - 2.0f * distribute(generator));
-	    RippleCurve<Dial> dialInSpace(nextPosition, 1.0f / 8.0f);
-	    nextPosition += phi;
-	    renderList.push_back(
-		[dialInTime, dialInSpace](float place){
-		    static LEDI white(255, 255, 255);
-		    static Blend<LEDI> greyBlend(black, white);
-		    return greyBlend(dialInTime * dialInSpace(place));
-		}
-	    );
+    if (8.0f > secondsSinceHoleEvent) {
+	float dialInTime = BumpCurve(0.0f, 16.0f)(secondsSinceHoleEvent);
+	Dial dialInSpace(0.0f);
+	BloomCurve bloom(0.0f, 1.0f, 0.5 + secondsSinceHoleEvent / 2.0f);
+	renderList.push_back(
+	    [dialInTime, dialInSpace, bloom](float place){
+		float offset = dialInSpace(place);
+		return greyBlend(dialInTime * bump(offset) * bloom(offset));
+	    }
+	);
+    } else {
+	float secondsSinceBoardEvent
+	    = (microsecondsSinceBoot - microsecondsSinceBootOfBoardEvent)
+		/ microsecondsPerSecond;
+	if (4.0f > secondsSinceBoardEvent) {
+	    // seed a random number generator with microsecondsSinceBootOfBoardEvent
+	    // to play out the animation until a board event occurs at another time
+	    std::mt19937 generator(microsecondsSinceBootOfBoardEvent);
+	    std::uniform_real_distribution<float> distribute;
+	    float nextPosition = distribute(generator);
+	    for (unsigned i = 8; i--;) {
+		float dialInTime = RippleCurve<>(0.0f, 1.0f / 4.0f)(
+		    secondsSinceBoardEvent - 2.0f * distribute(generator));
+		RippleCurve<Dial> dialInSpace(nextPosition, 1.0f / 8.0f);
+		nextPosition += phi;
+		renderList.push_back(
+		    [dialInTime, dialInSpace](float place){
+			return greyBlend(dialInTime * dialInSpace(place));
+		    }
+		);
+	    }
 	}
     }
 
@@ -311,8 +334,8 @@ CornholeArtTask::CornholeArtTask(
 	    [this](int		count){scoreDecrement(1, count);},
 	},
 	{pin[2], 0, bounceDuration, bufferDuration, holdDuration,
-	    [this](unsigned count){ESP_LOGI(name, "button c press %d", count);},
-	    [this](int count){ESP_LOGI(name, "button c hold %d" , count);}
+	    [this](unsigned	count){boardEvent();},
+	    [this](int		count){if (0 > count) boardEvent();}
 	},
 	{pin[3], 0, bounceDuration, bufferDuration, holdDuration,
 	    [this](unsigned	count){holeEvent();},
