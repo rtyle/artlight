@@ -35,8 +35,8 @@ float BumpCurve::operator()(float place) const {
 }
 
 template <typename T>
-BellCurve<T>::BellCurve(float position, float sigma)
-    : T(position), twoSigmaSquared(2.0f * sigma * sigma) {}
+BellCurve<T>::BellCurve(float position, float width /* == 2 * sigma */)
+    : T(position), twoSigmaSquared(width * width / 2.0f) {}
 template BellCurve<>::BellCurve(float, float);
 template BellCurve<Dial>::BellCurve(float, float);
 

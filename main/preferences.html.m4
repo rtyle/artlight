@@ -167,7 +167,7 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 				<div>
 					<span class='tab0'>A</span>
 					<label for='aWidth'>Width</label>
-					<input type='range' id='aWidth' name='aWidth' required='true' min='0' max='8' step='1'/>
+					<input type='range' id='aWidth' name='aWidth' required='true' min='0' max='16' step='1'/>
 					<label for='aColor'>Color</label>
 					<input type='text' class='spectrum' id='aColor' name='aColor' required='true' value='#ffffff'/>
 					<label for='aShape'>Shape</label>
@@ -180,7 +180,7 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 				<div>
 					<span class='tab0'>B</span>
 					<label for='bWidth'>Width</label>
-					<input type='range' id='bWidth' name='bWidth' required='true' min='0' max='8' step='1'/>
+					<input type='range' id='bWidth' name='bWidth' required='true' min='0' max='16' step='1'/>
 					<label for='bColor'>Color</label>
 					<input type='text' class='spectrum' id='bColor' name='bColor' required='true' value='#ffffff'/>
 					<label for='bShape'>Shape</label>
@@ -193,7 +193,7 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 				<div>
 					<span class='tab0'>C</span>
 					<label for='cWidth'>Width</label>
-					<input type='range' id='cWidth' name='cWidth' required='true' min='0' max='8' step='1'/>
+					<input type='range' id='cWidth' name='cWidth' required='true' min='0' max='16' step='1'/>
 					<label for='cColor'>Color</label>
 					<input type='text' class='spectrum' id='cColor' name='cColor' required='true' value='#ffffff'/>
 					<label for='cShape'>Shape</label>

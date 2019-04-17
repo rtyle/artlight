@@ -37,12 +37,13 @@ public:
 /// a normal distribution function (bell)
 /// (http://wikipedia.org/wiki/Normal_distribution)
 /// after the Curve (of type T) position offset.
+/// Width is 2 * sigma.
 template <typename T = Curve>
 class BellCurve : public T {
 private:
     float const twoSigmaSquared;
 public:
-    BellCurve(float position = 0.0f, float sigma = 1.0f);
+    BellCurve(float position = 0.0f, float width /* 2 * sigma */ = 1.0f);
     float operator()(float place) const override;
 };
 
