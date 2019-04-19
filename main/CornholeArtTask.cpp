@@ -9,12 +9,16 @@
 #include "CornholeArtTask.h"
 #include "Curve.h"
 #include "InRing.h"
+#include "PerlinNoise.hpp"
 #include "Pulse.h"
 #include "Sawtooth.h"
 #include "Timer.h"
 
 using APA102::LED;
 using LEDI = APA102::LED<int>;
+
+static float constexpr pi	= std::acos(-1.0f);
+static float constexpr tau	= 2.0f * pi;
 
 static float constexpr phi	= (1.0f + std::sqrt(5.0f)) / 2.0f;
 static float constexpr sqrt2	= std::sqrt(2.0f);
@@ -33,7 +37,7 @@ static Sawtooth inMinuteOf(60.0f);
 static Sawtooth inHourOf  (60.0f * 60.0f);
 static Sawtooth inDayOf   (60.0f * 60.0f * 12.0f);	/// 12 hour clock
 
-char const * const CornholeArtTask::Mode::string[] {"score", "clock",};
+char const * const CornholeArtTask::Mode::string[] {"score", "clock", "noise"};
 CornholeArtTask::Mode::Mode(Value value_) : value(value_) {}
 CornholeArtTask::Mode::Mode(char const * value) : value(
     [value](){
@@ -84,85 +88,116 @@ void CornholeArtTask::update() {
     updateLedChannelRGB(*rgb++, blend[1](bumps(place * sqrt2)));
     updateLedChannelRGB(*rgb++, blend[2](bumps(place * 1.5f )));
 
-    float widthInRing[] {
-	width[0] / ringSize,
-	width[1] / ringSize,
-	width[2] / ringSize,
-    };
-
-    Shape shape_[3] {shape[0], shape[1], shape[2]};
-    float position[3] {};
-    switch (mode.value) {
-    case Mode::score: {
-	position[0] = score[0] / static_cast<float>(scoreMax);
-	position[1] = score[1] / static_cast<float>(scoreMax);
-	position[2] = position[0] - position[1];
-	if (score[0] != score[1]) {
-	    if (scoreMax <= score[0]) {
-		widthInRing[1]  = 0.0f;
-		widthInRing[0]  = 1.0f;
-		shape_[0] = Shape::Value::bloom;
-	    } else if (scoreMax <= score[1]) {
-		widthInRing[0]  = 0.0f;
-		widthInRing[1]  = 1.0f;
-		shape_[1] = Shape::Value::bloom;
-	    }
-	}
-	widthInRing[2] = 0.0f;
-    } break;
-    case Mode::clock: {
-	float secondsSinceTwelveLocaltime
-	    = smoothTime.millisecondsSinceTwelveLocaltime(microsecondsSinceBoot)
-		/ millisecondsPerSecond;
-	position[0] = hourPulse  (inDayOf   (secondsSinceTwelveLocaltime));
-	position[1] = minutePulse(inHourOf  (secondsSinceTwelveLocaltime));
-	position[2] = secondPulse(inMinuteOf(secondsSinceTwelveLocaltime));
-    } break;
-    }
-
     std::list<std::function<LEDI(float)>> renderList;
 
-    static float constexpr waveWidth = 2.0f / ringSize;
+    switch (mode.value) {
+    case Mode::Value::score:
+    case Mode::Value::clock: {
+	    float widthInRing[] {
+		width[0] / ringSize,
+		width[1] / ringSize,
+		width[2] / ringSize,
+	    };
 
-    static float constexpr scale[] {
-	phi	/ 1.5f,		//  > 1.0
-	sqrt2	/ 1.5f,		//  < 1.0
-	1.5f	/ 1.5f,		// == 1.0
-    };
-
-    for (size_t index = 0; index < 3; ++index) {
-	if (widthInRing[index]) {
-	    switch (shape_[index].value) {
-	    case Shape::Value::bell: {
-		    BellCurve<Dial> dial(position[index], widthInRing[index]);
-		    renderList.push_back([&blend, index, dial](float place){
-			return blend[index](dial(place));
-		    });
-		}
-		break;
-	    case Shape::Value::wave: {
-		    BellStandingWaveDial dial(position[index],
-			widthInRing[index],
-			scale[index] * secondsSinceBoot * waveWidth / 2.0f,
-			waveWidth);
-		    renderList.push_back([&blend, index, dial](float place){
-			return blend[index](dial(place));
-		    });
-		}
-		break;
-	    case Shape::Value::bloom: {
-		    Dial dial(position[index]);
-		    BumpCurve bump(0.0f, widthInRing[index]);
-		    BloomCurve bloom(0.0f, widthInRing[index],
-			scale[index] * secondsSinceBoot / 2.0f);
-		    renderList.push_back([&blend, index, dial, bump, bloom](float place){
-			float offset = dial(place);
-			return blend[index](bump(offset) * bloom(offset));
-		    });
-		}
+	    Shape shape_[3] {shape[0], shape[1], shape[2]};
+	    float position[3] {};
+	    switch (mode.value) {
+	    case Mode::score: {
+		    position[0] = score[0] / static_cast<float>(scoreMax);
+		    position[1] = score[1] / static_cast<float>(scoreMax);
+		    position[2] = position[0] - position[1];
+		    if (score[0] != score[1]) {
+			if (scoreMax <= score[0]) {
+			    widthInRing[1]  = 0.0f;
+			    widthInRing[0]  = 1.0f;
+			    shape_[0] = Shape::Value::bloom;
+			} else if (scoreMax <= score[1]) {
+			    widthInRing[0]  = 0.0f;
+			    widthInRing[1]  = 1.0f;
+			    shape_[1] = Shape::Value::bloom;
+			}
+		    }
+		    widthInRing[2] = 0.0f;
+		} break;
+	    case Mode::clock: {
+		    float secondsSinceTwelveLocaltime
+			= smoothTime.millisecondsSinceTwelveLocaltime(
+				microsecondsSinceBoot)
+			    / millisecondsPerSecond;
+		    position[0] = hourPulse  (inDayOf   (
+			secondsSinceTwelveLocaltime));
+		    position[1] = minutePulse(inHourOf  (
+			secondsSinceTwelveLocaltime));
+		    position[2] = secondPulse(inMinuteOf(
+			secondsSinceTwelveLocaltime));
+		} break;
+	    case Mode::noise:
 		break;
 	    }
-	}
+
+	    static float constexpr waveWidth = 2.0f / ringSize;
+
+	    static float constexpr scale[] {
+		phi	/ 1.5f,		//  > 1.0
+		sqrt2	/ 1.5f,		//  < 1.0
+		1.5f	/ 1.5f,		// == 1.0
+	    };
+
+	    for (size_t index = 0; index < 3; ++index) {
+		if (widthInRing[index]) {
+		    switch (shape_[index].value) {
+		    case Shape::Value::bell: {
+			    BellCurve<Dial> dial(
+				position[index], widthInRing[index]);
+			    renderList.push_back([&blend, index, dial](
+				    float place){
+				return blend[index](dial(place));
+			    });
+			}
+			break;
+		    case Shape::Value::wave: {
+			    BellStandingWaveDial dial(position[index],
+				widthInRing[index],
+				scale[index] * secondsSinceBoot * waveWidth
+				    / 2.0f,
+				waveWidth);
+			    renderList.push_back([&blend, index, dial](
+				    float place){
+				return blend[index](dial(place));
+			    });
+			}
+			break;
+		    case Shape::Value::bloom: {
+			    Dial dial(position[index]);
+			    BumpCurve bump(0.0f, widthInRing[index]);
+			    BloomCurve bloom(0.0f, widthInRing[index],
+				scale[index] * secondsSinceBoot / 2.0f);
+			    renderList.push_back([
+				    &blend, index, dial, bump, bloom](
+				    float place){
+				float offset = dial(place);
+				return blend[index](
+				    bump(offset) * bloom(offset));
+			    });
+			}
+			break;
+		    }
+		}
+	    }
+	} break;
+    case Mode::Value::noise: {
+	    static std::mt19937 generator;
+	    static PerlinNoise r(generator), g(generator), b(generator);
+	    float z = secondsSinceBoot / 4.0f;
+	    renderList.push_back([z](float place){
+		float x = std::cos(tau * place);
+		float y = std::sin(tau * place);
+		return LEDI(
+		    255 * r.noise(x, y, z),
+		    255 * g.noise(x, y, z),
+		    255 * b.noise(x, y, z));
+	    });
+	} break;
     }
 
     static LEDI white(255, 255, 255);

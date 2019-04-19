@@ -158,6 +158,7 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 					<select id='mode' name='mode'>
 						<option value='score'>Score</option>
 						<option value='clock'>Clock</option>
+						<option value='noise'>Noise</option>
 					</select>
 				</div>
 			</fieldset>

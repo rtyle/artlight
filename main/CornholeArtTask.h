@@ -26,7 +26,7 @@ private:
     private:
 	static char const * const string[];
     public:
-	enum Value {score, clock} value;
+	enum Value {score, clock, noise} value;
 	Mode(Value);
 	Mode(char const *);
 	char const * toString() const;
