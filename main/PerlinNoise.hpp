@@ -101,12 +101,12 @@ public:
 
 	float noise(float x) const
 	{
-		return noise(x, 0.0, 0.0);
+		return noise(x, 0.0f, 0.0f);
 	}
 
 	float noise(float x, float y) const
 	{
-		return noise(x, y, 0.0);
+		return noise(x, y, 0.0f);
 	}
 
 	float noise(float x, float y, float z) const
@@ -138,14 +138,14 @@ public:
 
 	float octaveNoise(float x, std::int32_t octaves) const
 	{
-		float result = 0.0;
-		float amp = 1.0;
+		float result = 0.0f;
+		float amp = 1.0f;
 
 		for (std::int32_t i = 0; i < octaves; ++i)
 		{
 			result += noise(x) * amp;
-			x *= 2.0;
-			amp *= 0.5;
+			x *= 2.0f;
+			amp *= 0.5f;
 		}
 
 		return result;
@@ -153,15 +153,15 @@ public:
 
 	float octaveNoise(float x, float y, std::int32_t octaves) const
 	{
-		float result = 0.0;
-		float amp = 1.0;
+		float result = 0.0f;
+		float amp = 1.0f;
 
 		for (std::int32_t i = 0; i < octaves; ++i)
 		{
 			result += noise(x, y) * amp;
-			x *= 2.0;
-			y *= 2.0;
-			amp *= 0.5;
+			x *= 2.0f;
+			y *= 2.0f;
+			amp *= 0.5f;
 		}
 
 		return result;
@@ -169,16 +169,16 @@ public:
 
 	float octaveNoise(float x, float y, float z, std::int32_t octaves) const
 	{
-		float result = 0.0;
-		float amp = 1.0;
+		float result = 0.0f;
+		float amp = 1.0f;
 
 		for (std::int32_t i = 0; i < octaves; ++i)
 		{
 			result += noise(x, y, z) * amp;
-			x *= 2.0;
-			y *= 2.0;
-			z *= 2.0;
-			amp *= 0.5;
+			x *= 2.0f;
+			y *= 2.0f;
+			z *= 2.0f;
+			amp *= 0.5f;
 		}
 
 		return result;
@@ -186,31 +186,31 @@ public:
 
 	float noise0_1(float x) const
 	{
-		return noise(x) * 0.5 + 0.5;
+		return noise(x) * 0.5f + 0.5f;
 	}
 
 	float noise0_1(float x, float y) const
 	{
-		return noise(x, y) * 0.5 + 0.5;
+		return noise(x, y) * 0.5f + 0.5f;
 	}
 
 	float noise0_1(float x, float y, float z) const
 	{
-		return noise(x, y, z) * 0.5 + 0.5;
+		return noise(x, y, z) * 0.5f + 0.5f;
 	}
 
 	float octaveNoise0_1(float x, std::int32_t octaves) const
 	{
-		return octaveNoise(x, octaves) * 0.5 + 0.5;
+		return octaveNoise(x, octaves) * 0.5f + 0.5f;
 	}
 
 	float octaveNoise0_1(float x, float y, std::int32_t octaves) const
 	{
-		return octaveNoise(x, y, octaves) * 0.5 + 0.5;
+		return octaveNoise(x, y, octaves) * 0.5f + 0.5f;
 	}
 
 	float octaveNoise0_1(float x, float y, float z, std::int32_t octaves) const
 	{
-		return octaveNoise(x, y, z, octaves) * 0.5 + 0.5;
+		return octaveNoise(x, y, z, octaves) * 0.5f + 0.5f;
 	}
 };
