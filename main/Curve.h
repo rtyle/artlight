@@ -85,6 +85,7 @@ public:
 /// BloomCurve is a Curve whose function object is
 /// a modified sine(width/place + phase) function (bloom),
 /// offset at position.
+/// https://www.desmos.com/calculator/n0uxcq9m5f
 /// Width measures the distance between the first and the last peaks (petals)
 /// when phase is 0.
 /// The peaks (petals) get closer and closer as curve's position is approached.
