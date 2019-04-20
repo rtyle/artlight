@@ -190,8 +190,9 @@ void CornholeArtTask::update() {
 	    static PerlinNoise r(generator), g(generator), b(generator);
 	    float z = secondsSinceBoot / 4.0f;
 	    renderList.push_back([z](float place){
-		float x = std::cos(tau * place);
-		float y = std::sin(tau * place);
+		static float radius = 0.5f;
+		float x = radius * std::cos(tau * place);
+		float y = radius * std::sin(tau * place);
 		return LEDI(
 		    255 * r.noise(x, y, z),
 		    255 * g.noise(x, y, z),
