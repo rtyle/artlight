@@ -186,17 +186,20 @@ void CornholeArtTask::update() {
 	    }
 	} break;
     case Mode::Value::noise: {
+	    // cut RGB cylinders through Perlin noise space/time
 	    static std::mt19937 generator;
 	    static PerlinNoise r(generator), g(generator), b(generator);
-	    float z = secondsSinceBoot / 4.0f;
+	    float z = secondsSinceBoot;
 	    renderList.push_back([z](float place){
-		static float radius = 0.5f;
+		static float constexpr radius = 0.5f;
 		float x = radius * std::cos(tau * place);
 		float y = radius * std::sin(tau * place);
+		static int constexpr max = 128;
+		static int constexpr octaves = 1;
 		return LEDI(
-		    255 * r.noise(x, y, z),
-		    255 * g.noise(x, y, z),
-		    255 * b.noise(x, y, z));
+		    max * r.octaveNoise0_1(x, y, z, octaves),
+		    max * g.octaveNoise0_1(x, y, z, octaves),
+		    max * b.octaveNoise0_1(x, y, z, octaves));
 	    });
 	} break;
     }
