@@ -114,3 +114,13 @@ public:
     RippleCurve(float position, float width);
     float operator()(float place) const override;
 };
+
+/// SawtoothCurve is a Curve whose function object defined by its period.
+/// Its output ranges from 0 to <1.
+class SawtoothCurve : public Curve {
+private:
+    float period;
+public:
+    SawtoothCurve(float position = 0.0f, float period = 1.0f);
+    float operator()(float place) const override;
+};

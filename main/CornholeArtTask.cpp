@@ -11,7 +11,6 @@
 #include "InRing.h"
 #include "PerlinNoise.hpp"
 #include "Pulse.h"
-#include "Sawtooth.h"
 #include "Timer.h"
 
 using APA102::LED;
@@ -32,10 +31,10 @@ static Pulse hourPulse	(0);//12);
 static Pulse minutePulse(0);//60);
 static Pulse secondPulse(0);//60);
 
-static Sawtooth inSecondOf(1.0f);
-static Sawtooth inMinuteOf(60.0f);
-static Sawtooth inHourOf  (60.0f * 60.0f);
-static Sawtooth inDayOf   (60.0f * 60.0f * 12.0f);	/// 12 hour clock
+static SawtoothCurve inSecondOf(0.0f, 1.0f);
+static SawtoothCurve inMinuteOf(0.0f, 60.0f);
+static SawtoothCurve inHourOf  (0.0f, 60.0f * 60.0f);
+static SawtoothCurve inDayOf   (0.0f, 60.0f * 60.0f * 12.0f);	/// 12 hour clock
 
 char const * const CornholeArtTask::Mode::string[] {"score", "clock", "noise"};
 CornholeArtTask::Mode::Mode(Value value_) : value(value_) {}

@@ -114,3 +114,13 @@ float RippleCurve<T>::operator()(float place) const {
 }
 template float RippleCurve<>::operator()(float place) const;
 template float RippleCurve<Dial>::operator()(float place) const;
+#include <cmath>
+
+SawtoothCurve::SawtoothCurve(float position, float period_)
+    : Curve(position), period(period_) {}
+
+float SawtoothCurve::operator()(float place) const {
+    float offset = std::abs(Curve::operator()(place));
+    float ignore;
+    return std::modf(offset / period, &ignore);
+}
