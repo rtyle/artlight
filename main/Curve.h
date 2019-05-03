@@ -33,28 +33,17 @@ public:
     float operator()(float place) const override;
 };
 
-/// BumpsCurve is a Curve whose function object composes
-/// a rectified cosine function (repeating bumps of width)
-/// after the Curve position offset.
-class BumpsCurve : Curve {
-private:
-    float const width;
-public:
-    BumpsCurve(float position = 0.0f, float width_ = 1.0f);
-    float operator()(float place) const override;
-};
-
 /// BellCurve is a Curve (of type T) whose function object composes
 /// a normal distribution function (bell)
 /// (http://wikipedia.org/wiki/Normal_distribution)
 /// after the Curve (of type T) position offset.
-/// Width is 2 * sigma.
+/// Width is 4 * sigma.
 template <typename T = Curve>
 class BellCurve : public T {
 private:
     float const twoSigmaSquared;
 public:
-    BellCurve(float position = 0.0f, float width /* 2 * sigma */ = 1.0f);
+    BellCurve(float position = 0.0f, float width /* 4 * sigma */ = 1.0f);
     float operator()(float place) const override;
 };
 
@@ -77,7 +66,7 @@ private:
     WaveDial const leftWaveDial;
 public:
     BellStandingWaveDial(
-	float position, float sigma, float wavePosition, float waveWidth);
+	float position, float width, float wavePosition, float waveWidth);
     float operator()(float place) const override;
 
 };

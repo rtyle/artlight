@@ -23,7 +23,7 @@ static float constexpr phi	= (1.0f + std::sqrt(5.0f)) / 2.0f;
 static float constexpr sqrt2	= std::sqrt(2.0f);
 
 static auto constexpr millisecondsPerSecond	= 1000u;
-static auto constexpr microsecondsPerSecond	= 1000000.0f;
+static auto constexpr microsecondsPerSecond	= 1000000u;
 
 static size_t constexpr ringSize = 80;
 
@@ -52,42 +52,53 @@ char const * CornholeArtTask::Mode::toString() const {
     return string[value];
 }
 
-void updateLedChannel(LEDC::Channel & ledChannel, uint32_t duty) {
+static void updateLedChannel(LEDC::Channel & ledChannel, uint32_t duty) {
     // do not use ledChannel.set_duty_and_update
     ledChannel.set_duty(duty);
     ledChannel.update_duty();
 }
 
-void updateLedChannelRGB(LEDC::Channel (&ledChannels)[3], LEDI const & color) {
+static void updateLedChannelRGB(LEDC::Channel (&ledChannels)[3], LEDI const & color) {
     LEDC::Channel * ledChannel = ledChannels;
     for (auto part: {color.part.red, color.part.green, color.part.blue}) {
 	updateLedChannel(*ledChannel++, part);
     }
 }
 
+static float phaseIn(uint64_t time, uint64_t period) {
+    return (time % period) / static_cast<float>(period);
+}
+
 static unsigned constexpr scoreMax = 21;
 
 void CornholeArtTask::update() {
-    uint64_t microsecondsSinceBoot = esp_timer_get_time();
-    float secondsSinceBoot = microsecondsSinceBoot / microsecondsPerSecond;
+    uint64_t const microsecondsSinceBoot = esp_timer_get_time();
 
-    static BumpsCurve bumps;
-
-    static LEDI black(0, 0, 0);
-    Blend<LEDI> blend[] {
+    static LEDI const black(0, 0, 0);
+    Blend<LEDI> const blend[] {
 	{black, color[0]},
 	{black, color[1]},
 	{black, color[2]},
     };
 
-    float place = secondsSinceBoot / 9.0f;
+    static float constexpr scale[] {
+	phi	/ 1.5f,		//  > 1.0
+	sqrt2	/ 1.5f,		//  < 1.0
+	1.5f	/ 1.5f,		// == 1.0
+    };
 
-    LEDC::Channel (*rgb)[3] = &ledChannel[0];
-    updateLedChannelRGB(*rgb++, blend[0](bumps(place * phi  )));
-    updateLedChannelRGB(*rgb++, blend[1](bumps(place * sqrt2)));
-    updateLedChannelRGB(*rgb++, blend[2](bumps(place * 1.5f )));
+    static BumpCurve const bump(0.5);
+    for (auto i = 0; i < 3; i++) {
+	updateLedChannelRGB(ledChannel[i], blend[i](bump(phaseIn(
+	    microsecondsSinceBoot, 6 * scale[i] * microsecondsPerSecond))));
+    }
 
     std::list<std::function<LEDI(float)>> renderList;
+
+    static std::mt19937 generator;
+    static PerlinNoise redNoise		(generator);
+    static PerlinNoise greenNoise	(generator);
+    static PerlinNoise blueNoise	(generator);
 
     switch (mode.value) {
     case Mode::Value::score:
@@ -136,12 +147,6 @@ void CornholeArtTask::update() {
 
 	    static float constexpr waveWidth = 2.0f / ringSize;
 
-	    static float constexpr scale[] {
-		phi	/ 1.5f,		//  > 1.0
-		sqrt2	/ 1.5f,		//  < 1.0
-		1.5f	/ 1.5f,		// == 1.0
-	    };
-
 	    for (size_t index = 0; index < 3; ++index) {
 		if (widthInRing[index]) {
 		    switch (shape_[index].value) {
@@ -157,8 +162,9 @@ void CornholeArtTask::update() {
 		    case Shape::Value::wave: {
 			    BellStandingWaveDial dial(position[index],
 				widthInRing[index],
-				scale[index] * secondsSinceBoot * waveWidth
-				    / 2.0f,
+				phaseIn(microsecondsSinceBoot,
+				    microsecondsPerSecond * 2.0f
+				    / scale[index] / waveWidth),
 				waveWidth);
 			    renderList.push_back([&blend, index, dial](
 				    float place){
@@ -170,7 +176,9 @@ void CornholeArtTask::update() {
 			    Dial dial(position[index]);
 			    BumpCurve bump(0.0f, widthInRing[index]);
 			    BloomCurve bloom(0.0f, widthInRing[index],
-				scale[index] * secondsSinceBoot / 2.0f);
+				phaseIn(microsecondsSinceBoot,
+				    microsecondsPerSecond * 2.0f
+				    / scale[index]));
 			    renderList.push_back([
 				    &blend, index, dial, bump, bloom](
 				    float place){
@@ -185,10 +193,13 @@ void CornholeArtTask::update() {
 	    }
 	} break;
     case Mode::Value::noise: {
-	    // cut RGB cylinders through Perlin noise space/time
-	    static std::mt19937 generator;
-	    static PerlinNoise r(generator), g(generator), b(generator);
-	    float z = secondsSinceBoot;
+#if 1
+	    // cut RGB cylinders through Perlin noise space/time.
+	    // Perlin noise at a (integer) grid point is 0
+	    // so we cut half way between them.
+	    // Perlin noise repeats every 256 units.
+	    float z = (microsecondsSinceBoot % (256 * microsecondsPerSecond))
+		/ static_cast<float>(microsecondsPerSecond);
 	    renderList.push_back([z](float place){
 		static float constexpr radius = 0.5f;
 		float x = radius * std::cos(tau * place);
@@ -196,10 +207,34 @@ void CornholeArtTask::update() {
 		static int constexpr max = 128;
 		static int constexpr octaves = 1;
 		return LEDI(
-		    max * r.octaveNoise0_1(x, y, z, octaves),
-		    max * g.octaveNoise0_1(x, y, z, octaves),
-		    max * b.octaveNoise0_1(x, y, z, octaves));
+		    max * redNoise	.octaveNoise0_1(x, y, z, octaves),
+		    max * greenNoise	.octaveNoise0_1(x, y, z, octaves),
+		    max * blueNoise	.octaveNoise0_1(x, y, z, octaves));
 	    });
+#else
+	for (unsigned index = 0u; index < 16u; ++index) {
+	    static unsigned constexpr period	= 16u * microsecondsPerSecond;
+	    static unsigned constexpr lifetime	= period / 2;
+	    static unsigned constexpr shift	= 1u * microsecondsPerSecond;
+	    uint64_t time = microsecondsSinceBoot + index * shift;
+	    unsigned age = time % period;
+	    float fade = age < lifetime
+		? 1.0f - age / static_cast<float>(lifetime)
+		: 0.0f;
+	    static int constexpr max = 255;
+	    static int constexpr octaves = 1;
+	    float x = 0.5f + index;
+	    float y = 0.5f + time / period;
+	    Blend<LEDI> blend(black, LEDI(
+		max * redNoise	.octaveNoise0_1(x, y, octaves),
+		max * greenNoise.octaveNoise0_1(x, y, octaves),
+		max * blueNoise	.octaveNoise0_1(x, y, octaves)));
+	    BellCurve<Dial> dial(index * phi, 4.0f / ringSize);
+	    renderList.push_back([fade, blend, dial](float place){
+		return blend(fade * dial(place));
+	    });
+	}
+#endif
 	} break;
     }
 
@@ -208,7 +243,7 @@ void CornholeArtTask::update() {
 
     float secondsSinceHoleEvent
 	= (microsecondsSinceBoot - microsecondsSinceBootOfHoleEvent)
-	    / microsecondsPerSecond;
+	    / static_cast<float>(microsecondsPerSecond);
     if (8.0f > secondsSinceHoleEvent) {
 	float dialInTime = BumpCurve(0.0f, 16.0f)(secondsSinceHoleEvent);
 	Dial dialInSpace(0.0f);
@@ -223,7 +258,7 @@ void CornholeArtTask::update() {
     } else {
 	float secondsSinceBoardEvent
 	    = (microsecondsSinceBoot - microsecondsSinceBootOfBoardEvent)
-		/ microsecondsPerSecond;
+		/ static_cast<float>(microsecondsPerSecond);
 	if (4.0f > secondsSinceBoardEvent) {
 	    // seed a random number generator with microsecondsSinceBootOfBoardEvent
 	    // to play out the animation until a board event occurs at another time

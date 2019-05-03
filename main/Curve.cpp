@@ -36,16 +36,9 @@ float BumpCurve::operator()(float place) const {
     return std::max(0.0f, 1 - x * x);
 }
 
-BumpsCurve::BumpsCurve(float position, float width_)
-    : Curve(position), width(2.0f * width_) {}
-
-float BumpsCurve::operator()(float place) const {
-    return std::abs(std::cos(tau * Curve::operator()(place) / width));
-}
-
 template <typename T>
-BellCurve<T>::BellCurve(float position, float width /* 2 * sigma */)
-    : T(position), twoSigmaSquared(width * width / 2.0f) {}
+BellCurve<T>::BellCurve(float position, float width /* 4 * sigma */)
+    : T(position), twoSigmaSquared(width * width / 8.0f) {}
 template BellCurve<>::BellCurve(float, float);
 template BellCurve<Dial>::BellCurve(float, float);
 
@@ -67,11 +60,11 @@ float WaveDial::operator()(float place) const {
 
 BellStandingWaveDial::BellStandingWaveDial(
     float position,
-    float sigma,
+    float width,
     float wavePosition,
     float waveWidth)
 :
-    BellCurve<Dial>(position, sigma),
+    BellCurve<Dial>(position, width),
     rightWaveDial(wavePosition, waveWidth),
     leftWaveDial(-wavePosition, waveWidth)
 {}
