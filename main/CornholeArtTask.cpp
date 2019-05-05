@@ -96,8 +96,8 @@ void CornholeArtTask::update() {
 
     std::list<std::function<LEDI(float)>> renderList;
 
-    // Perlin noise at a (integer) grid point is 0
-    // so we cut half way between them.
+    // Perlin noise at a (integer) grid point is 0.
+    // To avoid this, cut between them.
     // Perlin noise repeats every 256 units.
     static std::mt19937 generator;
     static PerlinNoise perlinNoise[] {generator, generator, generator, generator};
@@ -196,7 +196,6 @@ void CornholeArtTask::update() {
 	    }
 	} break;
     case Mode::Value::slide: {
-#if 1
 	    // cut RGB cylinders through Perlin noise space/time.
 	    float z = (microsecondsSinceBoot % (256 * microsecondsPerSecond))
 		/ static_cast<float>(microsecondsPerSecond);
@@ -211,34 +210,10 @@ void CornholeArtTask::update() {
 		    max * perlinNoise[1].octaveNoise0_1(x, y, z, octaves),
 		    max * perlinNoise[2].octaveNoise0_1(x, y, z, octaves));
 	    });
-#else
-	for (unsigned index = 0u; index < 16u; ++index) {
-	    static unsigned constexpr period	= 16u * microsecondsPerSecond;
-	    static unsigned constexpr lifetime	= period / 2;
-	    static unsigned constexpr shift	= 1u * microsecondsPerSecond;
-	    uint64_t time = microsecondsSinceBoot + index * shift;
-	    unsigned age = time % period;
-	    float fade = age < lifetime
-		? 1.0f - age / static_cast<float>(lifetime)
-		: 0.0f;
-	    static int constexpr max = 255;
-	    static int constexpr octaves = 1;
-	    float x = 0.5f + index;
-	    float y = 0.5f + time / period;
-	    Blend<LEDI> blend(black, LEDI(
-		max * redNoise	.octaveNoise0_1(x, y, octaves),
-		max * greenNoise.octaveNoise0_1(x, y, octaves),
-		max * blueNoise	.octaveNoise0_1(x, y, octaves)));
-	    BellCurve<Dial> dial(index * phi, 4.0f / ringSize);
-	    renderList.push_back([fade, blend, dial](float place){
-		return blend(fade * dial(place));
-	    });
-	}
-#endif
 	} break;
     case Mode::Value::spin: {
-	    uint64_t t = microsecondsSinceBoot / 8;
-	    float x = (t % (256 * microsecondsPerSecond))
+	    float x = (microsecondsSinceBoot
+		    % (256 * microsecondsPerSecond))
 		/ static_cast<float>(microsecondsPerSecond);
 	    static int constexpr max = 128;
 	    static int constexpr octaves = 1;
@@ -247,9 +222,14 @@ void CornholeArtTask::update() {
 		max * perlinNoise[1].octaveNoise0_1(x, 0.5f, octaves),
 		max * perlinNoise[2].octaveNoise0_1(x, 0.5f, octaves));
 	    Blend<LEDI> blend(black, color);
-	    float w = 16.0f * perlinNoise[3].octaveNoise0_1(x, 0.0f, octaves)
+	    float w = 16.0f * perlinNoise[3].octaveNoise0_1(
+		    ((microsecondsSinceBoot / 128)
+			    % (256 * microsecondsPerSecond))
+		    	/ static_cast<float>(microsecondsPerSecond),
+		    0.0f, octaves)
 		/ ringSize;
-	    float position = phaseIn(t, microsecondsPerSecond * 2.0f / w);
+	    float position = phaseIn(microsecondsSinceBoot,
+		microsecondsPerSecond * 2.0f / w);
 	    WaveDial right(position, w), left(-position, w);
 	    renderList.push_back([blend, right, left](float place){
 		return blend(right(place) + left(place) / 2.0f);
