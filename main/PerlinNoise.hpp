@@ -57,13 +57,13 @@ private:
 
 public:
 
-	explicit PerlinNoise(std::uint32_t seed = std::default_random_engine::default_seed)
+	PerlinNoise(std::uint32_t seed = std::default_random_engine::default_seed)
 	{
 		reseed(seed);
 	}
 
 	template <class URNG>
-	explicit PerlinNoise(URNG& urng)
+	PerlinNoise(URNG& urng)
 	{
 		reseed(urng);
 	}
