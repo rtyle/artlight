@@ -36,7 +36,8 @@ static SawtoothCurve inMinuteOf(0.0f, 60.0f);
 static SawtoothCurve inHourOf  (0.0f, 60.0f * 60.0f);
 static SawtoothCurve inDayOf   (0.0f, 60.0f * 60.0f * 12.0f);	/// 12 hour clock
 
-char const * const CornholeArtTask::Mode::string[] {"score", "clock", "noise"};
+char const * const CornholeArtTask::Mode::string[]
+    {"score", "clock", "slide", "spin"};
 CornholeArtTask::Mode::Mode(Value value_) : value(value_) {}
 CornholeArtTask::Mode::Mode(char const * value) : value(
     [value](){
@@ -96,9 +97,7 @@ void CornholeArtTask::update() {
     std::list<std::function<LEDI(float)>> renderList;
 
     static std::mt19937 generator;
-    static PerlinNoise redNoise		(generator);
-    static PerlinNoise greenNoise	(generator);
-    static PerlinNoise blueNoise	(generator);
+    static PerlinNoise perlinNoise[] {generator, generator, generator, generator};
 
     switch (mode.value) {
     case Mode::Value::score:
@@ -141,7 +140,8 @@ void CornholeArtTask::update() {
 		    position[2] = secondPulse(inMinuteOf(
 			secondsSinceTwelveLocaltime));
 		} break;
-	    case Mode::noise:
+	    case Mode::slide:
+	    case Mode::spin:
 		break;
 	    }
 
@@ -192,7 +192,7 @@ void CornholeArtTask::update() {
 		}
 	    }
 	} break;
-    case Mode::Value::noise: {
+    case Mode::Value::slide: {
 #if 1
 	    // cut RGB cylinders through Perlin noise space/time.
 	    // Perlin noise at a (integer) grid point is 0
@@ -207,9 +207,9 @@ void CornholeArtTask::update() {
 		static int constexpr max = 128;
 		static int constexpr octaves = 1;
 		return LEDI(
-		    max * redNoise	.octaveNoise0_1(x, y, z, octaves),
-		    max * greenNoise	.octaveNoise0_1(x, y, z, octaves),
-		    max * blueNoise	.octaveNoise0_1(x, y, z, octaves));
+		    max * perlinNoise[0].octaveNoise0_1(x, y, z, octaves),
+		    max * perlinNoise[1].octaveNoise0_1(x, y, z, octaves),
+		    max * perlinNoise[2].octaveNoise0_1(x, y, z, octaves));
 	    });
 #else
 	for (unsigned index = 0u; index < 16u; ++index) {
@@ -235,6 +235,25 @@ void CornholeArtTask::update() {
 	    });
 	}
 #endif
+	} break;
+    case Mode::Value::spin: {
+	    uint64_t t = microsecondsSinceBoot / 4;
+	    // Perlin noise repeats every 256 units.
+	    float x = (t % (256 * microsecondsPerSecond))
+		/ static_cast<float>(microsecondsPerSecond);
+	    static int constexpr max = 255;
+	    static int constexpr octaves = 1;
+	    LEDI color(
+		max * perlinNoise[0].octaveNoise0_1(x, octaves),
+		max * perlinNoise[1].octaveNoise0_1(x, octaves),
+		max * perlinNoise[2].octaveNoise0_1(x, octaves));
+	    Blend<LEDI> blend(black, color);
+	    float w = 16.0f * perlinNoise[3].octaveNoise0_1(x, octaves) / ringSize;
+	    float position = phaseIn(t, microsecondsPerSecond * 2.0f / w);
+	    WaveDial right(position, w), left(-position, w);
+	    renderList.push_back([blend, right, left](float place){
+		return blend(right(place) + left(place) / 2.0f);
+	    });
 	} break;
     }
 
