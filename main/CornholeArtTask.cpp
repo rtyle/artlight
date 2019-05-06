@@ -226,19 +226,22 @@ void CornholeArtTask::update() {
 		maxBrightness * perlinNoise[1].octaveNoise0_1(x, 0.5f, octaves),
 		maxBrightness * perlinNoise[2].octaveNoise0_1(x, 0.5f, octaves));
 	    Blend<LEDI> blend(black, color);
-	    float w = (8.0f + 8.0f * perlinNoise[3].octaveNoise0_1(
+	    static float constexpr minWidth = 8.0f;
+	    static float constexpr varWidth = 8.0f;
+	    // a change in the standing wave width will cause it to spin
+	    float width = (minWidth + varWidth * perlinNoise[3].octaveNoise0_1(
 		    ((microsecondsSinceBoot / 2u)
 			    % perlinNoisePeriodMicroseconds)
 			/ static_cast<float>(microsecondsPerSecond),
 		    0.0f, octaves)
 		) / ringSize;
-	    unsigned period = 4u * microsecondsPerSecond / w;
+	    unsigned period = 4u * microsecondsPerSecond / width;
 	    uint64_t microsecondsSinceLastPeriod
 		= microsecondsSinceBoot - microsecondsSinceBootOfLastPeriod;
 	    unsigned offset = microsecondsSinceLastPeriod % period;
 	    microsecondsSinceBootOfLastPeriod = microsecondsSinceBoot - offset;
 	    float position = offset / static_cast<float>(period);
-	    WaveDial right(position, w), left(-position, w);
+	    WaveDial right(position, width), left(-position, width);
 	    renderList.push_back([blend, right, left](float place){
 		return blend(right(place) + left(place) / 2.0f);
 	    });
