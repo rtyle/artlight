@@ -27,9 +27,9 @@ static unsigned constexpr microsecondsPerSecond	= 1000000u;
 
 static size_t constexpr ringSize = 80;
 
-static Pulse hourPulse	(0);//12);
-static Pulse minutePulse(0);//60);
-static Pulse secondPulse(0);//60);
+static Pulse hourPulse	(12);
+static Pulse minutePulse(60);
+static Pulse secondPulse(60);
 
 static SawtoothCurve inSecondOf(0.0f, 1.0f);
 static SawtoothCurve inMinuteOf(0.0f, 60.0f);
@@ -139,7 +139,7 @@ void CornholeArtTask::update() {
 		    float secondsSinceTwelveLocaltime
 			= smoothTime.millisecondsSinceTwelveLocaltime(
 				microsecondsSinceBoot)
-			    / millisecondsPerSecond;
+			    / static_cast<float>(millisecondsPerSecond);
 		    position[0] = hourPulse  (inDayOf   (
 			secondsSinceTwelveLocaltime));
 		    position[1] = minutePulse(inHourOf  (
