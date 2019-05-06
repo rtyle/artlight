@@ -97,7 +97,7 @@ void CornholeArtTask::update() {
     std::list<std::function<LEDI(float)>> renderList;
 
     // construct static PerlinNoise objects
-    static std::mt19937 rng(0);
+    static std::mt19937 rng;
     static PerlinNoise perlinNoise[] {rng, rng, rng, rng};
     // Perlin noise repeats every 256 units.
     static unsigned constexpr perlinNoisePeriod = 256;
@@ -227,7 +227,7 @@ void CornholeArtTask::update() {
 		maxBrightness * perlinNoise[2].octaveNoise0_1(x, 0.5f, octaves));
 	    Blend<LEDI> blend(black, color);
 	    float w = (8.0f + 8.0f * perlinNoise[3].octaveNoise0_1(
-		    ((microsecondsSinceBoot / 8u)
+		    ((microsecondsSinceBoot / 2u)
 			    % perlinNoisePeriodMicroseconds)
 			/ static_cast<float>(microsecondsPerSecond),
 		    0.0f, octaves)
