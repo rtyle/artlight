@@ -36,6 +36,7 @@ private:
 
     uint64_t microsecondsSinceBootOfBoardEvent;
     uint64_t microsecondsSinceBootOfHoleEvent;
+    uint64_t microsecondsSinceBootOfLastPeriod;
 
     void boardEvent();
     void holeEvent();
