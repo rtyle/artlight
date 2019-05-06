@@ -222,12 +222,12 @@ void CornholeArtTask::update() {
 		maxBrightness * perlinNoise[1].octaveNoise0_1(x, 0.5f, octaves),
 		maxBrightness * perlinNoise[2].octaveNoise0_1(x, 0.5f, octaves));
 	    Blend<LEDI> blend(black, color);
-	    static unsigned constexpr maxWidth = 16;
-	    float w = maxWidth * perlinNoise[3].octaveNoise0_1(
+	    float w = (8.0f + 8.0f * perlinNoise[3].octaveNoise0_1(
 		    ((microsecondsSinceBoot / 8)
 			    % (256 * microsecondsPerSecond))
 		    	/ static_cast<float>(microsecondsPerSecond),
-		    0.0f, octaves) / ringSize;
+		    0.0f, octaves)
+		) / ringSize;
 	    float position = phaseIn(microsecondsSinceBoot,
 		microsecondsPerSecond * 2.0f / w);
 	    WaveDial right(position, w), left(-position, w);
