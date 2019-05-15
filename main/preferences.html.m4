@@ -274,7 +274,7 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 				<input type='submit'/>
 			</div>
 		</form>
-		<div>syscmd(date | tr -d '\n')</div>
+		<div>Version: syscmd(date | tr -d '\n')</div>
 		</div>
 	</body>
 </html>
