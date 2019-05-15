@@ -121,7 +121,7 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 				});
 				$('#data'	)	.click(function() {fill('data'		)});
 				$('#dataDefault')	.click(function() {fill('dataDefault'	)});
-				$('#otaStart'	)	.click(function() {
+				$('#_otaStart'	)	.click(function() {
 					$.ajax({type: 'POST', data: {
 						otaUrl: $('#otaUrl').val(),
 						[this.id]: '1',
@@ -267,7 +267,7 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 					<input type='text' id='otaUrl' name='otaUrl' required='true' minlength='7' maxlength='64' placeholder='https://server:port/image.bin'/>
 				</div>
 				<div>
-					<input type='button' id='otaStart' value='Start'/>
+					<input type='button' id='_otaStart' value='Start'/>
 				</div>
 			</fieldset>
 			<div>

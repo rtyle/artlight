@@ -24,7 +24,7 @@ OtaTask::OtaTask(
 	    });
 	}),
     otaStartObserverEntered	(0),
-    otaStartObserver		(keyValueBroker, "otaStart", "0",
+    otaStartObserver		(keyValueBroker, "_otaStart", "0",
 	[this](char const * startObserved){
 	    if (otaStartObserverEntered) return;
 	    ++otaStartObserverEntered;
@@ -32,7 +32,7 @@ OtaTask::OtaTask(
 	    if (start) {
 		// acknowledge start.
 		// this will cause us to be reentered, which we guard against
-		keyValueBroker.publish("otaStart", "0");
+		keyValueBroker.publish("_otaStart", "0");
 	    }
 	    --otaStartObserverEntered;
 	    io.post([this, start](){
