@@ -397,10 +397,11 @@ CornholeArtTask::CornholeArtTask(
     pinISR(),
     pinTask("pinTask", 5, 4096, tskNO_AFFINITY, 128),
     pin {
-	{GPIO_NUM_5 , GPIO_MODE_INPUT, GPIO_PULLUP_ENABLE,
-	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask},
+	// see GPIO36 workaround below
 	{GPIO_NUM_36, GPIO_MODE_INPUT, GPIO_PULLUP_DISABLE,
 	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_DISABLE, pinTask},
+	{GPIO_NUM_5 , GPIO_MODE_INPUT, GPIO_PULLUP_ENABLE,
+	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask},
 	{GPIO_NUM_15, GPIO_MODE_INPUT, GPIO_PULLUP_ENABLE,
 	    GPIO_PULLDOWN_DISABLE, GPIO_INTR_ANYEDGE, pinTask},
 	{GPIO_NUM_34, GPIO_MODE_INPUT, GPIO_PULLUP_DISABLE,
@@ -430,14 +431,14 @@ CornholeArtTask::CornholeArtTask(
     ledTimerLowSpeed (LEDC_LOW_SPEED_MODE , LEDC_TIMER_8_BIT),
     ledChannel {
 	{
-	    {ledTimerHighSpeed, GPIO_NUM_19, 255},
-	    {ledTimerHighSpeed, GPIO_NUM_16, 255},
-	    {ledTimerHighSpeed, GPIO_NUM_17, 255},
-	},
-	{
 	    {ledTimerHighSpeed, GPIO_NUM_4 , 255},
 	    {ledTimerHighSpeed, GPIO_NUM_25, 255},
 	    {ledTimerHighSpeed, GPIO_NUM_26, 255},
+	},
+	{
+	    {ledTimerHighSpeed, GPIO_NUM_19, 255},
+	    {ledTimerHighSpeed, GPIO_NUM_16, 255},
+	    {ledTimerHighSpeed, GPIO_NUM_17, 255},
 	},
 	{
 	    {ledTimerLowSpeed, GPIO_NUM_33, 255},
@@ -503,14 +504,14 @@ void CornholeArtTask::start() {
     //		When enabling power for any of these peripherals,
     //		ignore input from GPIO36 and GPIO39.
     //
-    // Unfortunately, we are using GPIO36 (pin[1]) and, we assume,
+    // Unfortunately, we are using GPIO36 (pin[0]) and, we assume,
     // SARADC2 (Successive Approximation Register Analog to Digital Converter 2)
     // has been powered on to support WI-FI.
-    // To workaround this bug, pin[1] was constructed with interrupts disabled.
+    // To workaround this bug, pin[0] was constructed with interrupts disabled.
     // We assume that we are past the 80ns pull-down and enable interrupts now.
     // We must be on the same CPU that the GPIO ISR service was installed
     // on (our pinISR was (we were) constructed on).
-    ObservablePin &pin36(pin[1]);
+    ObservablePin &pin36(pin[0]);
     pin36.set_intr_type(GPIO_INTR_ANYEDGE);
     pin36.intr_enable();
     AsioTask::start();
