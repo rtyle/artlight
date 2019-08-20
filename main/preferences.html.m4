@@ -34,13 +34,23 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 		<script src='https://cdnjs.cloudflare.com/ajax/libs/jQuery-Knob/1.2.13/jquery.knob.min.js'></script>
 »)dnl
 		<script>
+			var ignoreKnobRelease = false;
 			function update(idValues) {
 				for (const [id, value] of Object.entries(idValues)) {
 					console.log(id + '=' + value);
 					$('#' + id).not('input[type="button"]').val(value);
 ifelse(«cornhole», ArtLightApplication, «dnl
+
+					// to affect display of a changed knob value we must trigger a change event.
+					// however, a side effect of doing so is a manufactured release event.
+					// inhibit our release event handler from POSTing back a change to the server
+					// as this is where the value came from in the first place
+					// and doing so might result in nasty recursive looping.
+					ignoreKnobRelease = true;
 					if (id == 'aScore') {$('#aScore').trigger('change')}
 					if (id == 'bScore') {$('#bScore').trigger('change')}
+					ignoreKnobRelease = false;
+
 					if (id == 'aColor') {$('#aScore').trigger('configure', {'fgColor': value})}
 					if (id == 'bColor') {$('#bScore').trigger('configure', {'fgColor': value})}
 »)dnl
@@ -81,7 +91,9 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 					'thickness':    '.3',
 					'bgColor':	'black',
 					'release': function(value) {
-						$.ajax({type: 'POST', data: {[this.$.attr('id')]: value}})
+						if (!ignoreKnobRelease) {
+							$.ajax({type: 'POST', data: {[this.$.attr('id')]: value}})
+						}
 					}
 				});
 				var toKnob = {
@@ -133,7 +145,9 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 						$.ajax({type: 'POST', data: {[this.id]: this.value}})
 					}
 				});
-				$('select').on('input', function(e) {$.ajax({type: 'POST', data: {[this.id]: this.value}})});
+				$('select').on('input', function(e) {
+					$.ajax({type: 'POST', data: {[this.id]: this.value}})
+				});
 				fill('data');
 				new WebSocket('ws://' + window.location.hostname + ':81').onmessage = function(e) {update(JSON.parse(e.data))}
 			});

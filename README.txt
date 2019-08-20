@@ -134,3 +134,12 @@
 		git pull origin
 		git checkout v3.2
 		git submodule update --init --recursive
+
+
+# make from command line
+
+	PATH=$PATH:$HOME/esp/xtensa-esp32-elf/bin IDF_PATH=esp-idf make all
+
+# OTA service
+
+	(cd build; openssl s_server -WWW -key ../certificates/ota_ca_key.pem -cert ../certificates/ota_ca_cert.pem)
