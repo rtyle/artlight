@@ -62,9 +62,12 @@ private:
     size_t const	sectors;
     size_t const *	foldedSize;
     size_t const *	unfoldedSize;
+    size_t const	foldedSizeSum;
+    size_t const	unfoldedSizeSum;
+    float const		foldedPart;
+    float const		unfoldedPart;
     size_t		sector;
     size_t		onSector;
-    size_t		onRingSize;
 public:
     FoldsInRing(size_t folds, size_t const * foldedSize, size_t const * unfoldedSize);
     InRing & operator++() override;

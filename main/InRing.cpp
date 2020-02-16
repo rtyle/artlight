@@ -54,11 +54,26 @@ FoldsInRing::FoldsInRing(size_t sectors_, size_t const * foldedSize_, size_t con
     sectors	(sectors_),
     foldedSize	(foldedSize_),
     unfoldedSize(unfoldedSize_),
+    foldedSizeSum([](size_t count, size_t const * value){
+		    size_t result = 0;
+		    while (count--) result += *value++;
+		    return result;
+		}(sectors, foldedSize)),
+    unfoldedSizeSum([](size_t count, size_t const * value){
+		    size_t result = 0;
+		    while (count--) result += *value++;
+		    return result;
+		}(sectors, unfoldedSize)),
+    foldedPart	(2.0f * foldedSizeSum / (2.0f * foldedSizeSum + unfoldedSizeSum)),
+    unfoldedPart(1.0f - foldedPart),
     sector	(0),
-    onSector	(0),
-    onRingSize	(2 * *foldedSize + *unfoldedSize)
+    onSector	(0)
 {
-    inRing[0] = inRing[1] = 0.0f;
+    inRing.clear();
+    // assume 0 < *foldedSize
+    float place = (foldedPart * (0.5f / *foldedSize / 2.0f)) / sectors;
+    inRing.push_back(place);
+    inRing.push_back(1.0f - place);
 }
 InRing & FoldsInRing::operator++() {
     inRing.clear();
@@ -67,14 +82,18 @@ InRing & FoldsInRing::operator++() {
     while (onSector == *foldedSize + *unfoldedSize) {
 	++foldedSize;
 	++unfoldedSize;
-	onRingSize = 2 * *foldedSize + *unfoldedSize;
 	++sector;
 	onSector = 0;
     }
     if (onSector < *foldedSize) {
-	float place = (sector - static_cast<float>(onSector) / onRingSize) / sectors;
-	inRing.push_back(0.0f > place ? 1.0f + place : place);
+	float place = foldedPart * ((0.5f +  onSector) / *foldedSize / 2.0f);
+	inRing.push_back((sector + place) / sectors);
+	inRing.push_back(((sector ? sector : sectors) - place) / sectors);
+    } else {
+	inRing.push_back((sector
+	    + (foldedPart + unfoldedPart) / 2.0f
+	    + unfoldedPart * (((onSector - *foldedSize) - (*unfoldedSize / 2.0f - 0.5f)) / *unfoldedSize)
+	) / sectors);
     }
-    inRing.push_back((sector + static_cast<float>(onSector) / onRingSize) / sectors);
     return *this;
 }
