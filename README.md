@@ -40,26 +40,38 @@ Additional parts for the cornhole application are
 
 ## Construction
 
-The board components were soldered on their respective boards. When powered by USB, the 5V power jumper must first be removed.
+The PCB components were soldered on their respective microprocessor boards.
+When powered by USB, the 5V power jumper must first be removed.
 
 ### Clock
 
-The microprocessor board is mounted on the back of the art with its luminosity sensor peeking through a hole drilled in the center. Power is routed and split between the microprocessor and 12 o'clock boards. SPI signals used to animate the individually addressable LEDs are cabled from the microprocessor board to the 12 o'clock board.
+The microprocessor board is mounted on the back of the art with its luminosity sensor peeking through a hole drilled in the center.
+Power is routed and split between the microprocessor and 12 o'clock ray boards.
+SPI signals used to animate the individually addressable LEDs are cabled from the microprocessor board to the 12 o'clock board.
 
-LED strips are mounted to the back of the wall art. To reduce wiring complexity, the 12 rays are supported by PCBs. 12 o'clock is different so there is a special board for it. Each ray is cut to length, an LED strip is cut to match, mounted with tape and soldered at the ends. The ray boards are then mounted to the back of the art using more of the same tape. Small strips are cut to bridge the arcs between ray bases and soldered in place. Starting at 12 o'clock, strips are cut and joined together with wire to skirt the perimeter of the art. Only clock and data signals need to jump over the rays as 5V and GND can be tapped from each ray.
+LED strips are mounted to the back of the wall art.
+To reduce wiring complexity, the 12 rays are supported by PCBs.
+12 o'clock is different so there is a special board for it.
+Each ray is cut to length, an LED strip is cut to match, mounted with tape and soldered at the ends with LEDs advancing toward the center.
+The ray boards are then mounted to the back of the art using more of the same tape.
+Small strips are cut to bridge the arcs between ray bases, taped and soldered in place with LEDs advancing clockwise.
+Starting at 12 o'clock, strips are cut and joined together with wire to skirt the perimeter of the art (clockwise).
+Only clock and data signals need to tunnel under the rays as 5V and GND can be tapped from the LED strip edges of adjacent rays.
 
 ### Cornhole
 
-The power bank is mounted with strong magnets under the board so that it might easily be unplugged, removed, charged, replaced and plugged back in. Power from it may be switched on and off (with the on/off switch). Switched power is split between the microprocessor board, the LED ring strip and the RGB LEDs in all the switches.
+The power bank is mounted with strong magnets under the board so that it might easily be unplugged, removed, charged, replaced and plugged back in.
+Power from it may be switched on and off (with the on/off switch).
+Switched power is split between the microprocessor board, the LED ring strip and the RGB LEDs in all the switches.
 
-The R, G and B LEDs in the switches are separtely pulse-width-modulated (PWM) to mix the color of each (specified in preferences).
+The R, G and B LEDs in the switches are separtely pulse-width-modulated (PWM) to mix the preferred color of each.
 PWM switching is controlled indirectly through a transistor circuits wired to R, G and B of each switch.
-The switch outputs are wired to the microprocessor board input dedicated for them.
+The momentary switch outputs are wired to the microprocessor board inputs dedicated for them.
 
 Vibration sensors are strategically placed (for best performance) under the board.
 They are wired in parallel to the microprocessor board input dedicated for them.
 
-IR break beam sensors are mounted across the cornhole ring for the best coverage (2 pair seems adequate).
+IR break beam sensors are mounted across the cornhole ring for the best coverage (2 orthogonal pairs seems adequate).
 They are wired in parallel to the microprocessor board input dedicated for them.
 
 The LEDs that come with the cornhole LED ring are replaced with 80 individually addressable LEDs in a clockwise (from the top) strip.
