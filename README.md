@@ -71,10 +71,10 @@ The momentary switch outputs (closed to ground) are wired to the microprocessor 
 
 Vibration sensors are strategically placed (for best performance) under the board.
 The vibration sensor part may be changed to affect its sensitivity.
-They are wired in parallel to the microprocessor board input dedicated for them.
+Their shared (parallel) output (closed to ground) is wired to the microprocessor board input dedicated for them.
 
 IR break beam sensors are mounted across the cornhole ring for the best coverage (2 orthogonal pairs seems adequate).
-They are wired in parallel to the microprocessor board input dedicated for them.
+Their shared (parallel) output (closed to ground) is wired to the microprocessor board input dedicated for them.
 
 The LEDs that come with the cornhole LED ring are replaced with a clockwise (from the top) strip of 80 individually addressable LEDs.
 Their control lines are wired to the microprocessor board output dedicated for them.
