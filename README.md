@@ -62,10 +62,10 @@ Only clock and data signals need to tunnel under the rays as 5V and GND can be t
 
 The power bank is mounted with strong magnets under the board so that it might easily be unplugged, removed, charged, replaced and plugged back in.
 Power from it may be switched on and off (with the on/off switch).
-Switched power is split between the microprocessor board, the LED ring strip and the RGB LEDs in all the switches.
+Switched power is split between the microprocessor board, the ring LED strip and the high side of the RGB LEDs in all the switches.
 
 The R, G and B LEDs in the switches are separtely pulse-width-modulated (PWM) to mix the preferred color of each.
-PWM switching is controlled indirectly through a transistor circuits wired to R, G and B of each switch.
+PWM switching is controlled indirectly through a transistor circuits wired to the low side of the RGB LEDs of each switch.
 The momentary switch outputs are wired to the microprocessor board inputs dedicated for them.
 
 Vibration sensors are strategically placed (for best performance) under the board.
@@ -74,7 +74,7 @@ They are wired in parallel to the microprocessor board input dedicated for them.
 IR break beam sensors are mounted across the cornhole ring for the best coverage (2 orthogonal pairs seems adequate).
 They are wired in parallel to the microprocessor board input dedicated for them.
 
-The LEDs that come with the cornhole LED ring are replaced with 80 individually addressable LEDs in a clockwise (from the top) strip.
+The LEDs that come with the cornhole LED ring are replaced with a clockwise (from the top) strip of 80 individually addressable LEDs.
 Their control lines are wired to the microprocessor board output dedicated for them.
 The ring is mounted under the board.
 For best results, the material above the LED ring should be transparent (for example, an acrylic ring)
@@ -89,11 +89,16 @@ Optionally, a mDNS hostname may be given.
 
 Once provisioned, preferences may be set for each application by pointing a web browser to the device.
 If supported, the mDNS hostname may be used to resolve the device address;
-otherwise, the leased address will have to be resolved according to the capabilities of the LAN's DHCP server.
+otherwise, the leased IP address will have to be resolved according to the capabilities of the LAN's DHCP server.
 If possible, name the device and configure DNS services on the LAN to resolve the name to this address.
+
+The preferences page may be filled using "factory" default values or with current values.
+Changes for most will take effect immediately.
+If not, then they will take effect when the form is submitted.
 
 Preferences may be used to customize the presentation (color, width and shape) of LED indicators.
 Brightness parameters may be set which may include use of the luminosity sensor.
+The mDNS hostname of the board may be changed.
 Parameters may be set in order to accurately present time in the given time zone.
 Over-the-air updates may also be performed.
 
@@ -106,5 +111,28 @@ Hour and minute indicators will animate along the up and down the rays and inner
 The second indicator will sweep across the perimeter.
 
 ## Cornhole Use
+
+The cornhole "preferences" page may be used to keep score.
+In fact, unless explicitly accessed through a URL with a /preferences path, scoring is the only thing allowed.
+
+Changing most preferences (including scoring) will be shared between boards that have been configured to use the same network port number.
+For this to work effectively, only the two boards used in a cornhole game should share the same port and these must be on the same network.
+
+A preference may be used to control what the ring LED strip indicates
+* The score of each team
+* The time
+* Various animations
+
+Regardless of what the ring indicates:
+
+A press of a momentary switch will increment the score of the associated team.
+A long press of a momentary switch will decrement the score of the associated team while held.
+While decrementing, if the other switch is down too then the score is reset to 0 (hold both to reset both to 0).
+
+Vibration from the board will cause a short "lightning strike" animation to be presented over the existing ring indication.
+A break in the ring's IR beam sensors will cause a short "fireworks" animation to be presented over the existing ring indication.
+
+
+
 
 
