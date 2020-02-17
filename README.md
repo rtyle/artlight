@@ -93,7 +93,7 @@ The reach of your Wi-Fi LAN may need to be increased to reach these devices.
 This is best done by repositioning the devices and/or Wi-Fi access points.
 If necessary, deploy a Wi-Fi range extender.
 
-Once provisioned, preferences may be set for each application by pointing a web browser to the device (http://<device>/).
+Once provisioned, preferences may be set for each application by pointing a web browser to the device (http://\<device\>/).
 If supported, the mDNS hostname may be used to resolve the device address;
 otherwise, the leased IP address will have to be resolved (perhaps manually) depending on the capabilities of the LAN's DHCP/DNS services.
 
@@ -118,7 +118,7 @@ The second indicator will sweep across the perimeter.
 ## Cornhole Use
 
 The cornhole "preferences" page may be used to keep score.
-In fact, unless explicitly accessed through a URL with a preferences path (http://<device>/preferences), scoring is the only thing allowed.
+In fact, unless explicitly accessed through a URL with a preferences path (http://\<device\>/preferences), scoring is the only thing allowed.
 
 Changing most preferences (including scoring) will be shared between boards that have been configured to use the same network port number.
 For this to work effectively, only the two boards used in a cornhole game should share the same port number and each must be reachable from the other on the same network.
