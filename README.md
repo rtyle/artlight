@@ -85,7 +85,7 @@ so that the lights under the board can be seen from above.
 ## Use
 
 Both applications must be provisioned on a Wi-Fi LAN.
-Until this is done, they will offer their own Wi-Fi access point where they can be accessed securely by a web browser (https://192.168.4.1) to perform this provisioning.
+Until this is done, they will offer their own Wi-Fi access point where they can be configured securely by a web browser (https://192.168.4.1).
 The SSID and password for Wi-Fi access must be entered.
 Optionally, an mDNS hostname may be given.
 
