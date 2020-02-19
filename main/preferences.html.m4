@@ -164,20 +164,20 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 		</div>
 		<form method='post'>
 			<fieldset>
-ifelse(«cornhole», ArtLightApplication, «dnl
-				<legend>Cornhole</legend>
+				<legend>Mode</legend>
 				<div>
 					<span class='tab0'>Ring</span>
 					<label for='mode'>Mode</label>
 					<select id='mode' name='mode'>
+ifelse(«cornhole», ArtLightApplication, «dnl
 						<option value='score'>Score</option>
+»)dnl
 						<option value='clock'>Clock</option>
 						<option value='slide'>Slide</option>
 						<option value='spin'>Spin</option>
 					</select>
 				</div>
 			</fieldset>
-»)dnl
 			<fieldset>
 				<legend>Presentation</legend>
 				<div>
