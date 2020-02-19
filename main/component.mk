@@ -7,6 +7,8 @@ ArtLightApplication ?= cornhole
 
 ifeq 'cornhole' '${ArtLightApplication}'
 	CPPFLAGS += -DArtLightApplication_h=\"ArtLightCornhole.h\"
+else ifeq 'clock' '${ArtLightApplication}'
+	CPPFLAGS += -DArtLightApplication_h=\"ArtLightClock.h\"
 endif
 
 ${COMPONENT_BUILD_DIR}/%: ${COMPONENT_PATH}/%.m4; m4 -D ArtLightApplication=${ArtLightApplication} $? > $@
