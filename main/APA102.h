@@ -23,6 +23,7 @@ bool isColor(char const * color);
 // https://cpldcpu.wordpress.com/2014/08/27/apa102/
 // https://cpldcpu.wordpress.com/2014/11/30/understanding-the-apa102-superled/
 // https://cpldcpu.files.wordpress.com/2014/08/apa-102c-super-led-specifications-2014-en.pdf
+// https://cpldcpu.wordpress.com/2016/12/13/sk9822-a-clone-of-the-apa102/
 //
 // each message is composed of 32-bit words.
 // the message starts after at least 32 zero bits (a sync "word").
@@ -42,15 +43,19 @@ bool isColor(char const * color);
 // in order to accommodate the delay after each LED,
 // the clock needs to cycle once more for every two LEDs.
 // for a message with one start word and N LED words.
-// the clock needs to cycle N * 65 / 2 times.
+// the clock needs to cycle 32 + N * 65 / 2 times.
 // this is done by padding the data after the last LED.
-// the padded content does not matter much;
-// it just causes the clock to run longer.
-// padding with ones is best as 32 zeros would start a new message.
 // too little padding will result in data not reaching trailing LEDs.
 // too much padding will be wasted off the end.
+//
+// the SK9822 (APA102 clone) updates the PWM registers in the first cycle
+// after the next sync word, while
+// the APA102 updates the PWM register immediately after receiving the data.
+// if we pad with zeros and add a sync word at the end,
+// then each LED in an SK9822 string will update after it first sees
+// sync word clocked through it.
 
-size_t constexpr messageBits(size_t size) {return size * 65 / 2;}
+size_t constexpr messageBits(size_t size) {return 32 + size * 65 / 2 + 32;}
 
 template<size_t size>
 struct Message {
@@ -59,9 +64,11 @@ private:
 public:
     uint32_t	encodings[size];
 private:
-    uint8_t	pad[(messageBits(size) + 7 / 8) - sizeof encodings - sizeof start];
+    uint32_t	update;
+    uint8_t	pad[(messageBits(size) + 7 / 8)
+		    - sizeof start - sizeof encodings - sizeof update];
 public:
-    Message() : start(0) {std::memset(pad, ~0, sizeof pad);}
+    Message() : start(0), update(0) {std::memset(pad, 0, sizeof pad);}
     size_t length() const {return messageBits(size);}
     void gamma();
 };
