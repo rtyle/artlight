@@ -25,7 +25,7 @@ static float constexpr sqrt2	= std::sqrt(2.0f);
 static unsigned constexpr millisecondsPerSecond	= 1000u;
 static unsigned constexpr microsecondsPerSecond	= 1000000u;
 
-static size_t constexpr ringSize = 144;
+static size_t constexpr ringSize = 80;
 
 static Pulse hourPulse	(12);
 static Pulse minutePulse(60);
@@ -94,24 +94,19 @@ void ClockArtTask::update() {
 	    };
 
 	    Shape shape_[3] {shape[0], shape[1], shape[2]};
-	    float position[3] {};
-	    switch (mode.value) {
-	    case Mode::clock: {
-		    float secondsSinceTwelveLocaltime
-			= smoothTime.millisecondsSinceTwelveLocaltime(
-				microsecondsSinceBoot)
-			    / static_cast<float>(millisecondsPerSecond);
-		    position[0] = hourPulse  (inDayOf   (
-			secondsSinceTwelveLocaltime));
-		    position[1] = minutePulse(inHourOf  (
-			secondsSinceTwelveLocaltime));
-		    position[2] = secondPulse(inMinuteOf(
-			secondsSinceTwelveLocaltime));
-		} break;
-	    case Mode::slide:
-	    case Mode::spin:
-		break;
-	    }
+
+	    float secondsSinceTwelveLocaltime
+		= smoothTime.millisecondsSinceTwelveLocaltime(
+			microsecondsSinceBoot)
+		    / static_cast<float>(millisecondsPerSecond);
+	    float position[3] {
+		position[0] = hourPulse  (inDayOf   (
+		    secondsSinceTwelveLocaltime)),
+		position[1] = minutePulse(inHourOf  (
+		    secondsSinceTwelveLocaltime)),
+		position[2] = secondPulse(inMinuteOf(
+		    secondsSinceTwelveLocaltime))
+	    };
 
 	    static float constexpr waveWidth = 2.0f / ringSize;
 
