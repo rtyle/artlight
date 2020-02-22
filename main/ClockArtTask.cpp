@@ -2,6 +2,7 @@
 #include <sstream>
 
 #include <esp_log.h>
+#include <esp_heap_caps.h>
 
 #include "clip.h"
 #include "fromString.h"
@@ -25,7 +26,9 @@ static float constexpr sqrt2	= std::sqrt(2.0f);
 static unsigned constexpr millisecondsPerSecond	= 1000u;
 static unsigned constexpr microsecondsPerSecond	= 1000000u;
 
-static size_t constexpr ringSize = 80;
+// static size_t constexpr ringSize = 816;
+// static size_t constexpr ringSize = 80;
+static size_t constexpr ringSize = 6 * 144;
 
 static Pulse hourPulse	(12);
 static Pulse minutePulse(60);
@@ -57,7 +60,7 @@ static float phaseIn(uint64_t time, uint64_t period) {
     return (time % period) / static_cast<float>(period);
 }
 
-void ClockArtTask::update() {
+void ClockArtTask::update_() {
     uint64_t const microsecondsSinceBoot = esp_timer_get_time();
 
     static LEDI const black(0, 0, 0);
@@ -204,6 +207,12 @@ void ClockArtTask::update() {
 	} break;
     }
 
+    static size_t constexpr folds = 12;
+    static size_t constexpr foldedSize[]
+	= {60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60};
+    static size_t constexpr unfoldedSize[]
+	= { 8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8};
+    // FoldsInRing inRing(folds, foldedSize, unfoldedSize);
     OrdinalsInRing inRing(ringSize);
 
     LEDI leds[ringSize];
@@ -250,12 +259,27 @@ void ClockArtTask::update() {
 	.length_(message.length()));
 }
 
+void ClockArtTask::update() {
+    // if the rate at which we complete work
+    // is less than the periodic demand for such work
+    // the work queue will eventually exhaust all memory.
+    if (updated++) {
+	// catch up to the rate of demand
+	ESP_LOGW(name, "update rate too fast. %u", updated - 1);
+	return;
+    }
+    update_();
+    // ignore any queued update work
+    io.poll();
+    updated = 0;
+}
+
 ClockArtTask::ClockArtTask(
     SPI::Bus const		(&spiBus)[2],
     std::function<float()>	getLux_,
     KeyValueBroker &		keyValueBroker_)
 :
-    ArtTask		("ClockArtTask", 5, 16384, 1,
+    ArtTask		("ClockArtTask", 5, 0xc000, 1,
     			spiBus, getLux_, keyValueBroker_),
 
     mode(Mode::clock),
@@ -267,13 +291,15 @@ ClockArtTask::ClockArtTask(
 	    });
 	}),
 
-    microsecondsSinceBootOfLastPeriod(0u)
+    microsecondsSinceBootOfLastPeriod(0u),
+
+    updated(0)
 {}
 
 void ClockArtTask::run() {
     // asio timers are not supported
     // adapt a FreeRTOS timer to post timeout to this task.
-    Timer updateTimer(name, 1, true, [this](){
+    Timer updateTimer(name, 8, true, [this](){
 	io.post([this](){
 	    this->update();
 	});

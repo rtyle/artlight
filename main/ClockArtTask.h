@@ -23,6 +23,8 @@ private:
 
     uint64_t microsecondsSinceBootOfLastPeriod;
 
+    unsigned updated;
+    void update_();
     void update();
 
 protected:
