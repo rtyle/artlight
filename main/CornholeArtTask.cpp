@@ -72,7 +72,7 @@ static float phaseIn(uint64_t time, uint64_t period) {
 
 static unsigned constexpr scoreMax = 21;
 
-void CornholeArtTask::update() {
+void CornholeArtTask::update_() {
     uint64_t const microsecondsSinceBoot = esp_timer_get_time();
 
     static LEDI const black(0, 0, 0);
@@ -335,6 +335,21 @@ void CornholeArtTask::update() {
 	.length_(message.length()));
 }
 
+void CornholeArtTask::update() {
+    // if the rate at which we complete work
+    // is less than the periodic demand for such work
+    // the work queue will eventually exhaust all memory.
+    if (updated++) {
+	// catch up to the rate of demand
+	ESP_LOGW(name, "update rate too fast. %u", updated - 1);
+	return;
+    }
+    update_();
+    // ignore any queued update work
+    io.poll();
+    updated = 0;
+}
+
 void CornholeArtTask::boardEvent() {
     microsecondsSinceBootOfBoardEvent = esp_timer_get_time();
 }
@@ -464,9 +479,11 @@ CornholeArtTask::CornholeArtTask(
 	    });
 	}),
 
-	microsecondsSinceBootOfBoardEvent(0u),
-	microsecondsSinceBootOfHoleEvent(0u),
-	microsecondsSinceBootOfLastPeriod(0u)
+    microsecondsSinceBootOfBoardEvent(0u),
+    microsecondsSinceBootOfHoleEvent(0u),
+    microsecondsSinceBootOfLastPeriod(0u),
+
+    updated(0)
 {
     pinTask.start();
 }

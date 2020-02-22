@@ -45,6 +45,8 @@ private:
     void scoreDecrement(size_t index, int count);
     void scoreObserved (size_t index, char const * value);
 
+    unsigned updated;
+    void update_();
     void update();
 
 protected:
