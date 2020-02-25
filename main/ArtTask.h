@@ -84,5 +84,6 @@ protected:
 
 	SPI::Bus const		(&spiBus)[2],
 	std::function<float()>	getLux,
-	KeyValueBroker &	keyValueBroker);
+	KeyValueBroker &	keyValueBroker,
+	size_t			smoothTimeStepCount = 4096);
 };

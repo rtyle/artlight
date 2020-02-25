@@ -280,7 +280,7 @@ ClockArtTask::ClockArtTask(
     KeyValueBroker &		keyValueBroker_)
 :
     ArtTask		("ClockArtTask", 5, 0xc000, 1,
-    			spiBus, getLux_, keyValueBroker_),
+    			spiBus, getLux_, keyValueBroker_, 512),
 
     mode(Mode::clock),
     modeObserver(keyValueBroker, "mode", mode.toString(),

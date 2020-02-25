@@ -102,7 +102,8 @@ ArtTask::ArtTask(
 
     SPI::Bus const		(&spiBus)[2],
     std::function<float()>	getLux_,
-    KeyValueBroker &		keyValueBroker_)
+    KeyValueBroker &		keyValueBroker_,
+    size_t			smoothTimeStepCount)
 :
     AsioTask		(name, priority, stackSize, core),
 
@@ -209,5 +210,5 @@ ArtTask::ArtTask(
 	    }
 	}),
 
-    smoothTime	("smoothTime", 4096)
+    smoothTime	("smoothTime", smoothTimeStepCount)
 {}
