@@ -26,9 +26,13 @@ static float constexpr sqrt2	= std::sqrt(2.0f);
 static unsigned constexpr millisecondsPerSecond	= 1000u;
 static unsigned constexpr microsecondsPerSecond	= 1000000u;
 
-// static size_t constexpr ringSize = 816;
-// static size_t constexpr ringSize = 80;
-static size_t constexpr ringSize = 6 * 144;
+// one LED strip (ring) for hours and minutes, the other for seconds.
+// for rendering to accurately index these rings,
+// these numbers must reflect the arguments of the *InRing constructors (below).
+static size_t constexpr ringSize[] = {
+    6 * 144,
+    2 * 144
+};
 
 static Pulse hourPulse	(12);
 static Pulse minutePulse(60);
@@ -76,7 +80,7 @@ void ClockArtTask::update_() {
 	1.5f	/ 1.5f,		// == 1.0
     };
 
-    std::list<std::function<LEDI(float)>> renderList;
+    std::list<std::function<LEDI(float)>> renderList[2];
 
     // construct static PerlinNoise objects
     static std::mt19937 rng;
@@ -91,9 +95,9 @@ void ClockArtTask::update_() {
     switch (mode.value) {
     case Mode::Value::clock: {
 	    float widthInRing[] {
-		width[0] / ringSize,
-		width[1] / ringSize,
-		width[2] / ringSize,
+		width[0] / ringSize[0],
+		width[1] / ringSize[0],
+		width[2] / ringSize[1],
 	    };
 
 	    Shape shape_[3] {shape[0], shape[1], shape[2]};
@@ -111,15 +115,20 @@ void ClockArtTask::update_() {
 		    secondsSinceTwelveLocaltime))
 	    };
 
-	    static float constexpr waveWidth = 2.0f / ringSize;
+	    static float constexpr waveWidth[] = {
+		2.0f / ringSize[0],
+		2.0f / ringSize[1]
+	    };
 
 	    for (size_t index = 0; index < 3; ++index) {
+		static size_t constexpr toRingIndex[] = {0, 0, 1};
+		size_t ringIndex = toRingIndex[index];
 		if (widthInRing[index]) {
 		    switch (shape_[index].value) {
 		    case Shape::Value::bell: {
 			    BellCurve<Dial> dial(
 				position[index], widthInRing[index]);
-			    renderList.push_back([&blend, index, dial](
+			    renderList[ringIndex].push_back([&blend, index, dial](
 				    float place){
 				return blend[index](dial(place));
 			    });
@@ -130,9 +139,9 @@ void ClockArtTask::update_() {
 				widthInRing[index],
 				phaseIn(microsecondsSinceBoot,
 				    microsecondsPerSecond * 2.0f
-				    / scale[index] / waveWidth),
-				waveWidth);
-			    renderList.push_back([&blend, index, dial](
+				    / scale[index] / waveWidth[ringIndex]),
+				waveWidth[ringIndex]);
+			    renderList[ringIndex].push_back([&blend, index, dial](
 				    float place){
 				return blend[index](dial(place));
 			    });
@@ -145,7 +154,7 @@ void ClockArtTask::update_() {
 				phaseIn(microsecondsSinceBoot,
 				    microsecondsPerSecond * 2.0f
 				    / scale[index]));
-			    renderList.push_back([
+			    renderList[ringIndex].push_back([
 				    &blend, index, dial, bump, bloom](
 				    float place){
 				float offset = dial(place);
@@ -162,7 +171,7 @@ void ClockArtTask::update_() {
 	    // cut RGB cylinders through Perlin noise space/time.
 	    float z = (microsecondsSinceBoot % perlinNoisePeriodMicroseconds)
 		/ static_cast<float>(microsecondsPerSecond);
-	    renderList.push_back([z](float place){
+	    renderList[0].push_back([z](float place){
 		static float constexpr radius = 0.5f;
 		float x = radius * std::cos(tau * place);
 		float y = radius * std::sin(tau * place);
@@ -193,7 +202,7 @@ void ClockArtTask::update_() {
 			    % perlinNoisePeriodMicroseconds)
 			/ static_cast<float>(microsecondsPerSecond),
 		    0.0f, octaves)
-		) / ringSize;
+		) / ringSize[0];
 	    unsigned period = 4u * microsecondsPerSecond / width;
 	    uint64_t microsecondsSinceLastPeriod
 		= microsecondsSinceBoot - microsecondsSinceBootOfLastPeriod;
@@ -201,36 +210,50 @@ void ClockArtTask::update_() {
 	    microsecondsSinceBootOfLastPeriod = microsecondsSinceBoot - offset;
 	    float position = offset / static_cast<float>(period);
 	    WaveDial right(position, width), left(-position, width);
-	    renderList.push_back([blend, right, left](float place){
+	    renderList[0].push_back([blend, right, left](float place){
 		return blend(right(place) + left(place) / 2.0f);
 	    });
 	} break;
     }
 
+#if 0
     static size_t constexpr folds = 12;
     static size_t constexpr foldedSize[]
 	= {60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60};
     static size_t constexpr unfoldedSize[]
 	= { 8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8};
+#endif
     // FoldsInRing inRing(folds, foldedSize, unfoldedSize);
-    OrdinalsInRing inRing(ringSize);
+    OrdinalsInRing inRing0(ringSize[0]);
+    OrdinalsInRing inRing1(ringSize[1]);
 
-    LEDI leds[ringSize];
+    LEDI leds0[ringSize[0]];
+    LEDI leds1[ringSize[1]];
 
     // render art from places in the ring,
     // keeping track of the largest led value by part.
     auto maxRendering = std::numeric_limits<int>::min();
-    for (auto & led: leds) {
-	for (auto & place: *inRing) {
-	    for (auto & render: renderList) {
+    for (auto & led: leds0) {
+	for (auto & place: *inRing0) {
+	    for (auto & render: renderList[0]) {
 		led = led + render(place);
 	    }
 	}
-	++inRing;
+	++inRing0;
+	maxRendering = std::max(maxRendering, led.max());
+    }
+    for (auto & led: leds1) {
+	for (auto & place: *inRing1) {
+	    for (auto & render: renderList[1]) {
+		led = led + render(place);
+	    }
+	}
+	++inRing1;
 	maxRendering = std::max(maxRendering, led.max());
     }
 
-    APA102::Message<ringSize> message;
+    APA102::Message<ringSize[0]> message0;
+    APA102::Message<ringSize[1]> message1;
 
     /// adjust brightness
     float dimming = dim.value == Dim::manual
@@ -240,23 +263,45 @@ void ClockArtTask::update_() {
 	// 1 as the lux doubles up until 2^13 (~full daylight, indirect sun).
 	// an LED value of 128 will be dimmed to 24 in complete darkness (lux 0)
 	: (3.0f + std::min(13.0f, std::log2(1.0f + getLux()))) / 16.0f;
-    LEDI * led = leds;
+    LEDI * led;
+    led = leds0;
     if (range.value == Range::clip) {
-	for (auto & e: message.encodings) {
+	for (auto & e: message0.encodings) {
 	    e = LED<>(gammaEncode,
 		clip(*led++) * dimming);
 	}
     } else if (range.value == Range::normalize) {
 	static auto maxEncoding = std::numeric_limits<uint8_t>::max();
-	for (auto & e: message.encodings) {
+	for (auto & e: message0.encodings) {
+	    e = LED<>(gammaEncode,
+		(*led++ * maxEncoding / maxRendering) * dimming);
+	}
+    }
+    led = leds1;
+    if (range.value == Range::clip) {
+	for (auto & e: message1.encodings) {
+	    e = LED<>(gammaEncode,
+		clip(*led++) * dimming);
+	}
+    } else if (range.value == Range::normalize) {
+	static auto maxEncoding = std::numeric_limits<uint8_t>::max();
+	for (auto & e: message1.encodings) {
 	    e = LED<>(gammaEncode,
 		(*led++ * maxEncoding / maxRendering) * dimming);
 	}
     }
 
-    SPI::Transaction transaction1(spiDevice[1], SPI::Transaction::Config()
-	.tx_buffer_(&message)
-	.length_(message.length()));
+    // SPI::Transaction constructor queues the message.
+    // SPI::Transaction destructor waits for result.
+    // queue both before waiting for result of either.
+    {
+	SPI::Transaction transaction0(spiDevice[0], SPI::Transaction::Config()
+	    .tx_buffer_(&message0)
+	    .length_(message0.length()));
+	SPI::Transaction transaction1(spiDevice[1], SPI::Transaction::Config()
+	    .tx_buffer_(&message1)
+	    .length_(message1.length()));
+    }
 }
 
 void ClockArtTask::update() {
@@ -279,7 +324,7 @@ ClockArtTask::ClockArtTask(
     std::function<float()>	getLux_,
     KeyValueBroker &		keyValueBroker_)
 :
-    ArtTask		("ClockArtTask", 5, 0xc000, 1,
+    ArtTask		("ClockArtTask", 5, 0x10000, 1,
     			spiBus, getLux_, keyValueBroker_, 512),
 
     mode(Mode::clock),
