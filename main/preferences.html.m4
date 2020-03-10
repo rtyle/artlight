@@ -38,7 +38,8 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 			function update(idValues) {
 				for (const [id, value] of Object.entries(idValues)) {
 					console.log(id + '=' + value);
-					$('#' + id).not('input[type="button"]').val(value);
+					$('#' + id).not('input[type="button"]').not('input[type="checkbox"]').val(value);
+					$('#' + id).filter('input[type="checkbox"]').prop('checked', 0 != value);
 ifelse(«cornhole», ArtLightApplication, «dnl
 
 					// to affect display of a changed knob value we must trigger a change event.
@@ -139,7 +140,9 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 						[this.id]: '1',
 					}})
 				});
-				$('input:checkbox').on('change', function(e) {$(this).next().val(0 + $(this).prop('checked'))});
+				$('input:checkbox').on('change', function(e) {
+					$.ajax({type: 'POST', data: {[this.id]: 0 + $(this).prop('checked')}})
+				});
 				$('input[type="number"], input[type="range"]').not('.knob').on('input', function(e) {
 					if (this.validity.valid) {
 						$.ajax({type: 'POST', data: {[this.id]: this.value}})
@@ -219,6 +222,12 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 						<option value='bloom'>Bloom</option>
 					</select>
 				</div>
+ifelse(«clock», ArtLightApplication, «dnl
+				<div>
+					<label class='tab0' for='reverse'>Reverse</label>
+					<input type='checkbox' id='reverse'/>
+				</div>
+»)dnl
 			</fieldset>
 			<fieldset>
 				<legend>Brightness</legend>
