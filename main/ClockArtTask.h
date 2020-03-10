@@ -21,6 +21,9 @@ private:
     Mode				mode;
     KeyValueBroker::Observer const	modeObserver;
 
+    bool				reverse;
+    KeyValueBroker::Observer const	reverseObserver;
+
     uint64_t microsecondsSinceBootOfLastPeriod;
 
     unsigned updated;

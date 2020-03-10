@@ -26,14 +26,6 @@ static float constexpr sqrt2	= std::sqrt(2.0f);
 static unsigned constexpr millisecondsPerSecond	= 1000u;
 static unsigned constexpr microsecondsPerSecond	= 1000000u;
 
-// one LED strip (ring) for hours and minutes, the other for seconds.
-// for rendering to accurately index these rings,
-// these numbers must reflect the arguments of the *InRing constructors (below).
-static size_t constexpr ringSize[] = {
-    6 * 144,
-    2 * 144
-};
-
 static Pulse hourPulse	(12);
 static Pulse minutePulse(60);
 static Pulse secondPulse(60);
@@ -65,6 +57,14 @@ static float phaseIn(uint64_t time, uint64_t period) {
 }
 
 void ClockArtTask::update_() {
+    // one LED strip (ring) for hours, the other for minutes and seconds.
+    // for rendering to accurately index these rings,
+    // these numbers must reflect the arguments of the *InRing constructors (below).
+    static size_t constexpr ringSize[] = {
+	59 + 59 + 59 + 57 + 57 + 55 + 55 + 55 + 55 + 56 + 57 + 59,
+	20 + 27 + 34 + 25 + 24 + 25 + 22 + 24 + 26 + 32 + 29 + 29
+    };
+
     uint64_t const microsecondsSinceBoot = esp_timer_get_time();
 
     static LEDI const black(0, 0, 0);
@@ -94,10 +94,12 @@ void ClockArtTask::update_() {
 
     switch (mode.value) {
     case Mode::Value::clock: {
+	    static size_t constexpr toRingIndex[] = {0, 1, 1};
+
 	    float widthInRing[] {
-		width[0] / ringSize[0],
-		width[1] / ringSize[0],
-		width[2] / ringSize[1],
+		width[0] / ringSize[toRingIndex[0]],
+		width[1] / ringSize[toRingIndex[1]],
+		width[2] / ringSize[toRingIndex[2]],
 	    };
 
 	    Shape shape_[3] {shape[0], shape[1], shape[2]};
@@ -114,6 +116,11 @@ void ClockArtTask::update_() {
 		position[2] = secondPulse(inMinuteOf(
 		    secondsSinceTwelveLocaltime))
 	    };
+	    if (reverse) {
+		for (float & p: position) {
+		    if (0.0f < p) p = 1.0f - p;
+		}
+	    }
 
 	    static float constexpr waveWidth[] = {
 		2.0f / ringSize[0],
@@ -121,7 +128,6 @@ void ClockArtTask::update_() {
 	    };
 
 	    for (size_t index = 0; index < 3; ++index) {
-		static size_t constexpr toRingIndex[] = {0, 0, 1};
 		size_t ringIndex = toRingIndex[index];
 		if (widthInRing[index]) {
 		    switch (shape_[index].value) {
@@ -216,16 +222,16 @@ void ClockArtTask::update_() {
 	} break;
     }
 
-#if 0
     static size_t constexpr folds = 12;
-    static size_t constexpr foldedSize[]
-	= {60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60};
-    static size_t constexpr unfoldedSize[]
-	= { 8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8};
-#endif
-    // FoldsInRing inRing(folds, foldedSize, unfoldedSize);
-    OrdinalsInRing inRing0(ringSize[0]);
-    OrdinalsInRing inRing1(ringSize[1]);
+    static size_t constexpr foldedSize[folds]
+	= {59, 59, 59, 57, 57, 55, 55, 55, 55, 56, 57, 59};
+    static size_t constexpr unfoldedSize[folds]
+	= { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0};
+    FoldsInRing inRing0(folds, foldedSize, unfoldedSize);
+    static size_t constexpr sectors = 12;
+    static size_t constexpr sectorSize[sectors]
+	= {20, 27, 34, 25, 24, 25, 22, 24, 26, 32, 29, 29};
+    SectorsInRing inRing1(sectors, sectorSize);
 
     LEDI leds0[ringSize[0]];
     LEDI leds1[ringSize[1]];
@@ -335,6 +341,15 @@ ClockArtTask::ClockArtTask(
 		mode = mode_;
 	    });
 	}),
+
+	reverse(false),
+	reverseObserver(keyValueBroker, "reverse", "0",
+	    [this](char const * value){
+		bool reverse_ = std::strcmp("0", value);
+		io.post([this, reverse_](){
+		    reverse = reverse_;
+		});
+	    }),
 
     microsecondsSinceBootOfLastPeriod(0u),
 
