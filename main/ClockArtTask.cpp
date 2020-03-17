@@ -61,7 +61,7 @@ void ClockArtTask::update_() {
     // for rendering to accurately index these rings,
     // these numbers must reflect the arguments of the *InRing constructors (below).
     static size_t constexpr ringSize[] = {
-	59 + 59 + 59 + 57 + 57 + 55 + 55 + 55 + 55 + 56 + 57 + 59,
+	59 + 59 + 59 + 57 + 57 + 55 + 55 + 55 + 55 + 56 + 57 + 58,
 	20 + 27 + 34 + 25 + 24 + 25 + 22 + 24 + 26 + 32 + 29 + 29
     };
 
@@ -224,7 +224,7 @@ void ClockArtTask::update_() {
 
     static size_t constexpr folds = 12;
     static size_t constexpr foldedSize[folds]
-	= {59, 59, 59, 57, 57, 55, 55, 55, 55, 56, 57, 59};
+	= {59, 59, 59, 57, 57, 55, 55, 55, 55, 56, 57, 58};
     static size_t constexpr unfoldedSize[folds]
 	= { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0};
     FoldsInRing inRing0(folds, foldedSize, unfoldedSize);
