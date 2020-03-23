@@ -131,10 +131,9 @@
 
 	# update later
 
-		git pull origin
-		git checkout v3.2
+		git fetch
+		git checkout v3.3.1
 		git submodule update --init --recursive
-
 
 # make from command line
 
