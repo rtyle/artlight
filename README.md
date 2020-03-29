@@ -44,7 +44,7 @@ Additional parts for the cornhole application are
 The PCB components were soldered on their respective microprocessor boards.
 When powered by USB, the 5V power jumper must first be removed.
 
-### Clock
+### Clock Construction
 
 The microprocessor board is mounted on the back of the art with its luminosity sensor peeking through a hole drilled in the center.
 Power is routed and split between the microprocessor and 12 o'clock ray boards.
@@ -59,7 +59,7 @@ Small strips are cut to bridge the arcs between ray bases, taped and soldered in
 Starting at 12 o'clock, strips are cut and joined together with wire to skirt the perimeter of the art (clockwise, from front).
 Only clock and data signals need to tunnel under the rays as 5V and GND can be tapped from the LED strip edges of adjacent rays.
 
-### Cornhole
+### Cornhole Construction
 
 The power bank is mounted with strong magnets under the board so that it might easily be unplugged, removed, charged, replaced and plugged back in.
 Power from it may be switched on and off (with the on/off switch).
