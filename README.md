@@ -115,6 +115,8 @@ The clock will present time by animating hour, minute and second indicators usin
 Hour and minute indicators will animate up and down the rays and across the inner arcs that connect them.
 The second indicator will sweep across the perimeter.
 
+https://youtu.be/0ISKXnE9frU
+
 ## Cornhole Use
 
 The cornhole "preferences" page may be used to keep score.
