@@ -222,16 +222,24 @@ void ClockArtTask::update_() {
 	} break;
     }
 
-    static size_t constexpr folds = 12;
-    static size_t constexpr foldedSize[folds]
+    static size_t constexpr ring0Sectors = 12;
+    static size_t constexpr ring0SectorSize[ring0Sectors]
 	= {59, 59, 59, 57, 57, 55, 55, 55, 55, 56, 57, 58};
-    static size_t constexpr unfoldedSize[folds]
+    SectorsInRing sectorsInRing0(ring0Sectors, ring0SectorSize);
+    static size_t constexpr ring0UnfoldedSize[ring0Sectors]
 	= { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0};
-    FoldsInRing inRing0(folds, foldedSize, unfoldedSize);
-    static size_t constexpr sectors = 12;
-    static size_t constexpr sectorSize[sectors]
+    FoldsInRing foldsInRing0(ring0Sectors, ring0SectorSize, ring0UnfoldedSize);
+    static size_t constexpr ring1Sectors = 12;
+    static size_t constexpr ring1SectorSize[ring1Sectors]
 	= {20, 27, 34, 25, 24, 25, 22, 24, 26, 32, 29, 29};
-    SectorsInRing inRing1(sectors, sectorSize);
+    SectorsInRing sectorsInRing1(ring1Sectors, ring1SectorSize);
+
+    InRing * const inRing[2] = {
+	Mode::Value::clock == mode.value
+	    ? static_cast<InRing *>(&foldsInRing0)
+	    : static_cast<InRing *>(&sectorsInRing0),
+	&sectorsInRing1
+    };
 
     LEDI leds0[ringSize[0]];
     LEDI leds1[ringSize[1]];
@@ -240,21 +248,21 @@ void ClockArtTask::update_() {
     // keeping track of the largest led value by part.
     auto maxRendering = std::numeric_limits<int>::min();
     for (auto & led: leds0) {
-	for (auto & place: *inRing0) {
+	for (auto & place: **inRing[0]) {
 	    for (auto & render: renderList[0]) {
 		led = led + render(place);
 	    }
 	}
-	++inRing0;
+	++*inRing[0];
 	maxRendering = std::max(maxRendering, led.max());
     }
     for (auto & led: leds1) {
-	for (auto & place: *inRing1) {
+	for (auto & place: **inRing[1]) {
 	    for (auto & render: renderList[1]) {
 		led = led + render(place);
 	    }
 	}
-	++inRing1;
+	++*inRing[1];
 	maxRendering = std::max(maxRendering, led.max());
     }
 
