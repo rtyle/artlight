@@ -3,6 +3,8 @@ This repository supports similar applications that artfully animate individually
 
 Currently, there is a cornhole and a clock application supported by this repository.
 
+https://youtu.be/0ISKXnE9frU
+
 ## Parts
 
 Common parts are
@@ -114,8 +116,6 @@ There are no additional preferences for the clock application.
 The clock will present time by animating hour, minute and second indicators using the LEDs mounted to the back of the art.
 Hour and minute indicators will animate up and down the rays and across the inner arcs that connect them.
 The second indicator will sweep across the perimeter.
-
-https://youtu.be/0ISKXnE9frU
 
 ## Cornhole Use
 
