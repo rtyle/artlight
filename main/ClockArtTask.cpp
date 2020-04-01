@@ -56,23 +56,33 @@ static float phaseIn(uint64_t time, uint64_t period) {
     return (time % period) / static_cast<float>(period);
 }
 
+size_t constexpr sum_(size_t const s, size_t const n, size_t const * const e) {
+    return n ? sum_(s + *e, n - 1, e + 1) : s;
+}
+template<size_t n>
+size_t constexpr sum(size_t const (&a)[n]) {
+    return sum_(0, n, a);
+}
+
 void ClockArtTask::update_() {
     static size_t constexpr dialCount	{3};
     static size_t constexpr ringCount	{2};
     static size_t constexpr sectorCount	{12};
 
-    static size_t constexpr ring0SectorSize[sectorCount]
-	{59, 59, 59, 57, 57, 55, 55, 55, 55, 56, 57, 58};
     static size_t constexpr ring0UnfoldedSize[sectorCount]
 	{ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0};
+    static size_t constexpr ring0FoldedSize[sectorCount]
+	{59, 59, 59, 57, 57, 55, 55, 55, 55, 56, 57, 58};
+    static size_t constexpr ring0SectorSize[sectorCount]
+	{59, 59, 59, 57, 57, 55, 55, 55, 55, 56, 57, 58};
     static size_t constexpr ring1SectorSize[sectorCount]
 	{20, 27, 34, 25, 24, 25, 22, 24, 26, 32, 29, 29};
 
     static size_t constexpr toRingIndex[dialCount] {0, 1, 1};
 
     static size_t constexpr ringSize[ringCount] {
-	59 + 59 + 59 + 57 + 57 + 55 + 55 + 55 + 55 + 56 + 57 + 58,
-	20 + 27 + 34 + 25 + 24 + 25 + 22 + 24 + 26 + 32 + 29 + 29
+	sum(ring0SectorSize),
+	sum(ring1SectorSize)
     };
 
     uint64_t const microsecondsSinceBoot {static_cast<uint64_t>(esp_timer_get_time())};
@@ -230,8 +240,8 @@ void ClockArtTask::update_() {
 	} break;
     }
 
+    FoldsInRing foldsInRing0(sectorCount, ring0FoldedSize, ring0UnfoldedSize);
     SectorsInRing sectorsInRing0(sectorCount, ring0SectorSize);
-    FoldsInRing foldsInRing0(sectorCount, ring0SectorSize, ring0UnfoldedSize);
     SectorsInRing sectorsInRing1(sectorCount, ring1SectorSize);
 
     InRing * const inRing[ringCount] {
