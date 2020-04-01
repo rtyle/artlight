@@ -60,6 +60,7 @@ void ClockArtTask::update_() {
     static size_t constexpr dialCount = 3;
     static size_t constexpr ringCount = 2;
     static size_t constexpr sectorCount = 12;
+
     static size_t constexpr ring0SectorSize[sectorCount]
 	{59, 59, 59, 57, 57, 55, 55, 55, 55, 56, 57, 58};
     static size_t constexpr ring0UnfoldedSize[sectorCount]
@@ -67,10 +68,9 @@ void ClockArtTask::update_() {
     static size_t constexpr ring1SectorSize[sectorCount]
 	{20, 27, 34, 25, 24, 25, 22, 24, 26, 32, 29, 29};
 
-    // one LED strip (ring) for hours, the other for minutes and seconds.
-    // for rendering to accurately index these rings,
-    // these numbers must reflect the arguments of the *InRing constructors (below).
-    static size_t constexpr ringSize[ringCount] = {
+    static size_t constexpr toRingIndex[dialCount] {0, 1, 1};
+
+    static size_t constexpr ringSize[ringCount] {
 	59 + 59 + 59 + 57 + 57 + 55 + 55 + 55 + 55 + 56 + 57 + 58,
 	20 + 27 + 34 + 25 + 24 + 25 + 22 + 24 + 26 + 32 + 29 + 29
     };
@@ -104,8 +104,6 @@ void ClockArtTask::update_() {
 
     switch (mode.value) {
     case Mode::Value::clock: {
-	    static size_t constexpr toRingIndex[dialCount] {0, 1, 1};
-
 	    float widthInRing[dialCount] {
 		width[0] / ringSize[toRingIndex[0]],
 		width[1] / ringSize[toRingIndex[1]],
@@ -138,7 +136,7 @@ void ClockArtTask::update_() {
 	    };
 
 	    for (size_t dialIndex = 0; dialIndex < dialCount; ++dialIndex) {
-		size_t ringIndex = toRingIndex[dialIndex];
+		size_t const ringIndex = toRingIndex[dialIndex];
 		if (widthInRing[dialIndex]) {
 		    switch (shape_[dialIndex].value) {
 		    case Shape::Value::bell: {
@@ -236,7 +234,7 @@ void ClockArtTask::update_() {
     FoldsInRing foldsInRing0(sectorCount, ring0SectorSize, ring0UnfoldedSize);
     SectorsInRing sectorsInRing1(sectorCount, ring1SectorSize);
 
-    InRing * const inRing[ringCount] = {
+    InRing * const inRing[ringCount] {
 	Mode::Value::clock == mode.value
 	    ? static_cast<InRing *>(&foldsInRing0)
 	    : static_cast<InRing *>(&sectorsInRing0),
