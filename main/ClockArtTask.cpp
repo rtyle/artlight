@@ -57,10 +57,20 @@ static float phaseIn(uint64_t time, uint64_t period) {
 }
 
 void ClockArtTask::update_() {
+    static size_t constexpr dialCount = 3;
+    static size_t constexpr ringCount = 2;
+    static size_t constexpr sectorCount = 12;
+    static size_t constexpr ring0SectorSize[sectorCount]
+	{59, 59, 59, 57, 57, 55, 55, 55, 55, 56, 57, 58};
+    static size_t constexpr ring0UnfoldedSize[sectorCount]
+	{ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0};
+    static size_t constexpr ring1SectorSize[sectorCount]
+	{20, 27, 34, 25, 24, 25, 22, 24, 26, 32, 29, 29};
+
     // one LED strip (ring) for hours, the other for minutes and seconds.
     // for rendering to accurately index these rings,
     // these numbers must reflect the arguments of the *InRing constructors (below).
-    static size_t constexpr ringSize[] = {
+    static size_t constexpr ringSize[ringCount] = {
 	59 + 59 + 59 + 57 + 57 + 55 + 55 + 55 + 55 + 56 + 57 + 58,
 	20 + 27 + 34 + 25 + 24 + 25 + 22 + 24 + 26 + 32 + 29 + 29
     };
@@ -68,19 +78,19 @@ void ClockArtTask::update_() {
     uint64_t const microsecondsSinceBoot = esp_timer_get_time();
 
     static LEDI const black(0, 0, 0);
-    Blend<LEDI> const blend[] {
+    Blend<LEDI> const blend[dialCount] {
 	{black, color[0]},
 	{black, color[1]},
 	{black, color[2]},
     };
 
-    static float constexpr scale[] {
+    static float constexpr scale[dialCount] {
 	phi	/ 1.5f,		//  > 1.0
 	sqrt2	/ 1.5f,		//  < 1.0
 	1.5f	/ 1.5f,		// == 1.0
     };
 
-    std::list<std::function<LEDI(float)>> renderList[2];
+    std::list<std::function<LEDI(float)>> renderList[ringCount];
 
     // construct static PerlinNoise objects
     static std::mt19937 rng;
@@ -94,21 +104,21 @@ void ClockArtTask::update_() {
 
     switch (mode.value) {
     case Mode::Value::clock: {
-	    static size_t constexpr toRingIndex[] = {0, 1, 1};
+	    static size_t constexpr toRingIndex[dialCount] {0, 1, 1};
 
-	    float widthInRing[] {
+	    float widthInRing[dialCount] {
 		width[0] / ringSize[toRingIndex[0]],
 		width[1] / ringSize[toRingIndex[1]],
 		width[2] / ringSize[toRingIndex[2]],
 	    };
 
-	    Shape shape_[3] {shape[0], shape[1], shape[2]};
+	    Shape shape_[dialCount] {shape[0], shape[1], shape[2]};
 
 	    float secondsSinceTwelveLocaltime
 		= smoothTime.millisecondsSinceTwelveLocaltime(
 			microsecondsSinceBoot)
 		    / static_cast<float>(millisecondsPerSecond);
-	    float position[3] {
+	    float position[dialCount] {
 		position[0] = hourPulse  (inDayOf   (
 		    secondsSinceTwelveLocaltime)),
 		position[1] = minutePulse(inHourOf  (
@@ -122,49 +132,49 @@ void ClockArtTask::update_() {
 		}
 	    }
 
-	    static float constexpr waveWidth[] = {
+	    static float constexpr waveWidth[ringCount] = {
 		2.0f / ringSize[0],
 		2.0f / ringSize[1]
 	    };
 
-	    for (size_t index = 0; index < 3; ++index) {
-		size_t ringIndex = toRingIndex[index];
-		if (widthInRing[index]) {
-		    switch (shape_[index].value) {
+	    for (size_t dialIndex = 0; dialIndex < dialCount; ++dialIndex) {
+		size_t ringIndex = toRingIndex[dialIndex];
+		if (widthInRing[dialIndex]) {
+		    switch (shape_[dialIndex].value) {
 		    case Shape::Value::bell: {
 			    BellCurve<Dial> dial(
-				position[index], widthInRing[index]);
-			    renderList[ringIndex].push_back([&blend, index, dial](
+				position[dialIndex], widthInRing[dialIndex]);
+			    renderList[ringIndex].push_back([&blend, dialIndex, dial](
 				    float place){
-				return blend[index](dial(place));
+				return blend[dialIndex](dial(place));
 			    });
 			}
 			break;
 		    case Shape::Value::wave: {
-			    BellStandingWaveDial dial(position[index],
-				widthInRing[index],
+			    BellStandingWaveDial dial(position[dialIndex],
+				widthInRing[dialIndex],
 				phaseIn(microsecondsSinceBoot,
 				    microsecondsPerSecond * 2.0f
-				    / scale[index] / waveWidth[ringIndex]),
+				    / scale[dialIndex] / waveWidth[ringIndex]),
 				waveWidth[ringIndex]);
-			    renderList[ringIndex].push_back([&blend, index, dial](
+			    renderList[ringIndex].push_back([&blend, dialIndex, dial](
 				    float place){
-				return blend[index](dial(place));
+				return blend[dialIndex](dial(place));
 			    });
 			}
 			break;
 		    case Shape::Value::bloom: {
-			    Dial dial(position[index]);
-			    BumpCurve bump(0.0f, widthInRing[index]);
-			    BloomCurve bloom(0.0f, widthInRing[index],
+			    Dial dial(position[dialIndex]);
+			    BumpCurve bump(0.0f, widthInRing[dialIndex]);
+			    BloomCurve bloom(0.0f, widthInRing[dialIndex],
 				phaseIn(microsecondsSinceBoot,
 				    microsecondsPerSecond * 2.0f
-				    / scale[index]));
+				    / scale[dialIndex]));
 			    renderList[ringIndex].push_back([
-				    &blend, index, dial, bump, bloom](
+				    &blend, dialIndex, dial, bump, bloom](
 				    float place){
 				float offset = dial(place);
-				return blend[index](
+				return blend[dialIndex](
 				    bump(offset) * bloom(offset));
 			    });
 			}
@@ -222,19 +232,11 @@ void ClockArtTask::update_() {
 	} break;
     }
 
-    static size_t constexpr ring0Sectors = 12;
-    static size_t constexpr ring0SectorSize[ring0Sectors]
-	= {59, 59, 59, 57, 57, 55, 55, 55, 55, 56, 57, 58};
-    SectorsInRing sectorsInRing0(ring0Sectors, ring0SectorSize);
-    static size_t constexpr ring0UnfoldedSize[ring0Sectors]
-	= { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0};
-    FoldsInRing foldsInRing0(ring0Sectors, ring0SectorSize, ring0UnfoldedSize);
-    static size_t constexpr ring1Sectors = 12;
-    static size_t constexpr ring1SectorSize[ring1Sectors]
-	= {20, 27, 34, 25, 24, 25, 22, 24, 26, 32, 29, 29};
-    SectorsInRing sectorsInRing1(ring1Sectors, ring1SectorSize);
+    SectorsInRing sectorsInRing0(sectorCount, ring0SectorSize);
+    FoldsInRing foldsInRing0(sectorCount, ring0SectorSize, ring0UnfoldedSize);
+    SectorsInRing sectorsInRing1(sectorCount, ring1SectorSize);
 
-    InRing * const inRing[2] = {
+    InRing * const inRing[ringCount] = {
 	Mode::Value::clock == mode.value
 	    ? static_cast<InRing *>(&foldsInRing0)
 	    : static_cast<InRing *>(&sectorsInRing0),
