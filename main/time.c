@@ -85,7 +85,7 @@ static uint64_t adjtime_start = 0;
 // is how many microseconds total to slew
 static int64_t adjtime_total_correction = 0;
 #define ADJTIME_CORRECTION_FACTOR 6
-static uint64_t get_time_since_boot();
+/* static */ uint64_t get_time_since_boot();
 #endif
 // Offset between FRC timer and the RTC.
 // Initialized after reset or light sleep.
@@ -106,7 +106,7 @@ static void set_boot_time(uint64_t time_us)
     _lock_release(&s_boot_time_lock);
 }
 
-/* static */ uint64_t get_boot_time()
+static uint64_t get_boot_time()
 {
     uint64_t result;
     _lock_acquire(&s_boot_time_lock);
@@ -159,7 +159,7 @@ static uint64_t adjust_boot_time()
 }
 
 // Get the adjusted boot time.
-static uint64_t get_adjusted_boot_time (void)
+/* static */ uint64_t get_adjusted_boot_time (void)
 {
     _lock_acquire(&s_adjust_time_lock);
     uint64_t adjust_time = adjust_boot_time();
@@ -274,7 +274,7 @@ clock_t IRAM_ATTR _times_r(struct _reent *r, struct tms *ptms)
 }
 
 #if defined( WITH_FRC ) || defined( WITH_RTC )
-static uint64_t get_time_since_boot()
+/* static */ uint64_t get_time_since_boot()
 {
     uint64_t microseconds = 0;
 #ifdef WITH_FRC

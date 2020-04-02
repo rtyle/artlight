@@ -1,14 +1,15 @@
 #include <cmath>
 
+#include <esp_log.h>
 #include <esp_timer.h>
 
 #include "SmoothTime.h"
 
-static auto constexpr millisecondsPerSecond	= 1000u;
-static auto constexpr millisecondsPerMinute	= 60u * millisecondsPerSecond;
-static auto constexpr millisecondsPerHour	= 60u * millisecondsPerMinute;
+static auto constexpr millisecondsPerSecond	{1000u};
+static auto constexpr millisecondsPerMinute	{60u * millisecondsPerSecond};
+static auto constexpr millisecondsPerHour	{60u * millisecondsPerMinute};
 
-static auto constexpr microsecondsPerMillisecond = 1000u;
+static auto constexpr microsecondsPerMillisecond {1000u};
 
 // we want to get (and present) local time of day at a subsecond resolution.
 // the resolution of std::time is a second.
@@ -46,20 +47,20 @@ static auto constexpr microsecondsPerMillisecond = 1000u;
 // although time.c advertises this as uint64_t, at boot time it has been seen
 // to wrap backwards from 0 about a second (a negative number).
 // so, we will interpret it as such.
-extern "C" int64_t get_boot_time();
+extern "C" int64_t get_adjusted_boot_time();
 
 SmoothTime::SmoothTime(char const * name_, size_t stepCount_)
 :
-    name(name_),
-    stepCount(stepCount_),
-    stepLeft(0),
-    stepProduct(0),
-    stepFactor(0),
-    lastBootTime(get_boot_time())
+    name{name_},
+    stepCount{stepCount_},
+    stepLeft{0},
+    stepProduct{0},
+    stepFactor{0},
+    lastBootTime{get_adjusted_boot_time()}
 {}
 
-int64_t SmoothTime::microsecondsSinceEpoch(uint64_t microseconds) {
-    int64_t const thisBootTime = get_boot_time();
+int64_t SmoothTime::microsecondsSinceEpoch(uint64_t microsecondsSinceBoot) {
+    int64_t const thisBootTime {get_adjusted_boot_time()};
     if (thisBootTime != lastBootTime) {
 	// if we were to cut the difference in half on each successive step
 	// there would be log2(abs(thisBootTime - lastBootTime)) steps needed.
@@ -78,8 +79,8 @@ int64_t SmoothTime::microsecondsSinceEpoch(uint64_t microseconds) {
 	// since our result is used to animate a 12 hour clock
 	// it makes no sense to step over a larger amount.
 	// remove full turns to get within one turn centered on thisBootTime.
-	static auto constexpr turn = 12 * 60 * 60 * 1000000ull;
-	static auto constexpr halfTurn = turn / 2;
+	static auto constexpr turn {12 * 60 * 60 * 1000000ull};
+	static auto constexpr halfTurn {turn / 2};
 	if (0.0f < stepProduct) {
 	    stepProduct -= (
 		(static_cast<uint64_t>( stepProduct) + halfTurn) / turn) * turn;
@@ -91,35 +92,53 @@ int64_t SmoothTime::microsecondsSinceEpoch(uint64_t microseconds) {
 	if (stepProduct) {
 	    stepLeft = stepCount;
 	    float halfStepCount
-		= std::log2(0.0f < stepProduct ? stepProduct : -stepProduct);
+		{std::log2(0.0f < stepProduct ? stepProduct : -stepProduct)};
 	    stepFactor = std::exp2(-1.0f * halfStepCount / stepCount);
 //	    ESP_LOGI(name, "thisBootTime=%lld stepProduct=%f halfStepCount=%f stepCount=%zu stepFactor=%f",
 //		thisBootTime, stepProduct, halfStepCount, stepCount, stepFactor);
 	}
     }
     if (!stepLeft) {
-//	ESP_LOGI(name, "%llu (now) = %lld (thisBootTime) + %llu (us)",
-//	    thisBootTime + microseconds, thisBootTime, microseconds);
-	return thisBootTime + microseconds;
+#if 0
+	ESP_LOGI(name, "%llu (now) = %lld (thisBootTime) + %llu (us)",
+	    thisBootTime + microseconds, thisBootTime, microseconds);
+#endif
+	return thisBootTime + microsecondsSinceBoot;
     } else {
 	--stepLeft;
 	stepProduct *= stepFactor;
-	int64_t now = thisBootTime - static_cast<int64_t>(stepProduct) + microseconds;
-//	ESP_LOGI(name, "%lld (now) = %lld (thisBootTime) - %lld (stepProduct) + %llu (us)",
-//	    now, thisBootTime, static_cast<int64_t>(stepProduct), microseconds);
+	int64_t now {thisBootTime
+	    - static_cast<int64_t>(stepProduct)
+	    + static_cast<int64_t>(microsecondsSinceBoot)};
+#if 0
+	ESP_LOGI(name, "%lld (now) = %lld (thisBootTime) - %lld (stepProduct) + %llu (us)",
+	    now, thisBootTime, static_cast<int64_t>(stepProduct), microseconds);
+#endif
 	return now;
     }
 }
 
-uint32_t SmoothTime::millisecondsSinceTwelveLocaltime(uint64_t microseconds) {
+uint32_t SmoothTime::millisecondsSinceTwelveLocaltime(uint64_t microsecondsSinceBoot) {
     int64_t milliseconds
-	= microsecondsSinceEpoch(microseconds) / microsecondsPerMillisecond;
+	{microsecondsSinceEpoch(microsecondsSinceBoot) / microsecondsPerMillisecond};
 
-    std::time_t seconds = milliseconds / millisecondsPerSecond;
+    std::time_t seconds
+	{static_cast<std::time_t>(milliseconds / millisecondsPerSecond)};
     milliseconds -= static_cast<int64_t>(seconds) * millisecondsPerSecond;
 
     std::tm tm;
     localtime_r(&seconds, &tm);
+
+#if 0
+    ESP_LOGI(name, "%lu %04d-%02d-%02d %02d:%02d:%02d",
+	seconds,
+	tm.tm_year + 1900,
+	tm.tm_mon + 1,
+	tm.tm_mday,
+	tm.tm_hour,
+	tm.tm_min,
+	tm.tm_sec);
+#endif
 
     return milliseconds
 	+ (tm.tm_sec      ) * millisecondsPerSecond

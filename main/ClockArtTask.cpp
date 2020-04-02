@@ -14,6 +14,8 @@
 #include "Pulse.h"
 #include "Timer.h"
 
+extern "C" uint64_t get_time_since_boot();
+
 using APA102::LED;
 using LEDI = APA102::LED<int>;
 
@@ -85,7 +87,7 @@ void ClockArtTask::update_() {
 	sum(ring1SectorSize)
     };
 
-    uint64_t const microsecondsSinceBoot {static_cast<uint64_t>(esp_timer_get_time())};
+    uint64_t const microsecondsSinceBoot {get_time_since_boot()};
 
     static LEDI const black {0, 0, 0};
     Blend<LEDI> const blend[dialCount] {

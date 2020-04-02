@@ -13,6 +13,8 @@
 #include "Pulse.h"
 #include "Timer.h"
 
+extern "C" uint64_t get_time_since_boot();
+
 using APA102::LED;
 using LEDI = APA102::LED<int>;
 
@@ -73,7 +75,7 @@ static float phaseIn(uint64_t time, uint64_t period) {
 static unsigned constexpr scoreMax = 21;
 
 void CornholeArtTask::update_() {
-    uint64_t const microsecondsSinceBoot = esp_timer_get_time();
+    uint64_t const microsecondsSinceBoot {get_time_since_boot()};
 
     static LEDI const black(0, 0, 0);
     Blend<LEDI> const blend[] {
