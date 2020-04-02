@@ -9,13 +9,26 @@
 
 #include "TimeUpdate.h"
 
+static void time_sync_notification(struct timeval * tv) {
+    std::tm tm;
+    localtime_r(&tv->tv_sec, &tm);
+    ESP_LOGI("timeUpdate", "%lu %04d-%02d-%02d %02d:%02d:%02d",
+	tv->tv_sec,
+	tm.tm_year + 1900,
+	tm.tm_mon + 1,
+	tm.tm_mday,
+	tm.tm_hour,
+	tm.tm_min,
+	tm.tm_sec);
+}
+
 TimeUpdate::TimeUpdate(
     char const *	name_,
     KeyValueBroker &	keyValueBroker)
 :
-    name(name_),
+    name{name_},
 
-    timeServers(),
+    timeServers{},
 
     timeServersObserver(keyValueBroker, "timeServers", CONFIG_TIME_SERVERS,
 	[this](char const * timeServers_){
@@ -30,12 +43,12 @@ TimeUpdate::TimeUpdate(
 
 	    // parse, copy and reference whitespace-delimited timeServers
 	    std::istringstream timeServersStream(timeServers_);
-	    size_t index = 0;
+	    size_t index {0};
 	    while (true) {
 		std::string timeServerString;
 		timeServersStream >> timeServerString;
 		if (!timeServersStream) break;
-		char * timeServer = strdup(timeServerString.c_str());
+		char * timeServer {strdup(timeServerString.c_str())};
 		timeServers.push_back(timeServer);
 		ESP_LOGI(name, "server %d %s", index, timeServer);
 		sntp_setservername(index++, timeServer);
@@ -52,7 +65,9 @@ TimeUpdate::TimeUpdate(
 	    sntp_setoperatingmode(SNTP_OPMODE_POLL);
 	    sntp_init();
 	})
-{}
+{
+    sntp_set_time_sync_notification_cb(time_sync_notification);
+}
 
 TimeUpdate::~TimeUpdate() {
     ESP_LOGI(name, "stop");
