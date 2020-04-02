@@ -56,11 +56,11 @@ static float phaseIn(uint64_t time, uint64_t period) {
     return (time % period) / static_cast<float>(period);
 }
 
-size_t constexpr sum_(size_t const s, size_t const n, size_t const * const e) {
+static size_t constexpr sum_(size_t const s, size_t const n, size_t const * const e) {
     return n ? sum_(s + *e, n - 1, e + 1) : s;
 }
 template<size_t n>
-size_t constexpr sum(size_t const (&a)[n]) {
+static size_t constexpr sum(size_t const (&a)[n]) {
     return sum_(0, n, a);
 }
 
