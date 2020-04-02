@@ -80,7 +80,7 @@ void ClockArtTask::update_() {
 
     static size_t constexpr toRingIndex[dialCount] {0, 1, 1};
 
-    static size_t constexpr ringSize[ringCount] {
+    static size_t constexpr ledCount[ringCount] {
 	sum(ring0SectorSize),
 	sum(ring1SectorSize)
     };
@@ -115,9 +115,9 @@ void ClockArtTask::update_() {
     switch (mode.value) {
     case Mode::Value::clock: {
 	    float widthInRing[dialCount] {
-		width[0] / ringSize[toRingIndex[0]],
-		width[1] / ringSize[toRingIndex[1]],
-		width[2] / ringSize[toRingIndex[2]],
+		width[0] / ledCount[toRingIndex[0]],
+		width[1] / ledCount[toRingIndex[1]],
+		width[2] / ledCount[toRingIndex[2]],
 	    };
 
 	    Shape shape_[dialCount] {shape[0], shape[1], shape[2]};
@@ -141,8 +141,8 @@ void ClockArtTask::update_() {
 	    }
 
 	    static float constexpr waveWidth[ringCount] {
-		2.0f / ringSize[0],
-		2.0f / ringSize[1]
+		2.0f / ledCount[0],
+		2.0f / ledCount[1]
 	    };
 
 	    for (size_t dialIndex {0}; dialIndex < dialCount; ++dialIndex) {
@@ -226,7 +226,7 @@ void ClockArtTask::update_() {
 			    % perlinNoisePeriodMicroseconds)
 			/ static_cast<float>(microsecondsPerSecond),
 		    0.0f, octaves)
-		) / ringSize[0]};
+		) / ledCount[0]};
 	    unsigned period {static_cast<unsigned>(4u * microsecondsPerSecond / width)};
 	    uint64_t microsecondsSinceLastPeriod
 		{microsecondsSinceBoot - microsecondsSinceBootOfLastPeriod};
@@ -251,33 +251,26 @@ void ClockArtTask::update_() {
 	&sectorsInRing1
     };
 
-    LEDI leds0[ringSize[0]];
-    LEDI leds1[ringSize[1]];
-
     // render art from places in the ring,
     // keeping track of the largest led value by part.
     auto maxRendering {std::numeric_limits<int>::min()};
-    for (auto & led: leds0) {
-	for (auto & place: **inRing[0]) {
-	    for (auto & render: renderList[0]) {
-		led = led + render(place);
+    LEDI leds[sum(ledCount)];
+    LEDI * led;
+    led = leds;
+    for (size_t ringIndex {0}; ringIndex < ringCount; ++ringIndex) {
+	for (size_t ledIndex {0}; ledIndex < ledCount[ringIndex]; ++ledIndex, ++led) {
+	    for (auto & place: **inRing[ringIndex]) {
+		for (auto & render: renderList[ringIndex]) {
+		    *led = *led + render(place);
+		}
 	    }
+	    ++*inRing[ringIndex];
+	    maxRendering = std::max(maxRendering, led->max());
 	}
-	++*inRing[0];
-	maxRendering = std::max(maxRendering, led.max());
-    }
-    for (auto & led: leds1) {
-	for (auto & place: **inRing[1]) {
-	    for (auto & render: renderList[1]) {
-		led = led + render(place);
-	    }
-	}
-	++*inRing[1];
-	maxRendering = std::max(maxRendering, led.max());
     }
 
-    APA102::Message<ringSize[0]> message0;
-    APA102::Message<ringSize[1]> message1;
+    APA102::Message<ledCount[0]> message0;
+    APA102::Message<ledCount[1]> message1;
 
     /// adjust brightness
     float dimming {dim.value == Dim::manual
@@ -287,31 +280,20 @@ void ClockArtTask::update_() {
 	// 1 as the lux doubles up until 2^13 (~full daylight, indirect sun).
 	// an LED value of 128 will be dimmed to 24 in complete darkness (lux 0)
 	: (3.0f + std::min(13.0f, std::log2(1.0f + getLux()))) / 16.0f};
-    LEDI * led;
-    led = leds0;
-    if (range.value == Range::clip) {
-	for (auto & e: message0.encodings) {
-	    e = LED<>(gammaEncode,
-		clip(*led++) * dimming);
-	}
-    } else if (range.value == Range::normalize) {
-	static auto const maxEncoding {std::numeric_limits<uint8_t>::max()};
-	for (auto & e: message0.encodings) {
-	    e = LED<>(gammaEncode,
-		(*led++ * maxEncoding / maxRendering) * dimming);
-	}
-    }
-    led = leds1;
-    if (range.value == Range::clip) {
-	for (auto & e: message1.encodings) {
-	    e = LED<>(gammaEncode,
-		clip(*led++) * dimming);
-	}
-    } else if (range.value == Range::normalize) {
-	static auto const maxEncoding {std::numeric_limits<uint8_t>::max()};
-	for (auto & e: message1.encodings) {
-	    e = LED<>(gammaEncode,
-		(*led++ * maxEncoding / maxRendering) * dimming);
+    led = leds;
+    uint32_t * const encodings[ringCount] = {
+	message0.encodings,
+	message1.encodings
+    };
+    for (size_t ringIndex {0}; ringIndex < ringCount; ++ringIndex) {
+	uint32_t * e {encodings[ringIndex]};
+	for (size_t ledIndex {0}; ledIndex < ledCount[ringIndex]; ++ledIndex, ++led) {
+	    static auto const maxEncoding {std::numeric_limits<uint8_t>::max()};
+	    *e++ = LED<>(gammaEncode,
+		Range::clip == range.value
+		    ? clip(*led) * dimming
+		    : static_cast<LED<>>((*led * maxEncoding / maxRendering)
+			* dimming));
 	}
     }
 
