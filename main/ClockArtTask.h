@@ -1,13 +1,13 @@
 #pragma once
 
-#include "ArtTask.h"
+#include "DialArtTask.h"
 #include "Button.h"
 #include "LEDC.h"
 #include "Pin.h"
 
 using APA102::LED;
 
-class ClockArtTask: public ArtTask {
+class ClockArtTask: public DialArtTask {
 private:
     struct Mode {
     private:

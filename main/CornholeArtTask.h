@@ -1,13 +1,13 @@
 #pragma once
 
-#include "ArtTask.h"
+#include "DialArtTask.h"
 #include "Button.h"
 #include "LEDC.h"
 #include "Pin.h"
 
 using APA102::LED;
 
-class CornholeArtTask: public ArtTask {
+class CornholeArtTask: public DialArtTask {
 private:
     ObservablePin::ISR	pinISR;
     ObservablePin::Task	pinTask;

@@ -1,9 +1,7 @@
 #pragma once
 
-#include "APA102.h"
 #include "AsioTask.h"
 #include "GammaEncode.h"
-#include "InRing.h"
 #include "KeyValueBroker.h"
 #include "SPI.h"
 #include "SmoothTime.h"
@@ -33,19 +31,6 @@ public:
 	Range(char const *);
 	char const * toString() const;
     };
-    struct Shape {
-    private:
-	static char const * const string[];
-    public:
-	enum Value {bell, wave, bloom} value;
-	Shape(Value);
-	Shape(char const *);
-	char const * toString() const;
-    };
-
-    void widthObserved(size_t index, char const * value);
-    void colorObserved(size_t index, char const * value);
-    void shapeObserved(size_t index, char const * value);
 
 protected:
     SPI::Device const			spiDevice[2];
@@ -54,14 +39,6 @@ protected:
     KeyValueBroker &			keyValueBroker;
 
     KeyValueBroker::Observer const	timezoneObserver;
-
-    float				width[3];
-    APA102::LED<>			color[3];
-    Shape				shape[3];
-
-    KeyValueBroker::Observer const	widthObserver[3];
-    KeyValueBroker::Observer const	colorObserver[3];
-    KeyValueBroker::Observer const	shapeObserver[3];
 
     Range				range;
     KeyValueBroker::Observer const	rangeObserver;
@@ -85,5 +62,6 @@ protected:
 	SPI::Bus const		(&spiBus)[2],
 	std::function<float()>	getLux,
 	KeyValueBroker &	keyValueBroker,
-	size_t			smoothTimeStepCount = 4096);
+	size_t			smoothTimeStepCount,
+	uint8_t			(&spiMode)[2]);
 };

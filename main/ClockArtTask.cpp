@@ -332,7 +332,7 @@ ClockArtTask::ClockArtTask(
     std::function<float()>	getLux_,
     KeyValueBroker &		keyValueBroker_)
 :
-    ArtTask		("ClockArtTask", 5, 0x10000, 1,
+    DialArtTask		("ClockArtTask", 5, 0x10000, 1,
     			spiBus, getLux_, keyValueBroker_, 512),
 
     mode(Mode::clock),

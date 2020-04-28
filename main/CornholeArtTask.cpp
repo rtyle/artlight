@@ -408,8 +408,8 @@ CornholeArtTask::CornholeArtTask(
     std::function<float()>	getLux_,
     KeyValueBroker &		keyValueBroker_)
 :
-    ArtTask		("CornholeArtTask", 5, 16384, 1,
-    			spiBus, getLux_, keyValueBroker_),
+    DialArtTask		{"CornholeArtTask", 5, 16384, 1,
+    			spiBus, getLux_, keyValueBroker_},
 
     pinISR(),
     pinTask("pinTask", 5, 4096, tskNO_AFFINITY, 128),
