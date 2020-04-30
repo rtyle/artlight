@@ -3,7 +3,6 @@
 #include "AsioTask.h"
 #include "GammaEncode.h"
 #include "KeyValueBroker.h"
-#include "SPI.h"
 #include "SmoothTime.h"
 
 /// An ArtTask is an abstract base class for an implementation that
@@ -33,8 +32,6 @@ public:
     };
 
 protected:
-    SPI::Device const			spiDevice[2];
-
     std::function<float()> const	getLux;
     KeyValueBroker &			keyValueBroker;
 
@@ -59,9 +56,7 @@ protected:
 	size_t			stackSize,
 	BaseType_t		core,
 
-	SPI::Bus const		(&spiBus)[2],
 	std::function<float()>	getLux,
 	KeyValueBroker &	keyValueBroker,
-	size_t			smoothTimeStepCount,
-	uint8_t			(&spiMode)[2]);
+	size_t			smoothTimeStepCount);
 };

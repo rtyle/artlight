@@ -59,11 +59,6 @@ void DialArtTask::shapeObserved(size_t index, char const * value_) {
     });
 }
 
-uint8_t spiMode[] = {
-    APA102::spiMode,
-    APA102::spiMode
-};
-
 DialArtTask::DialArtTask(
     char const *		name,
     UBaseType_t			priority,
@@ -76,7 +71,22 @@ DialArtTask::DialArtTask(
     size_t			smoothTimeStepCount)
 :
     ArtTask		{name, priority, stackSize, core,
-			spiBus, getLux_, keyValueBroker_, smoothTimeStepCount, spiMode},
+			getLux_, keyValueBroker_, smoothTimeStepCount},
+
+    spiDevice {
+	{&spiBus[0], SPI::Device::Config()
+	    .mode_(APA102::spiMode)
+	    .clock_speed_hz_(8000000)	// see SPI_MASTER_FREQ_*
+	    .spics_io_num_(-1)			// no chip select
+	    .queue_size_(1)
+	},
+	{&spiBus[1], SPI::Device::Config()
+	    .mode_(APA102::spiMode)
+	    .clock_speed_hz_(8000000)	// see SPI_MASTER_FREQ_*
+	    .spics_io_num_(-1)			// no chip select
+	    .queue_size_(1)
+	},
+    },
 
     width {},
     color {},

@@ -41,28 +41,11 @@ ArtTask::ArtTask(
     size_t			stackSize,
     BaseType_t			core,
 
-    SPI::Bus const		(&spiBus)[2],
     std::function<float()>	getLux_,
     KeyValueBroker &		keyValueBroker_,
-    size_t			smoothTimeStepCount,
-    uint8_t			(&spiMode)[2])
+    size_t			smoothTimeStepCount)
 :
     AsioTask		(name, priority, stackSize, core),
-
-    spiDevice {
-	{&spiBus[0], SPI::Device::Config()
-	    .mode_(spiMode[0])
-	    .clock_speed_hz_(8000000)	// see SPI_MASTER_FREQ_*
-	    .spics_io_num_(-1)		// no chip select
-	    .queue_size_(1)
-	},
-	{&spiBus[1], SPI::Device::Config()
-	    .mode_(spiMode[1])
-	    .clock_speed_hz_(8000000)	// see SPI_MASTER_FREQ_*
-	    .spics_io_num_(-1)		// no chip select
-	    .queue_size_(1)
-	},
-    },
 
     getLux		(getLux_),
 
