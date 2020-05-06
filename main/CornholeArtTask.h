@@ -2,13 +2,23 @@
 
 #include "DialArtTask.h"
 #include "Button.h"
+#include "I2C.h"
+#include "LuxTask.h"
 #include "LEDC.h"
 #include "Pin.h"
+#include "SPI.h"
 
 using APA102::LED;
 
 class CornholeArtTask: public DialArtTask {
 private:
+    SPI::Bus const spiBus;
+    SPI::Device const spiDevice;
+
+    I2C::Master const i2cMaster;
+
+    LuxTask luxTask;
+
     ObservablePin::ISR	pinISR;
     ObservablePin::Task	pinTask;
     ObservablePin	pin[4];
@@ -54,8 +64,6 @@ protected:
 
 public:
     CornholeArtTask(
-	SPI::Bus const		(&spiBus)[2],
-	std::function<float()>	getLux,
 	KeyValueBroker &	keyValueBroker);
 
     void start() override;

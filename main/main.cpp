@@ -113,11 +113,6 @@ public:
 
     Wifi wifi;
 
-    I2C::Master const i2cMaster;
-    LuxTask luxTask;
-
-    SPI::Bus const spiBus[2];
-
     DerivedArtTask artTask;
 
     Main()
@@ -159,29 +154,7 @@ public:
 
 	wifi("WIFI"),
 
-	// internal pullups on silicon are rather high (~50k?)
-	// external 4.7k is still too high. external 1k works
-	i2cMaster(I2C::Config()
-		.sda_io_num_(GPIO_NUM_21) //.sda_pullup_en_(GPIO_PULLUP_ENABLE)
-		.scl_io_num_(GPIO_NUM_22) //.scl_pullup_en_(GPIO_PULLUP_ENABLE)
-		.master_clk_speed_(400000),	// I2C fast mode
-	    I2C_NUM_0, 0),
-	luxTask(&i2cMaster),
-
-	spiBus{
-	    {HSPI_HOST, SPI::Bus::Config()
-		.mosi_io_num_(SPI::Bus::HspiConfig.mosi_io_num)
-		.sclk_io_num_(SPI::Bus::HspiConfig.sclk_io_num),
-	    1},
-	    {VSPI_HOST, SPI::Bus::Config()
-		.mosi_io_num_(SPI::Bus::VspiConfig.mosi_io_num)
-		.sclk_io_num_(SPI::Bus::VspiConfig.sclk_io_num),
-	    2},
-	},
-
-	artTask(spiBus,
-	    [this](){return luxTask.getLux();},
-	    keyValueBroker)
+	artTask(keyValueBroker)
     {
 	std::setlocale(LC_ALL, "en_US.utf8");
 
@@ -191,8 +164,6 @@ public:
 	wifi.start();
 
 	disconnected.reset(new Disconnected(*this));
-
-	luxTask.start();
 
 	artTask.start();
     }

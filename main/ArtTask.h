@@ -32,7 +32,6 @@ public:
     };
 
 protected:
-    std::function<float()> const	getLux;
     KeyValueBroker &			keyValueBroker;
 
     KeyValueBroker::Observer const	timezoneObserver;
@@ -56,7 +55,6 @@ protected:
 	size_t			stackSize,
 	BaseType_t		core,
 
-	std::function<float()>	getLux,
 	KeyValueBroker &	keyValueBroker,
 	size_t			smoothTimeStepCount);
 };

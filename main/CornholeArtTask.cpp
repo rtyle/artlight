@@ -317,7 +317,7 @@ void CornholeArtTask::update_() {
 	// this will range from 3/16 to 16/16 with the numerator increasing by
 	// 1 as the lux doubles up until 2^13 (~full daylight, indirect sun).
 	// an LED value of 128 will be dimmed to 24 in complete darkness (lux 0)
-	: (3.0f + std::min(13.0f, std::log2(1.0f + getLux()))) / 16.0f;
+	: (3.0f + std::min(13.0f, std::log2(1.0f + luxTask.getLux()))) / 16.0f;
     LEDI * led = leds;
     if (range.value == Range::clip) {
 	for (auto & e: message.encodings) {
@@ -332,7 +332,7 @@ void CornholeArtTask::update_() {
 	}
     }
 
-    SPI::Transaction transaction1(spiDevice[1], SPI::Transaction::Config()
+    SPI::Transaction transaction(spiDevice, SPI::Transaction::Config()
 	.tx_buffer_(&message)
 	.length_(message.length()));
 }
@@ -404,12 +404,32 @@ static unsigned constexpr bufferDuration	= 150000;
 static unsigned constexpr holdDuration		= 500000;
 
 CornholeArtTask::CornholeArtTask(
-    SPI::Bus const		(&spiBus)[2],
-    std::function<float()>	getLux_,
     KeyValueBroker &		keyValueBroker_)
 :
     DialArtTask		{"CornholeArtTask", 5, 16384, 1,
-    			spiBus, getLux_, keyValueBroker_},
+    			keyValueBroker_},
+
+    spiBus {VSPI_HOST, SPI::Bus::Config()
+	.mosi_io_num_(SPI::Bus::VspiConfig.mosi_io_num)
+	.sclk_io_num_(SPI::Bus::VspiConfig.sclk_io_num),
+    1},
+
+    spiDevice {&spiBus, SPI::Device::Config()
+	.mode_(APA102::spiMode)
+	.clock_speed_hz_(8000000)	// see SPI_MASTER_FREQ_*
+	.spics_io_num_(-1)		// no chip select
+	.queue_size_(1)
+    },
+
+    // internal pullups on silicon are rather high (~50k?)
+    // external 4.7k is still too high. external 1k works
+    i2cMaster {I2C::Config()
+	    .sda_io_num_(GPIO_NUM_21) //.sda_pullup_en_(GPIO_PULLUP_ENABLE)
+	    .scl_io_num_(GPIO_NUM_22) //.scl_pullup_en_(GPIO_PULLUP_ENABLE)
+	    .master_clk_speed_(400000),	// I2C fast mode
+	I2C_NUM_0, 0},
+
+    luxTask(&i2cMaster),
 
     pinISR(),
     pinTask("pinTask", 5, 4096, tskNO_AFFINITY, 128),
@@ -487,6 +507,7 @@ CornholeArtTask::CornholeArtTask(
 
     updated(0)
 {
+    luxTask.start();
     pinTask.start();
 }
 

@@ -2,13 +2,23 @@
 
 #include "DialArtTask.h"
 #include "Button.h"
+#include "I2C.h"
+#include "LuxTask.h"
 #include "LEDC.h"
 #include "Pin.h"
+#include "SPI.h"
 
 using APA102::LED;
 
 class ClockArtTask: public DialArtTask {
 private:
+    SPI::Bus const spiBus[2];
+    SPI::Device const spiDevice[2];
+
+    I2C::Master const i2cMaster;
+
+    LuxTask luxTask;
+
     struct Mode {
     private:
 	static char const * const string[];
@@ -35,8 +45,6 @@ protected:
 
 public:
     ClockArtTask(
-	SPI::Bus const		(&spiBus)[2],
-	std::function<float()>	getLux,
 	KeyValueBroker &	keyValueBroker);
 
     ~ClockArtTask() override;

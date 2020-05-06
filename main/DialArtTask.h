@@ -3,7 +3,6 @@
 #include "APA102.h"
 
 #include "ArtTask.h"
-#include "SPI.h"
 
 /// A DialArtTask is an abstract ArtTask
 /// that supports preferences for LED dial indicators
@@ -25,8 +24,6 @@ public:
     void shapeObserved(size_t index, char const * value);
 
 protected:
-    SPI::Device const			spiDevice[2];
-
     float				width[3];
     APA102::LED<>			color[3];
     Shape				shape[3];
@@ -41,8 +38,6 @@ protected:
 	size_t			stackSize,
 	BaseType_t		core,
 
-	SPI::Bus const		(&spiBus)[2],
-	std::function<float()>	getLux,
 	KeyValueBroker &	keyValueBroker,
 	size_t			smoothTimeStepCount = 4096);
 };

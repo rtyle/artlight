@@ -281,7 +281,7 @@ void ClockArtTask::update_() {
 	// this will range from 3/16 to 16/16 with the numerator increasing by
 	// 1 as the lux doubles up until 2^13 (~full daylight, indirect sun).
 	// an LED value of 128 will be dimmed to 24 in complete darkness (lux 0)
-	: (3.0f + std::min(13.0f, std::log2(1.0f + getLux()))) / 16.0f};
+	: (3.0f + std::min(13.0f, std::log2(1.0f + luxTask.getLux()))) / 16.0f};
     led = leds;
     uint32_t * const encodings[ringCount] = {
 	message0.encodings,
@@ -328,12 +328,47 @@ void ClockArtTask::update() {
 }
 
 ClockArtTask::ClockArtTask(
-    SPI::Bus const		(&spiBus)[2],
-    std::function<float()>	getLux_,
     KeyValueBroker &		keyValueBroker_)
 :
     DialArtTask		("ClockArtTask", 5, 0x10000, 1,
-    			spiBus, getLux_, keyValueBroker_, 512),
+    			keyValueBroker_, 512),
+
+
+    spiBus {
+	{HSPI_HOST, SPI::Bus::Config()
+	    .mosi_io_num_(SPI::Bus::HspiConfig.mosi_io_num)
+	    .sclk_io_num_(SPI::Bus::HspiConfig.sclk_io_num),
+	1},
+	{VSPI_HOST, SPI::Bus::Config()
+	    .mosi_io_num_(SPI::Bus::VspiConfig.mosi_io_num)
+	    .sclk_io_num_(SPI::Bus::VspiConfig.sclk_io_num),
+	2},
+    },
+
+    spiDevice {
+	{&spiBus[0], SPI::Device::Config()
+	    .mode_(APA102::spiMode)
+	    .clock_speed_hz_(8000000)	// see SPI_MASTER_FREQ_*
+	    .spics_io_num_(-1)			// no chip select
+	    .queue_size_(1)
+	},
+	{&spiBus[1], SPI::Device::Config()
+	    .mode_(APA102::spiMode)
+	    .clock_speed_hz_(8000000)	// see SPI_MASTER_FREQ_*
+	    .spics_io_num_(-1)			// no chip select
+	    .queue_size_(1)
+	},
+    },
+
+    // internal pullups on silicon are rather high (~50k?)
+    // external 4.7k is still too high. external 1k works
+    i2cMaster {I2C::Config()
+	    .sda_io_num_(GPIO_NUM_21) //.sda_pullup_en_(GPIO_PULLUP_ENABLE)
+	    .scl_io_num_(GPIO_NUM_22) //.scl_pullup_en_(GPIO_PULLUP_ENABLE)
+	    .master_clk_speed_(400000),	// I2C fast mode
+	I2C_NUM_0, 0},
+
+    luxTask {&i2cMaster},
 
     mode(Mode::clock),
     modeObserver(keyValueBroker, "mode", mode.toString(),
@@ -356,12 +391,14 @@ ClockArtTask::ClockArtTask(
     microsecondsSinceBootOfLastPeriod(0u),
 
     updated(0)
-{}
+{
+    luxTask.start();
+}
 
 void ClockArtTask::run() {
     // asio timers are not supported
     // adapt a FreeRTOS timer to post timeout to this task.
-    Timer updateTimer(name, 8, true, [this](){
+    Timer updateTimer(name, 12, true, [this](){
 	io.post([this](){
 	    this->update();
 	});

@@ -41,13 +41,10 @@ ArtTask::ArtTask(
     size_t			stackSize,
     BaseType_t			core,
 
-    std::function<float()>	getLux_,
     KeyValueBroker &		keyValueBroker_,
     size_t			smoothTimeStepCount)
 :
     AsioTask		(name, priority, stackSize, core),
-
-    getLux		(getLux_),
 
     keyValueBroker	(keyValueBroker_),
 
