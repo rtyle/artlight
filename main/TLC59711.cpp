@@ -10,10 +10,7 @@ static uint16_t translate(uint16_t value) {
 #if BYTE_ORDER == BIG_ENDIAN
     value;
 #else
-    0
-	| (value << 8)
-	| (value >> 8)
-    ;
+    __builtin_bswap16(value);
 #endif
 }
 
@@ -23,10 +20,7 @@ static uint32_t translate(uint32_t value) {
 #if BYTE_ORDER == BIG_ENDIAN
     value;
 #else
-    0
-	| translate(static_cast<uint16_t>(value)) << 16
-	| translate(static_cast<uint16_t>(value >> 16))
-    ;
+    __builtin_bswap32(value);
 #endif
 }
 
