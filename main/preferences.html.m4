@@ -34,7 +34,9 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 		<script src='https://cdnjs.cloudflare.com/ajax/libs/jQuery-Knob/1.2.13/jquery.knob.min.js'></script>
 »)dnl
 		<script>
+ifelse(«cornhole», ArtLightApplication, «dnl
 			var ignoreKnobRelease = false;
+»)dnl
 			function update(idValues) {
 				for (const [id, value] of Object.entries(idValues)) {
 					console.log(id + '=' + value);
