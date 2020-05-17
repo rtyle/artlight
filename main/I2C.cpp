@@ -82,9 +82,9 @@ Master::Commands & Master::Commands::writeByte(
 }
 
 Master::Commands & Master::Commands::writeBytes(
-	void * data, size_t size, bool ack) {
+	void const * data, size_t size, bool ack) {
     Error::throwIf(i2c_master_write(
-	*this, static_cast<uint8_t *>(data), size, ack));
+	*this, static_cast<uint8_t *>(const_cast<void *>(data)), size, ack));
     return *this;
 }
 

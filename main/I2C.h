@@ -80,7 +80,7 @@ public:
 
 	Commands & writeByte(uint8_t data, bool ack = true);
 
-	Commands & writeBytes(void * data, size_t size, bool ack = true);
+	Commands & writeBytes(void const * data, size_t size, bool ack = true);
 
 	Commands & readByte(uint8_t * data,
 	    i2c_ack_type_t ack = I2C_MASTER_NACK);
