@@ -171,20 +171,23 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 			<fieldset>
 				<legend>Mode</legend>
 				<div>
-					<span class='tab0'>Ring</span>
+					<span class='tab0'>Display</span>
 					<label for='mode'>Mode</label>
 					<select id='mode' name='mode'>
 ifelse(«cornhole», ArtLightApplication, «dnl
 						<option value='score'>Score</option>
 »)dnl
 						<option value='clock'>Clock</option>
+ifelse(-1, regexp(ArtLightApplication, «clock\|cornhole»), , «dnl
 						<option value='slide'>Slide</option>
 						<option value='spin'>Spin</option>
+»)dnl
 					</select>
 				</div>
 			</fieldset>
 			<fieldset>
 				<legend>Presentation</legend>
+ifelse(-1, regexp(ArtLightApplication, «clock\|cornhole»), , «dnl
 				<div>
 					<span class='tab0'>A</span>
 					<label for='aWidth'>Width</label>
@@ -224,10 +227,27 @@ ifelse(«cornhole», ArtLightApplication, «dnl
 						<option value='bloom'>Bloom</option>
 					</select>
 				</div>
+»)dnl
 ifelse(«clock», ArtLightApplication, «dnl
 				<div>
 					<label class='tab0' for='reverse'>Reverse</label>
 					<input type='checkbox' id='reverse'/>
+				</div>
+»)dnl
+ifelse(«nixie», ArtLightApplication, «dnl
+				<div>
+					<span class='tab0'>Top</span>
+					<label for='aLevel'>Level</label>
+					<input type='range' id='aLevel' name='aLevel' required='true' min='0' max='64' step='1'/>
+					<label for='aColor'>Color</label>
+					<input type='text' class='spectrum' id='aColor' name='aColor' required='true' value='#ffffff'/>
+				</div>
+				<div>
+					<span class='tab0'>Bottom</span>
+					<label for='bLevel'>Level</label>
+					<input type='range' id='bLevel' name='bLevel' required='true' min='0' max='64' step='1'/>
+					<label for='bColor'>Color</label>
+					<input type='text' class='spectrum' id='bColor' name='bColor' required='true' value='#ffffff'/>
 				</div>
 »)dnl
 			</fieldset>
