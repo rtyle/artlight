@@ -32,7 +32,6 @@ static Pulse hourPulse	{12};
 static Pulse minutePulse{60};
 static Pulse secondPulse{60};
 
-static SawtoothCurve inSecondOf{0.0f, 1.0f};
 static SawtoothCurve inMinuteOf{0.0f, 60.0f};
 static SawtoothCurve inHourOf  {0.0f, 60.0f * 60.0f};
 static SawtoothCurve inDayOf   {0.0f, 60.0f * 60.0f * 12.0f};	/// 12 hour clock
