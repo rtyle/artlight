@@ -429,7 +429,8 @@ CornholeArtTask::CornholeArtTask(
 	    .master_clk_speed_(400000),	// I2C fast mode
 	I2C_NUM_0, 0},
 
-    luxTask(&i2cMaster),
+    luxSensor{&i2cMaster},
+    luxTask {luxSensor},
 
     pinISR(),
     pinTask("pinTask", 5, 4096, tskNO_AFFINITY, 128),

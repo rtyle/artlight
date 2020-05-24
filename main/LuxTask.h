@@ -3,24 +3,21 @@
 #include <atomic>
 
 #include "AsioTask.h"
-#include "I2C.h"
-#include "TSL2561.h"
+#include "LuxSensor.h"
 #include "Timer.h"
 
 /// continually monitor the ambient lux level
 /// and provide the latest measurement.
 class LuxTask : public AsioTask {
 private:
-    float		luxBy[3];
-    size_t		integrationTime;
-    TSL2561		tsl2561;
+    LuxSensor &		luxSensor;
     Timer		timer;
     std::atomic<float>	lux;
 
     void update();
 
 public:
-    LuxTask(I2C::Master const * i2cMaster);
+    LuxTask(LuxSensor & luxSensor);
 
     /* virtual */ void run() override;
 

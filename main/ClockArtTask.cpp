@@ -367,7 +367,8 @@ ClockArtTask::ClockArtTask(
 	    .master_clk_speed_(400000),	// I2C fast mode
 	I2C_NUM_0, 0},
 
-    luxTask {&i2cMaster},
+    luxSensor{&i2cMaster},
+    luxTask {luxSensor},
 
     mode(Mode::clock),
     modeObserver(keyValueBroker, "mode", mode.toString(),

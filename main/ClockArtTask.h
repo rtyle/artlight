@@ -7,6 +7,7 @@
 #include "LEDC.h"
 #include "Pin.h"
 #include "SPI.h"
+#include "TSL2561LuxSensor.h"
 
 using APA102::LED;
 
@@ -17,6 +18,7 @@ private:
 
     I2C::Master const i2cMaster;
 
+    TSL2561LuxSensor luxSensor;
     LuxTask luxTask;
 
     struct Mode {
