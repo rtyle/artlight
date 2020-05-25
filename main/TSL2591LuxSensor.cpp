@@ -368,19 +368,19 @@ std::array<uint16_t, 2> TSL2591LuxSensor::readChannels() {
     if (!status.available) {
 	throw std::underflow_error("TSL2591 status");
     }
-    std::array<uint16_t, 2> channels;
+    std::array<uint16_t, 2> raw;
     auto i = 0;
-    for (auto & e: channels) {
+    for (auto & e: raw) {
 	i2cMaster->commands(address, wait)
 	    .writeByte(ChannelCommand(i++))
 	    .startRead()
 	    .readBytes(&e, sizeof e);
     }
-    #if BYTE_ORDER == BIG_ENDIAN
-	for (auto & e: channels._) e = __builtin_bswap16(e);
-    #endif
     startTime = esp_timer_get_time();
-    return channels;
+    #if BYTE_ORDER == BIG_ENDIAN
+	for (auto & e: raw) e = __builtin_bswap16(e);
+    #endif
+    return raw;
 }
 
 std::array<float, 2> TSL2591LuxSensor::normalize(
