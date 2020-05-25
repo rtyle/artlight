@@ -284,7 +284,8 @@ TSL2591LuxSensor::TSL2591LuxSensor(
 :
     LuxSensor		{},
     i2cMaster		{i2cMaster_},
-    sensitivity		{0}
+    sensitivity		{0},
+    startTime		{0}
 {
     assertId();
     setSensitivity();
@@ -311,10 +312,11 @@ void TSL2591LuxSensor::setSensitivity() const {
 	.writeByte(Control(pair.first.encoding, pair.second.encoding));
 }
 
-void TSL2591LuxSensor::start() const {
+void TSL2591LuxSensor::start() {
     i2cMaster->commands(address, wait)
 	.writeByte(EnableCommand())
 	.writeByte(Enable(true, true));
+    startTime = esp_timer_get_time();
 }
 
 void TSL2591LuxSensor::stop() const {
@@ -357,10 +359,14 @@ unsigned TSL2591LuxSensor::decreaseSensitivity() {
     return tillAvailable();
 }
 
-std::array<uint16_t, 2> TSL2591LuxSensor::readChannels() const {
+std::array<uint16_t, 2> TSL2591LuxSensor::readChannels() {
+    auto pair = sensitivities.pairs[sensitivity];
+    if (1000.0f * pair.first.value > esp_timer_get_time() - startTime) {
+	throw std::underflow_error("TSL2591 time");
+    }
     Status status {readStatus()};
     if (!status.available) {
-	throw std::underflow_error("TSL2591");
+	throw std::underflow_error("TSL2591 status");
     }
     std::array<uint16_t, 2> channels;
     auto i = 0;
@@ -373,6 +379,7 @@ std::array<uint16_t, 2> TSL2591LuxSensor::readChannels() const {
     #if BYTE_ORDER == BIG_ENDIAN
 	for (auto & e: channels._) e = __builtin_bswap16(e);
     #endif
+    startTime = esp_timer_get_time();
     return channels;
 }
 
@@ -397,7 +404,7 @@ std::array<float, 2> TSL2591LuxSensor::normalize(
     return normalized;
 }
 
-float TSL2591LuxSensor::readLux() const {
+float TSL2591LuxSensor::readLux() {
     std::array<float, 2> ch = normalize(readChannels());
     if (!ch[0]) return 0.0f;
     float ratio = ch[1] / ch[0];

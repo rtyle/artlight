@@ -4,7 +4,7 @@
 
 #include "LuxTask.h"
 
-static TickType_t tickAfterAvailable(unsigned available) {
+static TickType_t soonAfterAvailable(unsigned available) {
     return 1 + available / portTICK_PERIOD_MS;
 }
 
@@ -15,7 +15,7 @@ LuxTask::LuxTask(LuxSensor & luxSensor_)
     // asio timers are not supported
     // adapt a FreeRTOS timer to post an update to this task.
     timer{name,
-	tickAfterAvailable(luxSensor.tillAvailable()),
+	soonAfterAvailable(luxSensor.tillAvailable()),
 	false,
 	[this]() {
 	    io.post([this]() {
@@ -30,17 +30,17 @@ void LuxTask::update() {
     // we try to skate on the edge (just under an overflow_error)
     try {
 	lux = luxSensor.readLux();
-	timer.setPeriod(tickAfterAvailable(luxSensor.increaseSensitivity()));
+	timer.setPeriod(soonAfterAvailable(luxSensor.increaseSensitivity()));
     } catch (std::underflow_error e) {
 #if 0
 	ESP_LOGE(name, "underflow");
 #endif
-	timer.setPeriod(tickAfterAvailable(luxSensor.increaseSensitivity()));
+	timer.setPeriod(soonAfterAvailable(luxSensor.increaseSensitivity()));
     } catch (std::overflow_error e) {
 #if 0
 	ESP_LOGE(name, "overflow");
 #endif
-	timer.setPeriod(tickAfterAvailable(luxSensor.decreaseSensitivity()));
+	timer.setPeriod(soonAfterAvailable(luxSensor.decreaseSensitivity()));
     } catch (esp_err_t & e) {
 	ESP_LOGE(name, "error %x", e);
     }

@@ -11,25 +11,26 @@ private:
     I2C::Master const * const i2cMaster;
     static uint8_t constexpr address = 0x29;
     unsigned sensitivity;
+    uint64_t startTime;
 
     void assertId() const;
 
     void setSensitivity() const;
 
-    void start() const;
+    void start();
 
     void stop() const;
 
     uint8_t readStatus() const;
 
-    std::array<uint16_t, 2> readChannels() const;
+    std::array<uint16_t, 2> readChannels();
     std::array<float, 2> normalize(std::array<uint16_t, 2> channels) const;
 
 protected:
     unsigned tillAvailable() const override;
     unsigned increaseSensitivity() override;
     unsigned decreaseSensitivity() override;
-    float readLux() const override;
+    float readLux() override;
 
 public:
     TSL2591LuxSensor(

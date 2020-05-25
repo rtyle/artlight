@@ -11,5 +11,5 @@ public:
     /// implementations may throw
     /// std::underflow_error (increaseSensitivity) or
     /// std::overflow_error (decreaseSensitivity)
-    virtual float readLux() const = 0;
+    virtual float readLux() = 0;
 };

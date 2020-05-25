@@ -11,25 +11,26 @@ private:
     I2C::Master const * const i2cMaster;
     uint8_t const address;
     unsigned sensitivity;
+    uint64_t startTime;
 
     void assertId() const;
 
     void setSensitivity() const;
 
-    void start() const;
+    void start();
 
     void stop() const;
 
     uint8_t readStatus() const;
 
-    std::array<uint16_t, 2> readChannels() const;
+    std::array<uint16_t, 2> readChannels();
     std::array<float, 2> normalize(std::array<uint16_t, 2> channels) const;
 
 protected:
     unsigned tillAvailable() const override;
     unsigned increaseSensitivity() override;
     unsigned decreaseSensitivity() override;
-    float readLux() const override;
+    float readLux() override;
 
 public:
     /// i2cAddress is a function of how its address pin is wired
