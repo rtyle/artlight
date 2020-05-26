@@ -35,9 +35,9 @@ protected:
 public:
     /// i2cAddress is a function of how its address pin is wired
     enum I2cAddress: uint8_t {
-        pulledLow	= 0x29,
-        floating	= 0x39,
-        pulledHigh	= 0x49,
+	pulledLow	= 0x29,
+	floating	= 0x39,
+	pulledHigh	= 0x49,
     };
 
     TSL2561LuxSensor(
