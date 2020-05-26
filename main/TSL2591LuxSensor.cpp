@@ -316,7 +316,6 @@ void TSL2591LuxSensor::start() {
     i2cMaster->commands(address, wait)
 	.writeByte(EnableCommand())
 	.writeByte(Enable(true, true));
-    startTime = esp_timer_get_time();
 }
 
 void TSL2591LuxSensor::stop() const {
@@ -360,14 +359,11 @@ unsigned TSL2591LuxSensor::decreaseSensitivity() {
 }
 
 std::array<uint16_t, 2> TSL2591LuxSensor::readChannels() {
-    auto pair = sensitivities.pairs[sensitivity];
-    if (1000.0f * pair.first.value > esp_timer_get_time() - startTime) {
-	throw std::underflow_error("TSL2591 time");
-    }
     Status status {readStatus()};
     if (!status.available) {
-	throw std::underflow_error("TSL2591 status");
+	throw std::underflow_error("TSL2591 not available");
     }
+    auto pair = sensitivities.pairs[sensitivity];
     std::array<uint16_t, 2> raw;
     auto i = 0;
     for (auto & e: raw) {
@@ -375,32 +371,29 @@ std::array<uint16_t, 2> TSL2591LuxSensor::readChannels() {
 	    .writeByte(ChannelCommand(i++))
 	    .startRead()
 	    .readBytes(&e, sizeof e);
+	#if BYTE_ORDER == BIG_ENDIAN
+	    e = __builtin_bswap16(e);
+	#endif
+	if (0 < sensitivity && e >= pair.first.overflow) {
+	    throw std::overflow_error("TSL2591 too sensitive");
+	}
+	if (sensitivities.pairs.size() > sensitivity + 1 && 0 == e) {
+	    throw std::underflow_error("TSL2591 too insensitive");
+	}
     }
-    startTime = esp_timer_get_time();
-    #if BYTE_ORDER == BIG_ENDIAN
-	for (auto & e: raw) e = __builtin_bswap16(e);
-    #endif
     return raw;
 }
 
 std::array<float, 2> TSL2591LuxSensor::normalize(
-    std::array<uint16_t, 2> unnormalized) const
+    std::array<uint16_t, 2> raw) const
 {
     std::array<float, 2> normalized;
     auto pair = sensitivities.pairs[sensitivity];
-    float normalize =
-	normalIntegrationTime * normalGain / pair.first.value / pair.second.value;
+    float normalize = normalIntegrationTime * normalGain
+	/ pair.first.value / pair.second.value;
     for (auto i = 0; i < normalized.size(); ++i) {
-	if (unnormalized[i] >= pair.first.overflow) {
-	    throw std::overflow_error("TSL2591");
-	}
-	normalized[i] = normalize * unnormalized[i];
+	normalized[i] = normalize * raw[i];
     }
-    ESP_LOGI("TSL2591", "%d\t%d\t%d\t%d\t%d\t%f\t%f",
-	sensitivity,
-	pair.first.encoding, pair.second.encoding,
-	unnormalized[0], unnormalized[1],
-	normalized[0], normalized[1]);
     return normalized;
 }
 

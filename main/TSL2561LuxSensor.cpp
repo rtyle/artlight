@@ -299,8 +299,8 @@ unsigned TSL2561LuxSensor::decreaseSensitivity() {
 
 std::array<uint16_t, 2> TSL2561LuxSensor::readChannels() {
     auto pair = sensitivities.pairs[sensitivity];
-    if (1000.0f * pair.first.value > esp_timer_get_time() - startTime) {
-	throw std::underflow_error("TSL2561 time");
+    if (1000 * pair.first.value > esp_timer_get_time() - startTime) {
+	throw std::underflow_error("TSL2561 not available");
     }
     std::array<uint16_t, 2> raw;
     auto i = 0;
@@ -309,29 +309,28 @@ std::array<uint16_t, 2> TSL2561LuxSensor::readChannels() {
 	    .writeByte(ChannelCommand(i++))
 	    .startRead()
 	    .readBytes(&e, sizeof e);
-    }
-    startTime = esp_timer_get_time();
-    #if BYTE_ORDER == BIG_ENDIAN
-	for (auto & e: raw) e = __builtin_bswap16(e);
-    #endif
-    if (!raw[0] || !raw[1]) {
-	throw std::underflow_error("TSL2561 zero");
+	#if BYTE_ORDER == BIG_ENDIAN
+	    e = __builtin_bswap16(e);
+	#endif
+	if (0 < sensitivity && e >= pair.first.overflow) {
+	    throw std::overflow_error("TSL2561 too sensitive");
+	}
+	if (sensitivities.pairs.size() > sensitivity + 1 && 0 == e) {
+	    throw std::underflow_error("TSL2561 too insensitive");
+	}
     }
     return raw;
 }
 
 std::array<float, 2> TSL2561LuxSensor::normalize(
-    std::array<uint16_t, 2> unnormalized) const
+    std::array<uint16_t, 2> raw) const
 {
     std::array<float, 2> normalized;
     auto pair = sensitivities.pairs[sensitivity];
-    float normalize =
-	normalIntegrationTime * normalGain / pair.first.value / pair.second.value;
+    float normalize = normalIntegrationTime * normalGain
+	/ pair.first.value / pair.second.value;
     for (auto i = 0; i < normalized.size(); ++i) {
-	if (unnormalized[i] >= pair.first.overflow) {
-	    throw std::overflow_error("TSL2561");
-	}
-	normalized[i] = normalize * unnormalized[i];
+	normalized[i] = normalize * raw[i];
     }
     return normalized;
 }
@@ -353,7 +352,7 @@ float TSL2561LuxSensor::readLux() {
     // we use the original floating point variant here.
     std::array<uint16_t, 2> raw {readChannels()};
     std::array<float, 2> ch {normalize(raw)};
-    float ratio {0.0f};
+    float ratio {std::numeric_limits<float>::infinity()};
     float lux {0.0f};
     if (ch[0]) {
 	ratio = ch[1] / ch[0];
