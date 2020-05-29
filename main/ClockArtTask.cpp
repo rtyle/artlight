@@ -398,7 +398,7 @@ ClockArtTask::ClockArtTask(
 void ClockArtTask::run() {
     // asio timers are not supported
     // adapt a FreeRTOS timer to post timeout to this task.
-    Timer updateTimer(name, 12, true, [this](){
+    Timer updateTimer(name, 8, true, [this](){
 	io.post([this](){
 	    this->update();
 	});
