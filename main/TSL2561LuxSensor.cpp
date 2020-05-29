@@ -366,7 +366,7 @@ float TSL2561LuxSensor::readLux() {
 	:	1.300f >= ratio ? 0.00146f * ch[0] - 0.00112f * ch[1]
 	:	0.0;
     }
-#if 1
+#if 0
     auto pair = sensitivities.pairs[sensitivity];
     ESP_LOGI("TSL2561", "lux %f\traw %d\t%d\tsensitivity %d\ttime %f\tgain %f\tch %f\t%f\tratio %f",
 	lux,

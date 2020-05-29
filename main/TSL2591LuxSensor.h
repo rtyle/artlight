@@ -11,7 +11,6 @@ private:
     I2C::Master const * const i2cMaster;
     static uint8_t constexpr address = 0x29;
     unsigned sensitivity;
-    uint64_t startTime;
 
     void assertId() const;
 

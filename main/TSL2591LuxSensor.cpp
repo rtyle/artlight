@@ -284,8 +284,7 @@ TSL2591LuxSensor::TSL2591LuxSensor(
 :
     LuxSensor		{},
     i2cMaster		{i2cMaster_},
-    sensitivity		{0},
-    startTime		{0}
+    sensitivity		{0}
 {
     assertId();
     setSensitivity();
