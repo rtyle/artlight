@@ -231,7 +231,7 @@ TSL2561LuxSensor::TSL2561LuxSensor(
 :
     LuxSensor	{},
     i2cMaster	{i2cMaster_},
-    address		{address_},
+    address	{address_},
     sensitivity	{0},
     startTime	{0}
 {

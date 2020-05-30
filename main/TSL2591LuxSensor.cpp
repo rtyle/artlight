@@ -78,13 +78,13 @@ protected:
 	uint8_t transaction_ = register_)
     :
 	#if BYTE_ORDER == BIG_ENDIAN
-	    command	(true),
+	    command	(1),
 	    transaction	(transaction_),
 	    address	(address_)
 	#else
 	    address	{address_},
 	    transaction	{transaction_},
-	    command	{true}
+	    command	{1}
 	#endif
     {}
 public:
@@ -397,26 +397,49 @@ std::array<float, 2> TSL2591LuxSensor::normalize(
 }
 
 float TSL2591LuxSensor::readLux() {
-    std::array<float, 2> ch = normalize(readChannels());
-    if (!ch[0]) return 0.0f;
-    float ratio = ch[1] / ch[0];
-    return
-    #if 0
-    // TSL2561 CS package
-      0.52f >= ratio ? 0.03150f * ch[0] - 0.05930f * ch[0] * std::pow(ratio, 1.4f)
-    : 0.65f >= ratio ? 0.02290f * ch[0] - 0.02910f * ch[1]
-    : 0.80f >= ratio ? 0.01570f * ch[0] - 0.01800f * ch[1]
-    : 1.30f >= ratio ? 0.00338f * ch[0] - 0.00260f * ch[1]
-    :                 0.0
-    #else
-    // TSL2561, T, FN or CL package
-      0.50f >= ratio ? 0.03040f * ch[0] - 0.06200f * ch[0] * std::pow(ratio, 1.4f)
-    : 0.61f >= ratio ? 0.02240f * ch[0] - 0.03100f * ch[1]
-    : 0.80f >= ratio ? 0.01280f * ch[0] - 0.01530f * ch[1]
-    : 1.30f >= ratio ? 0.00146f * ch[0] - 0.00112f * ch[1]
-    :                 0.0
-    #endif
-    ;
+    // until we figure out how to treat the TSL2591 differently
+    // we will do the same as we did for the TSL2561 ...
+
+    // "Calculating Lux" for the TSL2561 T package from ...
+    // https://ams.com/documents/20143/36005/TSL2561_DS000110_3-00.pdf
+    // ... seems to have an error in its first "segment"
+    // as that is the only one that does not factor in CH1.
+    // this error is propagated in the SparkFun implementation
+    // https://github.com/sparkfun/SparkFun_TSL2561_Arduino_Library/blob/master/src/SparkFunTSL2561.cpp
+    // Contrarily, "Calculating Lux for the TSL2561" from
+    // https://ams.com/documents/20143/36005/AmbientLightSensors_AN000170_2-00.pdf
+    // expands this first segment into four -
+    // all of which do factor in CH1.
+    // a fixed point variation of this is what is used
+    // in the Adafruit implementation
+    // https://github.com/adafruit/Adafruit_TSL2561/blob/master/Adafruit_TSL2561_U.cpp
+    // we use the original floating point variant here.
+    std::array<uint16_t, 2> raw {readChannels()};
+    std::array<float, 2> ch {normalize(raw)};
+    float ratio {std::numeric_limits<float>::infinity()};
+    float lux {0.0f};
+    if (ch[0]) {
+	ratio = ch[1] / ch[0];
+	lux =
+		0.125f >= ratio ? 0.03040f * ch[0] - 0.02720f * ch[1]
+	:	0.250f >= ratio ? 0.03250f * ch[0] - 0.04400f * ch[1]
+	:	0.375f >= ratio ? 0.03510f * ch[0] - 0.05440f * ch[1]
+	:	0.500f >= ratio ? 0.03750f * ch[0] - 0.06240f * ch[1]
+	:	0.610f >= ratio ? 0.02240f * ch[0] - 0.03100f * ch[1]
+	:	0.800f >= ratio ? 0.01280f * ch[0] - 0.01530f * ch[1]
+	:	1.300f >= ratio ? 0.00146f * ch[0] - 0.00112f * ch[1]
+	:	0.0;
+    }
+#if 1
+    auto pair = sensitivities.pairs[sensitivity];
+    ESP_LOGI("TSL2561", "lux %f\traw %d\t%d\tsensitivity %d\ttime %f\tgain %f\tch %f\t%f\tratio %f",
+	lux,
+	raw[0], raw[1],
+	sensitivity, pair.first.value, pair.second.value,
+	ch[0], ch[1],
+	ratio);
+#endif
+    return lux;
 }
 
 TSL2591LuxSensor::~TSL2591LuxSensor() {
