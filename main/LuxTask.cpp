@@ -5,7 +5,7 @@
 #include "LuxTask.h"
 
 static TickType_t soonAfterAvailable(unsigned available) {
-    return 1 + available / portTICK_PERIOD_MS;
+    return 2 + available / portTICK_PERIOD_MS;
 }
 
 LuxTask::LuxTask(LuxSensor & luxSensor_)
@@ -33,12 +33,12 @@ void LuxTask::update() {
 	timer.setPeriod(soonAfterAvailable(luxSensor.increaseSensitivity()));
     } catch (std::underflow_error e) {
 #if 0
-	ESP_LOGE(name, "underflow");
+	ESP_LOGE(name, "underflow %s", e.what());
 #endif
 	timer.setPeriod(soonAfterAvailable(luxSensor.increaseSensitivity()));
     } catch (std::overflow_error e) {
 #if 0
-	ESP_LOGE(name, "overflow");
+	ESP_LOGE(name, "overflow %s", e.what());
 #endif
 	timer.setPeriod(soonAfterAvailable(luxSensor.decreaseSensitivity()));
     } catch (esp_err_t & e) {
