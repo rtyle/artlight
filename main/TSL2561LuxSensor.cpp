@@ -226,10 +226,11 @@ public:
 };
 
 TSL2561LuxSensor::TSL2561LuxSensor(
+    asio::io_context &	io_,
     I2C::Master const *	i2cMaster_,
     uint8_t		address_)
 :
-    LuxSensor	{},
+    LuxSensor	{"TSL2561", io_},
     i2cMaster	{i2cMaster_},
     address	{address_},
     sensitivity	{0},

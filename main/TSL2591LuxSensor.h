@@ -33,6 +33,7 @@ protected:
 
 public:
     TSL2591LuxSensor(
+	asio::io_context &	io,
 	I2C::Master const *	i2cMaster);
 
     virtual ~TSL2591LuxSensor();

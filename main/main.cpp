@@ -6,7 +6,6 @@
 #include "AsioTask.h"
 #include "Event.h"
 #include "I2C.h"
-#include "LuxTask.h"
 #include "MDNS.h"
 #include "NVSKeyValueBroker.h"
 #include "OtaTask.h"

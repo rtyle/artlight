@@ -317,7 +317,7 @@ void CornholeArtTask::update_() {
 	// this will range from 3/16 to 16/16 with the numerator increasing by
 	// 1 as the lux doubles up until 2^13 (~full daylight, indirect sun).
 	// an LED value of 128 will be dimmed to 24 in complete darkness (lux 0)
-	: (3.0f + std::min(13.0f, std::log2(1.0f + luxTask.getLux()))) / 16.0f;
+	: (3.0f + std::min(13.0f, std::log2(1.0f + luxSensor.getLux()))) / 16.0f;
     LEDI * led = leds;
     if (range.value == Range::clip) {
 	for (auto & e: message.encodings) {
@@ -429,8 +429,8 @@ CornholeArtTask::CornholeArtTask(
 	    .master_clk_speed_(400000),	// I2C fast mode
 	I2C_NUM_0, 0},
 
-    luxSensor{&i2cMaster},
-    luxTask {luxSensor},
+    sensorTask	{},
+    luxSensor	{sensorTask, &i2cMaster},
 
     pinISR(),
     pinTask("pinTask", 5, 4096, tskNO_AFFINITY, 128),
@@ -508,7 +508,7 @@ CornholeArtTask::CornholeArtTask(
 
     updated(0)
 {
-    luxTask.start();
+    sensorTask.start();
     pinTask.start();
 }
 

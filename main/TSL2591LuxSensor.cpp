@@ -280,9 +280,10 @@ struct Status {
 };
 
 TSL2591LuxSensor::TSL2591LuxSensor(
+    asio::io_context &	io_,
     I2C::Master const *	i2cMaster_)
 :
-    LuxSensor		{},
+    LuxSensor		{"TSL2591", io_},
     i2cMaster		{i2cMaster_},
     sensitivity		{0}
 {

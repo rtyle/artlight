@@ -3,9 +3,9 @@
 #include "DialArtTask.h"
 #include "Button.h"
 #include "I2C.h"
-#include "LuxTask.h"
 #include "LEDC.h"
 #include "Pin.h"
+#include "SensorTask.h"
 #include "SPI.h"
 #include "TSL2561LuxSensor.h"
 
@@ -18,8 +18,8 @@ private:
 
     I2C::Master const i2cMaster;
 
+    SensorTask sensorTask;
     TSL2561LuxSensor luxSensor;
-    LuxTask luxTask;
 
     ObservablePin::ISR	pinISR;
     ObservablePin::Task	pinTask;

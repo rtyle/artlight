@@ -41,6 +41,7 @@ public:
     };
 
     TSL2561LuxSensor(
+	asio::io_context &	io,
 	I2C::Master const *	i2cMaster,
 	uint8_t			address = floating);
 
