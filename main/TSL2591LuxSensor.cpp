@@ -23,6 +23,10 @@
 // without defining it.
 // we say, simply, "sensor".
 
+// scope of everything in this anonymous namespace
+// is limited to this translation unit and has internal linkage
+namespace {
+
 enum Register: uint8_t {
     enable			= 0x00,
     control			= 0x01,
@@ -279,6 +283,8 @@ struct Status {
     Status(uint8_t encoding_) : encoding {encoding_} {}
 };
 
+}
+
 TSL2591LuxSensor::TSL2591LuxSensor(
     asio::io_context &	io_,
     I2C::Master const *	i2cMaster_)
@@ -431,9 +437,9 @@ float TSL2591LuxSensor::readLux() {
 	:	1.300f >= ratio ? 0.00146f * ch[0] - 0.00112f * ch[1]
 	:	0.0;
     }
-#if 1
+#if 0
     auto pair = sensitivities.pairs[sensitivity];
-    ESP_LOGI("TSL2561", "lux %f\traw %d\t%d\tsensitivity %d\ttime %f\tgain %f\tch %f\t%f\tratio %f",
+    ESP_LOGI(name, "lux %f\traw %d\t%d\tsensitivity %d\ttime %f\tgain %f\tch %f\t%f\tratio %f",
 	lux,
 	raw[0], raw[1],
 	sensitivity, pair.first.value, pair.second.value,

@@ -7,8 +7,9 @@
 #include "Timer.h"
 
 class LuxSensor {
-private:
+protected:
     char const * const	name;
+private:
     asio::io_context &	io;
     Timer		timer;
     std::atomic<float>	lux;
