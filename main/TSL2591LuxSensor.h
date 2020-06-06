@@ -23,7 +23,6 @@ private:
     uint8_t readStatus() const;
 
     std::array<uint16_t, 2> readChannels();
-    std::array<float, 2> normalize(std::array<uint16_t, 2> channels) const;
 
 protected:
     unsigned tillAvailable() const override;

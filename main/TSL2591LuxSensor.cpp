@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <limits>
 #include <vector>
 
 #include <machine/endian.h>
@@ -390,61 +391,59 @@ std::array<uint16_t, 2> TSL2591LuxSensor::readChannels() {
     return raw;
 }
 
-std::array<float, 2> TSL2591LuxSensor::normalize(
-    std::array<uint16_t, 2> raw) const
-{
-    std::array<float, 2> normalized;
-    auto pair = sensitivities.pairs[sensitivity];
-    float normalize = normalIntegrationTime * normalGain
-	/ pair.first.value / pair.second.value;
-    for (auto i = 0; i < normalized.size(); ++i) {
-	normalized[i] = normalize * raw[i];
-    }
-    return normalized;
-}
-
 float TSL2591LuxSensor::readLux() {
-    // until we figure out how to treat the TSL2591 differently
-    // we will do the same as we did for the TSL2561 ...
+    // per Norwood.Brown@ams.com
+    //
+    //	If there is no glass above the sensor like in our EVM kit
+    //	or if you use clear glass which does not attenuate the light
+    //	and does not change the spectrum,
+    //	then you can use this "open air" lux equation from our lab:
+    //
+    //	Lux1 = DGF * (Ch0 - (coefB * Ch1)) / (ATime * AGain)
+    //	Lux2 = DGF * ((coefC * Ch0) - (coefD * Ch1)) / (ATime * AGain)
+    //	Lux = MAX(Lux1, Lux2, 0)
+    //
+    //	DGF = 923
+    //	CoefB = 3.15
+    //	CoefC = 0.46
+    //	CoefD = 0.74
+    //
+    // see also,
+    //	https://www.desmos.com/calculator/zzdqmobcb3
 
-    // "Calculating Lux" for the TSL2561 T package from ...
-    // https://ams.com/documents/20143/36005/TSL2561_DS000110_3-00.pdf
-    // ... seems to have an error in its first "segment"
-    // as that is the only one that does not factor in CH1.
-    // this error is propagated in the SparkFun implementation
-    // https://github.com/sparkfun/SparkFun_TSL2561_Arduino_Library/blob/master/src/SparkFunTSL2561.cpp
-    // Contrarily, "Calculating Lux for the TSL2561" from
-    // https://ams.com/documents/20143/36005/AmbientLightSensors_AN000170_2-00.pdf
-    // expands this first segment into four -
-    // all of which do factor in CH1.
-    // a fixed point variation of this is what is used
-    // in the Adafruit implementation
-    // https://github.com/adafruit/Adafruit_TSL2561/blob/master/Adafruit_TSL2561_U.cpp
-    // we use the original floating point variant here.
-    std::array<uint16_t, 2> raw {readChannels()};
-    std::array<float, 2> ch {normalize(raw)};
-    float ratio {std::numeric_limits<float>::infinity()};
-    float lux {0.0f};
-    if (ch[0]) {
-	ratio = ch[1] / ch[0];
-	lux =
-		0.125f >= ratio ? 0.03040f * ch[0] - 0.02720f * ch[1]
-	:	0.250f >= ratio ? 0.03250f * ch[0] - 0.04400f * ch[1]
-	:	0.375f >= ratio ? 0.03510f * ch[0] - 0.05440f * ch[1]
-	:	0.500f >= ratio ? 0.03750f * ch[0] - 0.06240f * ch[1]
-	:	0.610f >= ratio ? 0.02240f * ch[0] - 0.03100f * ch[1]
-	:	0.800f >= ratio ? 0.01280f * ch[0] - 0.01530f * ch[1]
-	:	1.300f >= ratio ? 0.00146f * ch[0] - 0.00112f * ch[1]
-	:	0.0;
+    static float constexpr dgf	{923.0f};
+    static float constexpr b	{3.15f};
+    static float constexpr c	{0.46f};
+    static float constexpr d	{0.74f};
+
+    std::array<uint16_t, 2> ch = readChannels();
+    auto const pair = sensitivities.pairs[sensitivity];
+    float const factor = dgf			  // DGF
+	/ (pair.first.value * pair.second.value); // / (ATime * AGain)
+
+    float const lux1	= factor * ((		ch[0]) - (b * ch[1]));
+    float const lux2	= factor * ((c *	ch[0]) - (d * ch[1]));
+    float lux	= std::max(lux1, lux2);
+    if (0 > lux) {
+	// less than 0 lux, in the real world, is impossible.
+	// there was no exceptional condition (e.g. underflow or overflow)
+	// that we can blame this on.
+	// instead, we will return 0 in call cases except
+	// where the device is configured to be the least sensitive it can be
+	// (presumbably, because its latest experience was very bright light).
+	// in this case, we return the brightest value that we could possibly
+	// measure in that least-sensitive state
+	static float constexpr brightest {dgf * integrationTimes[0].overflow
+	    / (integrationTimes[0].value * gains[0].value)};
+	lux = 0 == sensitivity ? brightest : 0.0f;
     }
-#if 0
-    auto pair = sensitivities.pairs[sensitivity];
-    ESP_LOGI(name, "lux %f\traw %d\t%d\tsensitivity %d\ttime %f\tgain %f\tch %f\t%f\tratio %f",
+#if 1
+    ESP_LOGI(name,
+	"lux %f\traw %d\t%d\tsensitivity %d\ttime %f\tgain %f\tlux1 %f\tlux2 %f",
 	lux,
-	raw[0], raw[1],
-	sensitivity, pair.first.value, pair.second.value,
 	ch[0], ch[1],
-	ratio);
+	sensitivity, pair.first.value, pair.second.value,
+	lux1, lux2);
 #endif
     return lux;
 }
