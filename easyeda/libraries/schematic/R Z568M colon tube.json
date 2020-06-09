@@ -1,0 +1,43 @@
+{
+  "head": {
+    "docType": "2",
+    "editorVersion": "6.3.53",
+    "c_para": {
+      "name": "R|Z568M colon tube",
+      "package": "",
+      "pre": "U?",
+      "BOM_Manufacturer": "Dalibor Farny",
+      "BOM_Manufacturer Part": "R|Z568M colon tube",
+      "BOM_Supplier Part": "",
+      "BOM_Supplier": "",
+      "link": "http://docs.daliborfarny.com/doc/separator-tube-rz568m/",
+      "Contributor": "rossetyler"
+    },
+    "c_spiceCmd": null,
+    "hasIdFlag": true,
+    "x": 400,
+    "y": 300,
+    "uuid": "582b7b9fdab54fc7a124bfe439507574",
+    "utime": 1587662012,
+    "puuid": "",
+    "importFlag": 0
+  },
+  "canvas": "CA~1000~1000~#FFFFFF~yes~#CCCCCC~10~1000~1000~line~10~pixel~5~400~300",
+  "shape": [
+    "PL~410 320 390 320~#000000~1~0~none~gge6~0",
+    "PL~390 280 410 280 410 280~#000000~1~0~none~gge7~0",
+    "A~M 390 320 A 20 20 0 1 1 390 280~~#000000~1~0~none~gge8~0",
+    "A~M 410 280 A 20 20 0 1 1 410 320~~#000000~1~0~none~gge9~0",
+    "PL~390 290 410 290~#000000~1~0~none~gge10~0",
+    "P~show~0~1~410~330~270~gge39~0^^410~330^^M 410 330 v -20~#880000^^1~413~308~270~K2~start~~~#0000FF^^0~409~315~270~1~end~~~#0000FF^^0~410~313^^0~M 413 310 L 410 307 L 407 310",
+    "P~show~0~2~400~270~90~gge46~0^^400~270^^M 400 270 v 20~#FF0000^^1~403~292~270~A~end~~~#FF0000^^0~399~285~270~2~start~~~#FF0000^^0~400~287^^0~M 397 290 L 400 293 L 403 290",
+    "P~show~0~3~390~330~270~gge53~0^^390~330^^M 390 330 v -20~#880000^^1~393~308~270~K1~start~~~#0000FF^^0~389~315~270~3~end~~~#0000FF^^0~390~313^^0~M 393 310 L 390 307 L 387 310"
+  ],
+  "BBox": {
+    "x": 370,
+    "y": 268,
+    "width": 60,
+    "height": 64
+  },
+  "colors": {}
+}

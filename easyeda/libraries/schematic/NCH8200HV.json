@@ -1,0 +1,40 @@
+{
+  "head": {
+    "docType": "2",
+    "editorVersion": "6.3.53",
+    "c_para": {
+      "name": "NCH8200HV",
+      "package": "NCH8200HV SMD",
+      "pre": "U?",
+      "BOM_Manufacturer": "nixieclock.org",
+      "BOM_Manufacturer Part": "NCH8200HV",
+      "BOM_Supplier Part": "",
+      "BOM_Supplier": "",
+      "link": "http://www.nixieclock.org/upload/NCH8200HV%20Datasheet%20EN%20v2.0.0.pdf",
+      "Contributor": "rossetyler"
+    },
+    "c_spiceCmd": null,
+    "puuid": "0aacf8695ecc4ab3ad409a2641b0c378",
+    "hasIdFlag": true,
+    "x": 400,
+    "y": 300,
+    "utime": 1587249049,
+    "uuid": "c9db7423cf45476684b8f6e15c5f6667",
+    "importFlag": 0
+  },
+  "canvas": "CA~1000~1000~#FFFFFF~yes~#CCCCCC~10~1000~1000~line~10~pixel~5~400~300",
+  "shape": [
+    "P~show~0~1~350~290~180~gge12~0^^350~290^^M 350 290 h 20~#FF0000^^1~372~293~0~VIN~start~~~#FF0000^^1~365~289~0~1~end~~~#0000FF^^0~367~290^^0~M 370 293 L 373 290 L 370 287",
+    "P~show~0~2~350~310~180~gge19~0^^350~310^^M 350 310 h 20~#880000^^1~372~313~0~GND~start~~~#0000FF^^1~365~309~0~2~end~~~#0000FF^^0~367~310^^0~M 370 313 L 373 310 L 370 307",
+    "P~show~0~3~450~310~0~gge26~0^^450~310^^M 450 310 h -20~#880000^^1~428~313~0~GND2~end~~~#0000FF^^1~435~309~0~3~start~~~#0000FF^^0~433~310^^0~M 430 307 L 427 310 L 430 313",
+    "P~show~0~4~450~290~0~gge33~0^^450~290^^M 450 290 h -20~#FF0000^^1~428~293~0~VOUT~end~~~#FF0000^^1~435~289~0~4~start~~~#0000FF^^0~433~290^^0~M 430 287 L 427 290 L 430 293",
+    "PL~370 280 430 280 430 320 370 320 370 280~#000000~1~0~none~gge48~0"
+  ],
+  "BBox": {
+    "x": 348,
+    "y": 280,
+    "width": 104,
+    "height": 40
+  },
+  "colors": {}
+}
