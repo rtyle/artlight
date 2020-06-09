@@ -50,6 +50,18 @@ float BellCurve<T>::operator()(float place) const {
 template float BellCurve<>::operator()(float) const;
 template float BellCurve<Dial>::operator()(float) const;
 
+MesaDial::MesaDial(float position, float width_, unsigned order)
+:
+    Dial		{position},
+    width		{width_},
+    power		{2 * order}
+{}
+
+float MesaDial::operator()(float place) const {
+    return 1.0f /
+	(1.0f + std::pow(1.0f + 2.0f * (Dial::operator()(place)) / width, power));
+}
+
 WaveDial::WaveDial(float position, float width_)
     : Dial(position), width(width_) {}
 

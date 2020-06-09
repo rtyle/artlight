@@ -47,6 +47,22 @@ public:
     float operator()(float place) const override;
 };
 
+/// MesaDial is a Dial whose function object composes
+/// a mesa/plateau at a Dial position along its falling edge.
+/// The mesa value/height is 1 at its peak/center
+/// and 1/2 along the edges at its width.
+/// Its squareness increases with its order.
+/// See https://www.desmos.com/calculator/0nkinhpawq
+class MesaDial : Dial {
+private:
+    float const width;
+    unsigned const power;
+public:
+    MesaDial(float position, float width, unsigned order = 1);
+    float operator()(float place) const override;
+};
+
+
 /// WaveDial is a Dial whose function object composes
 /// a modified cosine function (wave)
 /// after the Dial position offset
