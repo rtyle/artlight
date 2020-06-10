@@ -391,39 +391,49 @@ std::array<uint16_t, 2> TSL2591LuxSensor::readChannels() {
     return raw;
 }
 
-float TSL2591LuxSensor::readLux() {
-    // per Norwood.Brown@ams.com
-    //
-    //	If there is no glass above the sensor like in our EVM kit
-    //	or if you use clear glass which does not attenuate the light
-    //	and does not change the spectrum,
-    //	then you can use this "open air" lux equation from our lab:
-    //
-    //	Lux1 = DGF * (Ch0 - (coefB * Ch1)) / (ATime * AGain)
-    //	Lux2 = DGF * ((coefC * Ch0) - (coefD * Ch1)) / (ATime * AGain)
-    //	Lux = MAX(Lux1, Lux2, 0)
-    //
-    //	DGF = 923
-    //	CoefB = 3.15
-    //	CoefC = 0.46
-    //	CoefD = 0.74
-    //
-    // see also,
-    //	https://www.desmos.com/calculator/zzdqmobcb3
+// per Norwood.Brown@ams.com
+//
+//	If there is no glass above the sensor like in our EVM kit
+//	or if you use clear glass which does not attenuate the light
+//	and does not change the spectrum,
+//	then you can use this "open air" lux equation from our lab:
+//
+//	Lux1 = DGF * (Ch0 - (coefB * Ch1)) / (ATime * AGain)
+//	Lux2 = DGF * ((coefC * Ch0) - (coefD * Ch1)) / (ATime * AGain)
+//	Lux = MAX(Lux1, Lux2, 0)
+//
+//	DGF = 923
+//	CoefB = 3.15
+//	CoefC = 0.46
+//	CoefD = 0.74
+//
+// see also,
+//	https://www.desmos.com/calculator/zzdqmobcb3
 
-    static float constexpr dgf	{923.0f};
-    static float constexpr b	{3.15f};
-    static float constexpr c	{0.46f};
-    static float constexpr d	{0.74f};
-
-    std::array<uint16_t, 2> ch = readChannels();
+static float factor(unsigned sensitivity) {
+    static float constexpr dgf {923.0f};
     auto const pair = sensitivities.pairs[sensitivity];
-    float const factor = dgf			  // DGF
-	/ (pair.first.value * pair.second.value); // / (ATime * AGain)
+    return dgf						// DGF
+	/ (pair.first.value * pair.second.value);	// / (ATime * AGain)
+}
 
-    float const lux1	= factor * ((		ch[0]) - (b * ch[1]));
-    float const lux2	= factor * ((c *	ch[0]) - (d * ch[1]));
-    float lux	= std::max(lux1, lux2);
+static float lux1(float factor, std::array<uint16_t, 2> ch) {
+    static float constexpr coefB {3.15f};
+    return factor * ((		ch[0]) - (coefB * ch[1]));
+}
+
+static float lux2(float factor, std::array<uint16_t, 2> ch) {
+    static float constexpr coefC {0.46f};
+    static float constexpr coefD {0.74f};
+    return factor * ((coefC *	ch[0]) - (coefD * ch[1]));
+}
+
+float TSL2591LuxSensor::readLux() {
+    std::array<uint16_t, 2> ch = readChannels();
+    float const factor	= ::factor(sensitivity);
+    float const lux1	= ::lux1(factor, ch);
+    float const lux2	= ::lux2(factor, ch);
+    float lux		= std::max(lux1, lux2);
     if (0 > lux) {
 	// less than 0 lux, in the real world, is impossible.
 	// there was no exceptional condition (e.g. underflow or overflow)
@@ -433,11 +443,13 @@ float TSL2591LuxSensor::readLux() {
 	// (presumbably, because its latest experience was very bright light).
 	// in this case, we return the brightest value that we could possibly
 	// measure in that least-sensitive state
-	static float constexpr brightest {dgf * integrationTimes[0].overflow
-	    / (integrationTimes[0].value * gains[0].value)};
+	static std::array<uint16_t, 2> constexpr chBrightest {
+	    integrationTimes[0].overflow, 0};
+	static float const brightest {::lux1(::factor(0), chBrightest)};
 	lux = 0 == sensitivity ? brightest : 0.0f;
     }
 #if 1
+    auto const pair = sensitivities.pairs[sensitivity];
     ESP_LOGI(name,
 	"lux %f\traw %d\t%d\tsensitivity %d\ttime %f\tgain %f\tlux1 %f\tlux2 %f",
 	lux,
