@@ -445,8 +445,8 @@ float TSL2591LuxSensor::readLux() {
 	// measure in that least-sensitive state
 	static std::array<uint16_t, 2> constexpr chBrightest {
 	    integrationTimes[0].overflow, 0};
-	static float const brightest {::lux1(::factor(0), chBrightest)};
-	lux = 0 == sensitivity ? brightest : 0.0f;
+	static float const luxBrightest {::lux1(::factor(0), chBrightest)};
+	lux = 0 == sensitivity ? luxBrightest : 0.0f;
     }
 #if 1
     auto const pair = sensitivities.pairs[sensitivity];
