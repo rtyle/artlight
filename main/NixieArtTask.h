@@ -22,8 +22,7 @@ private:
     std::array<PCA9685, 4> pca9685s;
 
     SensorTask sensorTask;
-    TSL2561LuxSensor tsl2561LuxSensor;
-    TSL2591LuxSensor tsl2591LuxSensor;
+//    TSL2591LuxSensor tsl2591LuxSensor;
     //HT7M2xxxMotionSensor motionSensor;
 
     void levelObserved(size_t index, char const * value);
@@ -42,7 +41,7 @@ protected:
     private:
 	static char const * const string[];
     public:
-	enum Value {clock, count} value;
+	enum Value {clock, count, roll} value;
 	Mode(Value);
 	Mode(char const *);
 	char const * toString() const;

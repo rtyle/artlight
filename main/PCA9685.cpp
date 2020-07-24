@@ -108,7 +108,7 @@ struct RegisterKey {
 
 }
 
-PCA9685::PCA9685::Mode::Mode(
+PCA9685::Mode::Mode(
     bool	allcall_,
     bool	sub3_,
     bool	sub2_,
@@ -148,6 +148,21 @@ PCA9685::PCA9685::Mode::Mode(
     outdrv	(outdrv_),
     och		(och_),
     invrt	(invrt_)
+#endif
+{}
+
+PCA9685::Pwm::Pwm()
+:
+#if BYTE_ORDER == BIG_ENDIAN
+    offFull	(0),
+    off		(0),
+    onFull	(0),
+    on		(0)
+#else
+    on		(0),
+    onFull	(0),
+    off		(0),
+    offFull	(0)
 #endif
 {}
 

@@ -18,15 +18,17 @@ using LEDI = APA102::LED<int>;
 static unsigned constexpr millisecondsPerSecond	{1000u};
 static unsigned constexpr microsecondsPerSecond	{1000000u};
 
-static SawtoothCurve inQuadSecondOf	{0.0f,  4.0f};
+static SawtoothCurve inNearSecondOf	{0.0f,  1.0f * 60.0f / 61.0f};
 static SawtoothCurve inSecondOf		{0.0f,  1.0f};
+static SawtoothCurve inNearBiSecondOf	{0.0f,  2.0f * 30.0f / 31.0f};
+static SawtoothCurve inBiSecondOf	{0.0f,  2.0f};
 static SawtoothCurve inMinuteOf		{0.0f, 60.0f};
 static SawtoothCurve inHourOf		{0.0f, 60.0f * 60.0f};
 static SawtoothCurve inDayOf		{0.0f, 60.0f * 60.0f * 12.0f};	/// 12 hour clock
 static SawtoothCurve inDigitsOf		{0.0f, 10.0f};
 
 char const * const NixieArtTask::Mode::string[]
-    {"clock", "count"};
+    {"clock", "count", "roll"};
 NixieArtTask::Mode::Mode(Value value_) : value(value_) {}
 NixieArtTask::Mode::Mode(char const * value) : value(
     [value](){
@@ -141,6 +143,20 @@ static float digitize1(
 }
 
 void NixieArtTask::update_() {
+    APA102::Message<8> message;
+    for (auto & e: message.encodings) {
+	e = LED<>(8, 8, 8);
+    }
+
+    // SPI::Transaction constructor queues the message.
+    // SPI::Transaction destructor waits for result.
+    // queue both before waiting for result of either.
+    {
+	SPI::Transaction transaction(spiDevice, SPI::Transaction::Config()
+	    .tx_buffer_(&message)
+	    .length_(message.length()));
+    }
+
     uint64_t const microsecondsSinceBoot {get_time_since_boot()};
 
     std::function<float(unsigned)> digits[pca9685s.size()] {
@@ -148,6 +164,9 @@ void NixieArtTask::update_() {
 	[](unsigned) {return 0.0f;},
 	[](unsigned) {return 0.0f;},
 	[](unsigned) {return 0.0f;},
+    };
+    std::function<float(unsigned)> dots {
+	[](unsigned i) {return (1 + i) * 0.25f;}
     };
 
     switch (mode.value) {
@@ -167,9 +186,23 @@ void NixieArtTask::update_() {
 		order *= 10;
 	    }
 	} break;
+	case Mode::roll : {
+	    std::function<float(unsigned)> * digit = digits + pca9685s.size();
+	    float /* seconds */ sinceModeChange {
+		(microsecondsSinceBoot - microsecondsSinceBootOfModeChange)
+		/ 1000000.0f
+	    };
+	    unsigned order {4};
+	    for (unsigned place = pca9685s.size(); place--;) {
+		MesaDial dial {inDigitsOf(sinceModeChange), 1.0f / 10.0f, order};
+		*--digit = [dial](unsigned digit) {
+		    return digitize0(10, digit, 0, dial);
+		};
+	    }
+	} break;
     case Mode::clock :
     default : {
-	    std::function<float(unsigned)> * digit = digits;
+	    std::function<float(unsigned)> * digit = digits + pca9685s.size();
 	    float const secondsSinceTwelveLocaltime
 		{smoothTime.millisecondsSinceTwelveLocaltime(
 			microsecondsSinceBoot)
@@ -177,48 +210,60 @@ void NixieArtTask::update_() {
 	    {
 		MesaDial dial
 		    {inDayOf(secondsSinceTwelveLocaltime), 1.0f / 12.0f, 4 * 60 * 60};
-		*digit++ = [dial](unsigned digit) {
+		*--digit = [dial](unsigned digit) {
 		    return digitize1(12, digit, 1, dial);
 		};
-		*digit++ = [dial](unsigned digit) {
+		*--digit = [dial](unsigned digit) {
 		    return digitize1(12, digit, 0, dial);
 		};
 	    }
 	    {
 		MesaDial dial
 		    {inHourOf(secondsSinceTwelveLocaltime), 1.0f / 60.0f, 4 * 60};
-		*digit++ = [dial](unsigned digit) {
+		*--digit = [dial](unsigned digit) {
 		    return digitize0(60, digit, 1, dial);
 		};
-		*digit++ = [dial](unsigned digit) {
+		*--digit = [dial](unsigned digit) {
 		    return digitize0(60, digit, 0, dial);
+		};
+	    }
+	    {
+		WaveDial dial[2] {
+		    {inBiSecondOf	(secondsSinceTwelveLocaltime)},
+		    {inNearBiSecondOf	(secondsSinceTwelveLocaltime)},
+		};
+		dots = [dial](unsigned dot) {
+		    return dial[dot](0.0f);
 		};
 	    }
 	} break;
     }
 
+    // we will set all of a PCA9685's Pwm values at once with setPwms (below).
+    // create an image of these values for each PCA9685 here
     PCA9685::Pwm pca9685Pwms[pca9685s.size()][PCA9685::pwmCount];
+    static unsigned constexpr max {0xfff};
+
+    // set digits in image
     unsigned i = 0;
     for (auto & pwms: pca9685Pwms) {
-	unsigned j = 0;
-	for (auto & pwm: pwms) {
-	    float intensity = {digits[i](j)};
-	    pwm.onFull	= 0;
-	    pwm.on	= 0;
-	    pwm.offFull	= 0;
-	    static unsigned max {0xfff};
-	    pwm.off	= std::min(max, static_cast<unsigned>(max * intensity));
-	    ++j;
+	for (unsigned j = 0; j < 10; j++) {
+	    static unsigned constexpr map[10] {5, 1, 3, 10, 2, 13, 6, 11, 15, 14};
+	    pwms[map[j]].off = std::min(max, static_cast<unsigned>(max * digits[i](j)));
 	}
 	++i;
     }
 
+    // set dots in colon in image
+    pca9685Pwms[1][ 4].off = std::min(max, static_cast<unsigned>(max * dots(0)));
+    pca9685Pwms[2][12].off = std::min(max, static_cast<unsigned>(max * dots(1)));
+
+    // set the image
     i = 0;
     for (auto & pca9685: pca9685s) {
 	pca9685.setPwms(0, pca9685Pwms[i], PCA9685::pwmCount, true);
 	++i;
     }
-
 }
 
 void NixieArtTask::update() {
@@ -321,8 +366,7 @@ NixieArtTask::NixieArtTask(
     }},
 
     sensorTask	{},
-    tsl2561LuxSensor	{sensorTask, &i2cMasters[1]},
-    tsl2591LuxSensor	{sensorTask, &i2cMasters[1]},
+//    tsl2591LuxSensor	{sensorTask, &i2cMasters[1]},
     //motionSensor	{sensorTask, &i2cMasters[1]},
 
 

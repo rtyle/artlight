@@ -69,20 +69,21 @@ public:
 
     struct Pwm {
 	#if BYTE_ORDER == BIG_ENDIAN
-	    uint16_t		:3;
-	    uint16_t	onFull	:1;
-	    uint16_t	on	:12;
-	    uint16_t		:3;
-	    uint16_t	offFull	:1;
-	    uint16_t	off	:12;
+	    uint32_t		:3;
+	    uint32_t	onFull	:1;
+	    uint32_t	on	:12;
+	    uint32_t		:3;
+	    uint32_t	offFull	:1;
+	    uint32_t	off	:12;
 	#else
-	    uint16_t	on	:12;
-	    uint16_t	onFull	:1;
-	    uint16_t		:3;
-	    uint16_t	off	:12;
-	    uint16_t	offFull	:1;
-	    uint16_t		:3;
+	    uint32_t	on	:12;
+	    uint32_t	onFull	:1;
+	    uint32_t		:3;
+	    uint32_t	off	:12;
+	    uint32_t	offFull	:1;
+	    uint32_t		:3;
 	#endif
+	Pwm();
     };
 
     struct SoftAddressKey {
