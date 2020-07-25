@@ -125,7 +125,7 @@ static float digitize0(
     for (auto e: HasDigit(range, digit, place, radix)) {
 	result += f(e / static_cast<float>(range));
     }
-    return result;
+    return std::min(1.0f, result);
 }
 
 static float digitize1(
@@ -139,7 +139,7 @@ static float digitize1(
     for (auto e: HasDigit(range + 1, digit, place, radix)) {
 	if (0 < e) result += f(e / static_cast<float>(range));
     }
-    return result;
+    return std::min(1.0f, result);
 }
 
 void NixieArtTask::update_() {
@@ -166,7 +166,7 @@ void NixieArtTask::update_() {
 	[](unsigned) {return 0.0f;},
     };
     std::function<float(unsigned)> dots {
-	[](unsigned i) {return (1 + i) * 0.25f;}
+	[](unsigned) {return 0.0f;}
     };
 
     switch (mode.value) {
@@ -211,7 +211,8 @@ void NixieArtTask::update_() {
 		MesaDial dial
 		    {inDayOf(secondsSinceTwelveLocaltime), 1.0f / 12.0f, 4 * 60 * 60};
 		*--digit = [dial](unsigned digit) {
-		    return digitize1(12, digit, 1, dial);
+		    auto value = digitize1(12, digit, 1, dial);
+		    return 0 == digit && 0.0f < value ? 0.0f : value;
 		};
 		*--digit = [dial](unsigned digit) {
 		    return digitize1(12, digit, 0, dial);
@@ -243,26 +244,41 @@ void NixieArtTask::update_() {
     // create an image of these values for each PCA9685 here
     PCA9685::Pwm pca9685Pwms[pca9685s.size()][PCA9685::pwmCount];
     static unsigned constexpr max {0xfff};
+    static unsigned constexpr min {0x005};
 
     // set digits in image
-    unsigned i = 0;
+    unsigned place = 0;
     for (auto & pwms: pca9685Pwms) {
-	for (unsigned j = 0; j < 10; j++) {
-	    static unsigned constexpr map[10] {5, 1, 3, 10, 2, 13, 6, 11, 15, 14};
-	    pwms[map[j]].off = std::min(max, static_cast<unsigned>(max * digits[i](j)));
+	for (unsigned digit = 0; digit < 10; digit++) {
+	    unsigned value = max * digits[place](digit);
+	    if (min <= value) {
+		static unsigned constexpr pwmOf[10]
+		    {5, 1, 3, 10, 2, 13, 6, 11, 15, 14};
+		auto & pwm {pwms[pwmOf[digit]]};
+		pwm.offFull = 0;
+		pwm.off = value;
+	    }
 	}
-	++i;
+	++place;
     }
 
     // set dots in colon in image
-    pca9685Pwms[1][ 4].off = std::min(max, static_cast<unsigned>(max * dots(0)));
-    pca9685Pwms[2][12].off = std::min(max, static_cast<unsigned>(max * dots(1)));
+    PCA9685::Pwm * pwms[] {&pca9685Pwms[1][4], &pca9685Pwms[2][12]};
+    unsigned dot = 0;
+    for (auto pwm: pwms) {
+	unsigned value = max * dots(dot);
+	if (min <= value) {
+	    pwm->offFull = 0;
+	    pwm->off = value;
+	}
+	++dot;
+    }
 
     // set the image
-    i = 0;
+    place = 0;
     for (auto & pca9685: pca9685s) {
-	pca9685.setPwms(0, pca9685Pwms[i], PCA9685::pwmCount, true);
-	++i;
+	pca9685.setPwms(0, pca9685Pwms[place], PCA9685::pwmCount, true);
+	++place;
     }
 }
 
