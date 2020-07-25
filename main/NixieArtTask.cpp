@@ -160,6 +160,36 @@ static unsigned snapPwm(unsigned value) {
     return min > value ? 0 : value;
 }
 
+static float constexpr pwmFactorFrom(unsigned resistance) {
+    // Dalibor Farny provided schematic and email suggests that
+    // a 0k  resistor in series with the largest  sized digit (8) and
+    // a 4k7 resistor in series with the smallest sized digit (1)
+    // will result in equivalent brightness.
+    // Alternately, he suggests that an equivalent PWM implementation could use
+    // a 1.0 duty cycle with the largest  sized digit and
+    // a 0.7 duty cycle with the smallest sized digit.
+    // using known resistances from the schematic,
+    // this linear function will return these and other PWM factors.
+    return 1.0f - resistance * 0.3f / 4700.0f;
+};
+
+static float pwmFactorOf(unsigned digit) {
+    // factor for each digit from resistor values in Dalibor Farny schematic
+    static float constexpr pwmFactors[10] = {
+	pwmFactorFrom(1200),	// 0
+	pwmFactorFrom(4700),	// 1
+	pwmFactorFrom(1100),	// 2
+	pwmFactorFrom(1500),	// 3
+	pwmFactorFrom(3300),	// 4
+	pwmFactorFrom(1100),	// 5
+	pwmFactorFrom(1100),	// 6
+	pwmFactorFrom(3600),	// 7
+	pwmFactorFrom(   0),	// 8
+	pwmFactorFrom(1000),	// 9
+    };
+    return pwmFactors[digit];
+}
+
 void NixieArtTask::update_() {
     APA102::Message<8> message;
     for (auto & e: message.encodings) {
@@ -189,7 +219,7 @@ void NixieArtTask::update_() {
 
     switch (mode.value) {
     case Mode::count : {
-	    std::function<float(unsigned)> * digit = digits + pca9685s.size();
+	    std::function<float(unsigned)> * digit = digits;
 	    float /* deciseconds */ sinceModeChange {
 		(microsecondsSinceBoot - microsecondsSinceBootOfModeChange)
 		/ 100000.0f
@@ -197,15 +227,15 @@ void NixieArtTask::update_() {
 	    unsigned order {4};
 	    for (unsigned place = pca9685s.size(); place--;) {
 		MesaDial dial {inDigitsOf(sinceModeChange), 1.0f / 10.0f, order};
-		*--digit = [dial](unsigned digit) {
+		*digit++ = [dial](unsigned digit) {
 		    return digitize0(10, digit, 0, dial);
 		};
 		sinceModeChange /= 10.0f;
 		order *= 10;
 	    }
 	} break;
-	case Mode::roll : {
-	    std::function<float(unsigned)> * digit = digits + pca9685s.size();
+    case Mode::roll : {
+	    std::function<float(unsigned)> * digit = digits;
 	    float /* seconds */ sinceModeChange {
 		(microsecondsSinceBoot - microsecondsSinceBootOfModeChange)
 		/ 1000000.0f
@@ -213,7 +243,7 @@ void NixieArtTask::update_() {
 	    unsigned order {4};
 	    for (unsigned place = pca9685s.size(); place--;) {
 		MesaDial dial {inDigitsOf(sinceModeChange), 1.0f / 10.0f, order};
-		*--digit = [dial](unsigned digit) {
+		*digit++ = [dial](unsigned digit) {
 		    return digitize0(10, digit, 0, dial);
 		};
 	    }
@@ -270,7 +300,7 @@ void NixieArtTask::update_() {
 	    unsigned value = PCA9685::Pwm::max * digits[place](digit);
 	    static unsigned constexpr pwmOf[10]
 		{5, 1, 3, 10, 2, 13, 6, 11, 15, 14};
-	    pwms[pwmOf[digit]](snapPwm(value));
+	    pwms[pwmOf[digit]](snapPwm(pwmFactorOf(digit) * value));
 	}
 	++place;
     }
