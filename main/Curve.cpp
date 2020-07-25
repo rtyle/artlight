@@ -59,7 +59,7 @@ MesaDial::MesaDial(float position, float width_, unsigned order)
 
 float MesaDial::operator()(float place) const {
     return 1.0f /
-	(1.0f + std::pow(1.0f + 2.0f * (Dial::operator()(place)) / width, power));
+	(1.0f + powf(1.0f + 2.0f * (Dial::operator()(place)) / width, power));
 }
 
 WaveDial::WaveDial(float position, float width_)
