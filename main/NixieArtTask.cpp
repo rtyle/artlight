@@ -258,11 +258,12 @@ void NixieArtTask::update_() {
 	} break;
     }
 
-    // we will set all of a PCA9685's Pwm values at once with setPwms (below).
-    // create an image of these values for each PCA9685 here
+    // we will set all of a PCA9685's Pwm values at once with setPwms (below)
+    // with an image that we will create
+    // a decimal place digit and colon dot at a time.
     PCA9685::Pwm pca9685Pwms[pca9685s.size()][PCA9685::pwmCount];
 
-    // set digits in image
+    // set decimal place digits in image
     unsigned place = 0;
     for (auto & pwms: pca9685Pwms) {
 	for (unsigned digit = 0; digit < 10; digit++) {
@@ -274,7 +275,7 @@ void NixieArtTask::update_() {
 	++place;
     }
 
-    // set dots in colon in image
+    // set colon dots in image
     PCA9685::Pwm * dotPwms[] {&pca9685Pwms[1][4], &pca9685Pwms[2][12]};
     unsigned dot = 0;
     for (auto pwm: dotPwms) {
@@ -283,7 +284,7 @@ void NixieArtTask::update_() {
 	++dot;
     }
 
-    // set the image
+    // show the image
     place = 0;
     for (auto & pca9685: pca9685s) {
 	pca9685.setPwms(0, pca9685Pwms[place], PCA9685::pwmCount, true);
