@@ -68,6 +68,7 @@ public:
     };
 
     struct Pwm {
+	static unsigned constexpr max {0xfff};
 	#if BYTE_ORDER == BIG_ENDIAN
 	    uint32_t		:3;
 	    uint32_t	onFull	:1;
@@ -84,6 +85,7 @@ public:
 	    uint32_t		:3;
 	#endif
 	Pwm();
+	void operator()(unsigned);
     };
 
     struct SoftAddressKey {

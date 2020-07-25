@@ -166,6 +166,18 @@ PCA9685::Pwm::Pwm()
 #endif
 {}
 
+void PCA9685::Pwm::operator()(unsigned value) {
+    if (max <= value) {
+	offFull	= !(onFull = 1);
+    } else if (0 < value) {
+	offFull	= (onFull = 0);
+	on	= 0;
+	off	= value;
+    } else {
+	onFull	= !(offFull = 1);
+    }
+}
+
 uint8_t PCA9685::addressOf(unsigned index) {
     return 0b1000000 | (0b0111111 & index);
 }

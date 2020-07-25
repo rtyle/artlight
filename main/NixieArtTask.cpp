@@ -243,34 +243,26 @@ void NixieArtTask::update_() {
     // we will set all of a PCA9685's Pwm values at once with setPwms (below).
     // create an image of these values for each PCA9685 here
     PCA9685::Pwm pca9685Pwms[pca9685s.size()][PCA9685::pwmCount];
-    static unsigned constexpr max {0xfff};
-    static unsigned constexpr min {0x005};
+    static unsigned constexpr min {5};
 
     // set digits in image
     unsigned place = 0;
     for (auto & pwms: pca9685Pwms) {
 	for (unsigned digit = 0; digit < 10; digit++) {
-	    unsigned value = max * digits[place](digit);
-	    if (min <= value) {
-		static unsigned constexpr pwmOf[10]
-		    {5, 1, 3, 10, 2, 13, 6, 11, 15, 14};
-		auto & pwm {pwms[pwmOf[digit]]};
-		pwm.offFull = 0;
-		pwm.off = value;
-	    }
+	    unsigned value = PCA9685::Pwm::max * digits[place](digit);
+	    static unsigned constexpr pwmOf[10]
+		{5, 1, 3, 10, 2, 13, 6, 11, 15, 14};
+	    pwms[pwmOf[digit]](min > value ? 0 : value);
 	}
 	++place;
     }
 
     // set dots in colon in image
-    PCA9685::Pwm * pwms[] {&pca9685Pwms[1][4], &pca9685Pwms[2][12]};
+    PCA9685::Pwm * dotPwms[] {&pca9685Pwms[1][4], &pca9685Pwms[2][12]};
     unsigned dot = 0;
-    for (auto pwm: pwms) {
-	unsigned value = max * dots(dot);
-	if (min <= value) {
-	    pwm->offFull = 0;
-	    pwm->off = value;
-	}
+    for (auto pwm: dotPwms) {
+	unsigned value = PCA9685::Pwm::max * dots(dot);
+	(*pwm)(min > value ? value : value);
 	++dot;
     }
 
