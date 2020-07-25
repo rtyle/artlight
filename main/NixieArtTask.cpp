@@ -142,6 +142,24 @@ static float digitize1(
     return std::min(1.0f, result);
 }
 
+static unsigned snapPwm(unsigned value) {
+    // the default PCA9685 prescale value (30)
+    // combined with its internal oscillator (25 MHz)
+    // results in a 200 Hz update rate for its 4096 PWM values.
+    //	30 = std::round(25000000 / (4096 * 200)) - 1
+    // This results in a minimum PWM on time of 1.22 microseconds.
+    // https://www.youtube.com/watch?v=TK3E55fytC0
+    // suggests that a "warm" nixie tube can operate at 100000 Hz
+    // (on time of 10 microseconds with a turn on time of less than 5).
+    // it would take an update rate of 48.83 Hz to to guarantee
+    // that the minimal PWM value (1) would turn on a nixie tube.
+    // such a low update rate, however, would likely cause flickering.
+    // it is better to keep the default 200 Hz update rate and avoid
+    // sustained PWM values of less than 5 (5 * 1.22 = 6.1).
+    static unsigned constexpr min {5};
+    return min > value ? 0 : value;
+}
+
 void NixieArtTask::update_() {
     APA102::Message<8> message;
     for (auto & e: message.encodings) {
@@ -243,7 +261,6 @@ void NixieArtTask::update_() {
     // we will set all of a PCA9685's Pwm values at once with setPwms (below).
     // create an image of these values for each PCA9685 here
     PCA9685::Pwm pca9685Pwms[pca9685s.size()][PCA9685::pwmCount];
-    static unsigned constexpr min {5};
 
     // set digits in image
     unsigned place = 0;
@@ -252,7 +269,7 @@ void NixieArtTask::update_() {
 	    unsigned value = PCA9685::Pwm::max * digits[place](digit);
 	    static unsigned constexpr pwmOf[10]
 		{5, 1, 3, 10, 2, 13, 6, 11, 15, 14};
-	    pwms[pwmOf[digit]](min > value ? 0 : value);
+	    pwms[pwmOf[digit]](snapPwm(value));
 	}
 	++place;
     }
@@ -262,7 +279,7 @@ void NixieArtTask::update_() {
     unsigned dot = 0;
     for (auto pwm: dotPwms) {
 	unsigned value = PCA9685::Pwm::max * dots(dot);
-	(*pwm)(min > value ? value : value);
+	(*pwm)(snapPwm(value));
 	++dot;
     }
 
@@ -409,19 +426,6 @@ NixieArtTask::NixieArtTask(
 
     updated(0)
 {
-    // the default PCA9685 prescale value (30)
-    // combined with its internal oscillator (25 MHz)
-    // results in a 200 Hz update rate for its 4096 PWM values.
-    //	30 = std::round(25000000 / (4096 * 200)) - 1
-    // This results in a minimum PWM on time of 1.22 microseconds.
-    // https://www.youtube.com/watch?v=TK3E55fytC0
-    // suggests that a "warm" nixie tube can operate at 100000 Hz
-    // (on time of 10 microseconds with a turn on time of less than 5).
-    // it would take an update rate of 48.83 Hz to to guarantee
-    // that the minimal PWM value (1) would turn on a nixie tube.
-    // such a low update rate, however, would likely cause flickering.
-    // it is better to keep the default 200 Hz update rate and avoid
-    // sustained PWM values of less than 5 (5 * 1.22 = 6.1).
     sensorTask.start();
 }
 
