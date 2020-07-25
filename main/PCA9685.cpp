@@ -154,7 +154,7 @@ PCA9685::Mode::Mode(
 PCA9685::Pwm::Pwm()
 :
 #if BYTE_ORDER == BIG_ENDIAN
-    offFull	(0),
+    offFull	(1),
     off		(0),
     onFull	(0),
     on		(0)
@@ -162,7 +162,7 @@ PCA9685::Pwm::Pwm()
     on		(0),
     onFull	(0),
     off		(0),
-    offFull	(0)
+    offFull	(1)
 #endif
 {}
 
