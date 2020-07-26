@@ -28,11 +28,11 @@ static SawtoothCurve inDayOf		{0.0f, 60.0f * 60.0f * 12.0f};	/// 12 hour clock
 static SawtoothCurve inDigitsOf		{0.0f, 10.0f};
 
 char const * const NixieArtTask::Mode::string[]
-    {"clock", "count", "roll"};
+    {"clock", "count", "roll", "clean"};
 NixieArtTask::Mode::Mode(Value value_) : value(value_) {}
 NixieArtTask::Mode::Mode(char const * value) : value(
     [value](){
-	size_t i = 0;
+	size_t i {0};
 	for (auto e: string) {
 	    if (0 == std::strcmp(e, value)) return static_cast<Value>(i);
 	    ++i;
@@ -175,7 +175,7 @@ static float constexpr pwmFactorFrom(unsigned resistance) {
 
 static float pwmFactorOf(unsigned digit) {
     // factor for each digit from resistor values in Dalibor Farny schematic
-    static float constexpr pwmFactors[10] = {
+    static float constexpr pwmFactors[10] {
 	pwmFactorFrom(1200),	// 0
 	pwmFactorFrom(4700),	// 1
 	pwmFactorFrom(1100),	// 2
@@ -217,9 +217,19 @@ void NixieArtTask::update_() {
 	[](unsigned) {return 0.0f;}
     };
 
+    // sputter from used cathodes may "poison"/dirty others.
+    // this sputter will be burned off when those others are used.
+    // these are the potential unused/dirtyPlaces when left in clock mode.
+    static std::array<std::vector<unsigned>, 4> const dirtyPlaces {{
+	{1, 0, 2, 3, 9, 4, 8, 5, 7, 6},	// all used equally
+	{            9,    8,    7, 6},	// only 0-5 used
+	{   0,    3, 9, 4, 8, 5, 7, 6},	// 1 and 2 used twice as much as others
+	{   0, 2, 3, 9, 4, 8, 5, 7, 6},	// only 1 used
+    }};
+
     switch (mode.value) {
     case Mode::count : {
-	    std::function<float(unsigned)> * digit = digits;
+	    std::function<float(unsigned)> * digit {digits};
 	    float /* deciseconds */ sinceModeChange {
 		(microsecondsSinceBoot - microsecondsSinceBootOfModeChange)
 		/ 100000.0f
@@ -235,8 +245,8 @@ void NixieArtTask::update_() {
 	    }
 	} break;
     case Mode::roll : {
-	    std::function<float(unsigned)> * digit = digits;
-	    float /* seconds */ sinceModeChange {
+	    std::function<float(unsigned)> * digit {digits};
+	    float const /* seconds */ sinceModeChange {
 		(microsecondsSinceBoot - microsecondsSinceBootOfModeChange)
 		/ 1000000.0f
 	    };
@@ -248,33 +258,74 @@ void NixieArtTask::update_() {
 		};
 	    }
 	} break;
+    case Mode::clean : {
+	    std::function<float(unsigned)> * digit {digits};
+	    unsigned const /* decisecond */ counter
+		{static_cast<unsigned>(10.0f * smoothTime.millisecondsSinceTwelveLocaltime(
+			microsecondsSinceBoot)
+		    / static_cast<float>(millisecondsPerSecond))};
+	    for (auto & dirtyPlace: dirtyPlaces) {
+		unsigned const value {dirtyPlace[counter % dirtyPlace.size()]};
+		*digit++ = [value](unsigned digit) {
+		    return value == digit ? 1.0f : 0.0f;
+		};
+	    }
+	} break;
     case Mode::clock :
     default : {
-	    std::function<float(unsigned)> * digit = digits + pca9685s.size();
+	    std::function<float(unsigned)> * digit {digits};
 	    float const secondsSinceTwelveLocaltime
 		{smoothTime.millisecondsSinceTwelveLocaltime(
 			microsecondsSinceBoot)
 		    / static_cast<float>(millisecondsPerSecond)};
-	    {
-		MesaDial dial
-		    {inDayOf(secondsSinceTwelveLocaltime), 1.0f / 12.0f, 4 * 60 * 60};
-		*--digit = [dial](unsigned digit) {
-		    auto value = digitize1(12, digit, 1, dial);
-		    return 0 == digit && 0.0f < value ? 0.0f : value;
-		};
-		*--digit = [dial](unsigned digit) {
-		    return digitize1(12, digit, 0, dial);
-		};
-	    }
-	    {
-		MesaDial dial
-		    {inHourOf(secondsSinceTwelveLocaltime), 1.0f / 60.0f, 4 * 60};
-		*--digit = [dial](unsigned digit) {
-		    return digitize0(60, digit, 1, dial);
-		};
-		*--digit = [dial](unsigned digit) {
-		    return digitize0(60, digit, 0, dial);
-		};
+	    MesaDial hourDial
+		{inDayOf(secondsSinceTwelveLocaltime), 1.0f / 12.0f, 4 * 60 * 60};
+	    float const inHour {inHourOf(secondsSinceTwelveLocaltime)};
+	    MesaDial minuteDial
+		{inHour, 1.0f / 60.0f, 4 * 60};
+	    unsigned const /* decisecond inHour */ counter
+		{static_cast<unsigned>(inHour * 60.0f * 60.0f * 10.0f)};
+	    bool const clean	{600 > counter};
+	    bool const thatHalf	{300 > counter};
+	    unsigned place {0};
+	    for (auto & dirtyPlace: dirtyPlaces) {
+		bool const thisHalf {place >> 1};
+		if (clean && thisHalf == thatHalf) {
+		    unsigned const value {dirtyPlace[counter % dirtyPlace.size()]};
+		    *digit++ = [value](unsigned digit) {
+			return value == digit ? 1.0f : 0.0f;
+		    };
+		} else {
+		    if (thisHalf == thatHalf) {
+			switch (1 & place) {
+			case 1:
+			    *digit++ = [minuteDial](unsigned digit) {
+				return digitize0(60, digit, 1, minuteDial);
+			    };
+			    break;
+			case 0:
+			    *digit++ = [minuteDial](unsigned digit) {
+				return digitize0(60, digit, 0, minuteDial);
+			    };
+			    break;
+			}
+		    } else {
+			switch (1 & place) {
+			case 1:
+			    *digit++ = [hourDial](unsigned digit) {
+				auto const value {digitize1(12, digit, 1, hourDial)};
+				return 0 == digit && 0.0f < value ? 0.0f : value;
+			    };
+			    break;
+			case 0:
+			    *digit++ = [hourDial](unsigned digit) {
+				return digitize1(12, digit, 0, hourDial);
+			    };
+			    break;
+			}
+		    }
+		}
+		++place;
 	    }
 	    {
 		WaveDial dial[2] {
@@ -294,10 +345,11 @@ void NixieArtTask::update_() {
     PCA9685::Pwm pca9685Pwms[pca9685s.size()][PCA9685::pwmCount];
 
     // set decimal place digits in image
-    unsigned place = 0;
+    unsigned place {0};
     for (auto & pwms: pca9685Pwms) {
 	for (unsigned digit = 0; digit < 10; digit++) {
-	    unsigned value = PCA9685::Pwm::max * digits[place](digit);
+	    unsigned value
+		{static_cast<unsigned>(PCA9685::Pwm::max * digits[place](digit))};
 	    static unsigned constexpr pwmOf[10]
 		{5, 1, 3, 10, 2, 13, 6, 11, 15, 14};
 	    pwms[pwmOf[digit]](snapPwm(pwmFactorOf(digit) * value));
@@ -307,9 +359,10 @@ void NixieArtTask::update_() {
 
     // set colon dots in image
     PCA9685::Pwm * dotPwms[] {&pca9685Pwms[1][4], &pca9685Pwms[2][12]};
-    unsigned dot = 0;
+    unsigned dot {0};
     for (auto pwm: dotPwms) {
-	unsigned value = PCA9685::Pwm::max * dots(dot);
+	unsigned value
+	    {static_cast<unsigned>(PCA9685::Pwm::max * dots(dot))};
 	(*pwm)(snapPwm(value));
 	++dot;
     }
@@ -352,7 +405,7 @@ static PCA9685::Mode pca9685Mode {
     0,	// invrt	do not invert output logic state
 };
 
-static char const * const levelKey[] = {
+static char const * const levelKey[] {
     "aLevel",
     "bLevel",
 };
@@ -362,7 +415,7 @@ static char const * const colorKey[] {
 };
 
 void NixieArtTask::levelObserved(size_t index, char const * value_) {
-    float value = fromString<float>(value_);
+    float value {fromString<float>(value_)};
     if (0.0f <= value && value <= 64.0f) {
 	io.post([this, index, value](){
 	    level[index] = value;
@@ -424,7 +477,6 @@ NixieArtTask::NixieArtTask(
     sensorTask	{},
 //    tsl2591LuxSensor	{sensorTask, &i2cMasters[1]},
     //motionSensor	{sensorTask, &i2cMasters[1]},
-
 
     level {},
     color {},

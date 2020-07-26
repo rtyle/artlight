@@ -185,6 +185,7 @@ ifelse(-1, regexp(ArtLightApplication, «clock\|cornhole»), , «dnl
 ifelse(«nixie», ArtLightApplication, «dnl
 						<option value='count'>Count</option>
 						<option value='roll'>Roll</option>
+						<option value='clean'>Clean</option>
 »)dnl
 					</select>
 				</div>

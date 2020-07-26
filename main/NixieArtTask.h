@@ -41,14 +41,13 @@ protected:
     private:
 	static char const * const string[];
     public:
-	enum Value {clock, count, roll} value;
+	enum Value {clock, count, roll, clean} value;
 	Mode(Value);
 	Mode(char const *);
 	char const * toString() const;
     };
     Mode				mode;
     KeyValueBroker::Observer const	modeObserver;
-
 
     void run() override;
 
