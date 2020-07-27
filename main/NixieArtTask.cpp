@@ -198,10 +198,20 @@ static float pwmFactorOf(unsigned digit) {
 }
 
 void NixieArtTask::update_() {
+    float const ambient {0.0f}; // TODO: derive from lux
+
+    // fade factors a function of the subject,
+    // its brightness, dimming factor and current ambient lighting
+    float const fade[] {
+	level[0] * ((1.0f - dim[0]) + dim[0] * ambient),
+	level[1] * ((1.0f - dim[1]) + dim[1] * ambient),
+	level[2] * ((1.0f - dim[2]) + dim[2] * ambient),
+    };
+
     APA102::Message<8> message;
     unsigned side = 0;
     for (auto & e: message.encodings) {
-	e = color[side] * (level[side]);
+	e = color[side] * fade[side];
 	side ^= 1;
     }
 
@@ -360,7 +370,7 @@ void NixieArtTask::update_() {
 	    static unsigned constexpr pwmOf[10]
 		{5, 1, 3, 10, 2, 13, 6, 11, 15, 14};
 	    pwms[pwmOf[digit]](snapPwm(PCA9685::Pwm::max
-		* level[2]
+		* fade[2]
 		* digits[place](digit)
 		* pwmFactorOf(digit)));
 	}
@@ -420,6 +430,11 @@ static char const * const levelKey[] {
     "bLevel",
     "cLevel",
 };
+static char const * const dimKey[] {
+    "aDim",
+    "bDim",
+    "cDim",
+};
 static char const * const colorKey[] {
     "aColor",
     "bColor",
@@ -430,6 +445,15 @@ void NixieArtTask::levelObserved(size_t index, char const * value_) {
     if (0.0f <= value && value <= 1.0f) {
 	io.post([this, index, value](){
 	    level[index] = value;
+	});
+    }
+}
+
+void NixieArtTask::dimObserved(size_t index, char const * value_) {
+    float value {fromString<float>(value_) / 256.0f};
+    if (0.0f <= value && value <= 1.0f) {
+	io.post([this, index, value](){
+	    dim[index] = value;
 	});
     }
 }
@@ -490,6 +514,7 @@ NixieArtTask::NixieArtTask(
     //motionSensor	{sensorTask, &i2cMasters[1]},
 
     level {},
+    dim {},
     color {},
 
     levelObserver {
@@ -499,6 +524,15 @@ NixieArtTask::NixieArtTask(
 	    [this](char const * value) {levelObserved(1, value);}},
 	{keyValueBroker, levelKey[2], "256",
 	    [this](char const * value) {levelObserved(2, value);}},
+    },
+
+    dimObserver {
+	{keyValueBroker, dimKey[0], "0",
+	    [this](char const * value) {dimObserved(0, value);}},
+	{keyValueBroker, dimKey[1], "0",
+	    [this](char const * value) {dimObserved(1, value);}},
+	{keyValueBroker, dimKey[2], "0",
+	    [this](char const * value) {dimObserved(2, value);}},
     },
 
     colorObserver {

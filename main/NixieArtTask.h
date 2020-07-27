@@ -26,13 +26,16 @@ private:
     //HT7M2xxxMotionSensor motionSensor;
 
     void levelObserved(size_t index, char const * value);
+    void dimObserved(size_t index, char const * value);
     void colorObserved(size_t index, char const * value);
 
 protected:
     float				level[3];
+    float				dim[3];
     APA102::LED<>			color[2];
 
     KeyValueBroker::Observer const	levelObserver[3];
+    KeyValueBroker::Observer const	dimObserver[3];
     KeyValueBroker::Observer const	colorObserver[2];
 
     uint64_t microsecondsSinceBootOfModeChange;
