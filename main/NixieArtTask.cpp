@@ -163,17 +163,22 @@ static unsigned snapPwm(unsigned value) {
     return min > value ? 0 : value;
 }
 
-static float constexpr pwmFactorFrom(unsigned resistance) {
-    // Dalibor Farny provided schematic and email suggests that
-    // a 0k  resistor in series with the largest  sized digit (8) and
-    // a 4k7 resistor in series with the smallest sized digit (1)
-    // will result in equivalent brightness.
+static float constexpr pwmFactorFrom(unsigned resistanceCathode) {
+    // Dalibor Farny provided
+    //	Zen Nixie Clock v1.5 Schematics
+    // and email suggests that
+    // a 4k7 resistor at the common anode of all digits with
+    // a 0k  resistor at the cathode of the largest  sized digit (8) and
+    // a 4k7 resistor at the cathode of the smallest sized digit (1)
+    // will result in an equivalent brightness between them.
     // Alternately, he suggests that an equivalent PWM implementation could use
     // a 1.0 duty cycle with the largest  sized digit and
     // a 0.7 duty cycle with the smallest sized digit.
     // using known resistances from the schematic,
-    // this linear function will return these and other PWM factors.
-    return 1.0f - resistance * 0.3f / 4700.0f;
+    // this linear function of cathode resistance returns these PWM factors
+    // and interpolates others.
+    static float constexpr resistanceCathodeOne	{4700.0f};
+    return 1.0f - 0.3f * resistanceCathode / resistanceCathodeOne;
 };
 
 static float pwmFactorOf(unsigned digit) {
