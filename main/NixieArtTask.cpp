@@ -201,7 +201,7 @@ void NixieArtTask::update_() {
     APA102::Message<8> message;
     unsigned side = 0;
     for (auto & e: message.encodings) {
-	e = color[side] * (level[side] / 4.0f);
+	e = color[side] * (level[side]);
 	side ^= 1;
     }
 
@@ -426,7 +426,7 @@ static char const * const colorKey[] {
 };
 
 void NixieArtTask::levelObserved(size_t index, char const * value_) {
-    float value {fromString<float>(value_) / 63.0f};
+    float value {fromString<float>(value_) / 256.0f};
     if (0.0f <= value && value <= 1.0f) {
 	io.post([this, index, value](){
 	    level[index] = value;
@@ -493,11 +493,11 @@ NixieArtTask::NixieArtTask(
     color {},
 
     levelObserver {
-	{keyValueBroker, levelKey[0], "8",
+	{keyValueBroker, levelKey[0], "1",
 	    [this](char const * value) {levelObserved(0, value);}},
-	{keyValueBroker, levelKey[1], "8",
+	{keyValueBroker, levelKey[1], "1",
 	    [this](char const * value) {levelObserved(1, value);}},
-	{keyValueBroker, levelKey[2], "63",
+	{keyValueBroker, levelKey[2], "256",
 	    [this](char const * value) {levelObserved(2, value);}},
     },
 

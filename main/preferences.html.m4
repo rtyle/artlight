@@ -243,21 +243,21 @@ ifelse(«nixie», ArtLightApplication, «dnl
 				<div>
 					<span class='tab0'>Bottom</span>
 					<label for='aLevel'>Level</label>
-					<input type='range' id='aLevel' name='aLevel' required='true' min='0' max='63' step='1'/>
+					<input type='range' id='aLevel' name='aLevel' required='true' min='0' max='64' step='4'/>
 					<label for='aColor'>Color</label>
 					<input type='text' class='spectrum' id='aColor' name='aColor' required='true' value='#ffffff'/>
 				</div>
 				<div>
 					<span class='tab0'>Top</span>
 					<label for='bLevel'>Level</label>
-					<input type='range' id='bLevel' name='bLevel' required='true' min='0' max='63' step='1'/>
+					<input type='range' id='bLevel' name='bLevel' required='true' min='0' max='64' step='4'/>
 					<label for='bColor'>Color</label>
 					<input type='text' class='spectrum' id='bColor' name='bColor' required='true' value='#ffffff'/>
 				</div>
 				<div>
 					<span class='tab0'>Nixie</span>
 					<label for='cLevel'>Level</label>
-					<input type='range' id='cLevel' name='cLevel' required='true' min='0' max='63' step='1'/>
+					<input type='range' id='cLevel' name='cLevel' required='true' min='0' max='256' step='4'/>
 				</div>
 »)dnl
 			</fieldset>
