@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <cstring>
+#include <iomanip>
+#include <sstream>
 #include <string>
 
 #include "GammaEncode.h"
@@ -105,9 +107,21 @@ private:
 
 public:
     struct Part {
-	T control, blue, green, red;
+	T control,
+#ifdef APA102_RGB
+	red, blue, green
+#else
+	blue, green, red
+#endif
+	;
 	Part(T red_, T green_, T blue_) :
-	    control(~0), blue(blue_), green(green_), red(red_) {}
+	    control(~0),
+#ifdef APA102_RGB
+	    red(red_), blue(blue_), green(green_)
+#else
+	    blue(blue_), green(green_), red(red_)
+#endif
+	{}
     } part;
 
     LED(T red, T green, T blue) : part(red, green, blue) {}
@@ -224,7 +238,15 @@ public:
 
     operator uint32_t () const;
 
-    operator std::string () const;
+    // only makes sense for T = uint8_t
+    operator std::string () const {
+	std::ostringstream stream;
+	stream << '#' << std::hex << std::setfill('0')
+	    << std::setw(2) << static_cast<unsigned>(part.red)
+	    << std::setw(2) << static_cast<unsigned>(part.green)
+	    << std::setw(2) << static_cast<unsigned>(part.blue);
+	return stream.str();
+    }
 };
 
 }

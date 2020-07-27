@@ -1,6 +1,3 @@
-#include <iomanip>
-#include <sstream>
-
 #include "APA102.h"
 
 namespace APA102 {
@@ -47,14 +44,4 @@ template <typename T> LED<T>::operator uint32_t () const
 // variant instantiations
 template LED<int>::operator uint32_t() const;
 template LED<unsigned>::operator uint32_t() const;
-
-template <> LED<uint8_t>::operator std::string () const {
-    std::ostringstream stream;
-    stream << '#' << std::hex << std::setfill('0')
-	<< std::setw(2) << static_cast<unsigned>(part.red)
-	<< std::setw(2) << static_cast<unsigned>(part.green)
-	<< std::setw(2) << static_cast<unsigned>(part.blue);
-    return stream.str();
-}
-
 }

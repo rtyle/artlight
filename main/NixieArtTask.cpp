@@ -4,7 +4,10 @@
 
 #include <esp_log.h>
 
+#define APA102_RGB
 #include "APA102.h"
+#undef APA102_RGB
+
 #include "Curve.h"
 #include "NixieArtTask.h"
 #include "Timer.h"
@@ -192,8 +195,10 @@ static float pwmFactorOf(unsigned digit) {
 
 void NixieArtTask::update_() {
     APA102::Message<8> message;
+    unsigned side = 0;
     for (auto & e: message.encodings) {
-	e = LED<>(8, 8, 8);
+	e = color[side] * level[side];
+	side ^= 1;
     }
 
     // SPI::Transaction constructor queues the message.
@@ -348,11 +353,12 @@ void NixieArtTask::update_() {
     unsigned place {0};
     for (auto & pwms: pca9685Pwms) {
 	for (unsigned digit = 0; digit < 10; digit++) {
-	    unsigned value
-		{static_cast<unsigned>(PCA9685::Pwm::max * digits[place](digit))};
 	    static unsigned constexpr pwmOf[10]
 		{5, 1, 3, 10, 2, 13, 6, 11, 15, 14};
-	    pwms[pwmOf[digit]](snapPwm(pwmFactorOf(digit) * value));
+	    pwms[pwmOf[digit]](snapPwm(PCA9685::Pwm::max
+		* level[2]
+		* digits[place](digit)
+		* pwmFactorOf(digit)));
 	}
 	++place;
     }
@@ -361,9 +367,9 @@ void NixieArtTask::update_() {
     PCA9685::Pwm * dotPwms[] {&pca9685Pwms[1][4], &pca9685Pwms[2][12]};
     unsigned dot {0};
     for (auto pwm: dotPwms) {
-	unsigned value
-	    {static_cast<unsigned>(PCA9685::Pwm::max * dots(dot))};
-	(*pwm)(snapPwm(value));
+	(*pwm)(snapPwm(PCA9685::Pwm::max
+	    * level[2]
+	    * dots(dot)));
 	++dot;
     }
 
@@ -408,6 +414,7 @@ static PCA9685::Mode pca9685Mode {
 static char const * const levelKey[] {
     "aLevel",
     "bLevel",
+    "cLevel",
 };
 static char const * const colorKey[] {
     "aColor",
@@ -415,8 +422,8 @@ static char const * const colorKey[] {
 };
 
 void NixieArtTask::levelObserved(size_t index, char const * value_) {
-    float value {fromString<float>(value_)};
-    if (0.0f <= value && value <= 64.0f) {
+    float value {fromString<float>(value_) / 64.0f};
+    if (0.0f <= value && value <= 1.0f) {
 	io.post([this, index, value](){
 	    level[index] = value;
 	});
@@ -486,6 +493,8 @@ NixieArtTask::NixieArtTask(
 	    [this](char const * value) {levelObserved(0, value);}},
 	{keyValueBroker, levelKey[1], "8",
 	    [this](char const * value) {levelObserved(1, value);}},
+	{keyValueBroker, levelKey[2], "64",
+	    [this](char const * value) {levelObserved(2, value);}},
     },
 
     colorObserver {

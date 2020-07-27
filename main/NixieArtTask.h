@@ -29,10 +29,10 @@ private:
     void colorObserved(size_t index, char const * value);
 
 protected:
-    float				level[2];
+    float				level[3];
     APA102::LED<>			color[2];
 
-    KeyValueBroker::Observer const	levelObserver[2];
+    KeyValueBroker::Observer const	levelObserver[3];
     KeyValueBroker::Observer const	colorObserver[2];
 
     uint64_t microsecondsSinceBootOfModeChange;
