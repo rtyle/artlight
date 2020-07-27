@@ -177,8 +177,7 @@ static float constexpr pwmFactorFrom(unsigned resistanceCathode) {
     // using known resistances from the schematic,
     // this linear function of cathode resistance returns these PWM factors
     // and interpolates others.
-    static float constexpr resistanceCathodeOne	{4700.0f};
-    return 1.0f - 0.3f * resistanceCathode / resistanceCathodeOne;
+    return 1.0f - 0.3f * resistanceCathode / 4700.0f;
 };
 
 static float pwmFactorOf(unsigned digit) {
