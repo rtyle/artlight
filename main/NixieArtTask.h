@@ -22,7 +22,7 @@ private:
     std::array<PCA9685, 4> pca9685s;
 
     SensorTask sensorTask;
-//    TSL2591LuxSensor tsl2591LuxSensor;
+    TSL2591LuxSensor luxSensor;
     //HT7M2xxxMotionSensor motionSensor;
 
     void levelObserved(size_t index, char const * value);

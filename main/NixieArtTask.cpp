@@ -198,7 +198,9 @@ static float pwmFactorOf(unsigned digit) {
 }
 
 void NixieArtTask::update_() {
-    float const ambient {0.0f}; // TODO: derive from lux
+    // start dimming after lux drops below 20
+    float const lux {luxSensor.getLux()};
+    float const ambient {lux < 20.0f ? lux / 20.0f : 1.0f};
 
     // fade factors a function of the subject,
     // its brightness, dimming factor and current ambient lighting
@@ -441,7 +443,7 @@ static char const * const colorKey[] {
 };
 
 void NixieArtTask::levelObserved(size_t index, char const * value_) {
-    float value {fromString<float>(value_) / 256.0f};
+    float value {fromString<float>(value_) / 1024.0f};
     if (0.0f <= value && value <= 1.0f) {
 	io.post([this, index, value](){
 	    level[index] = value;
@@ -450,7 +452,7 @@ void NixieArtTask::levelObserved(size_t index, char const * value_) {
 }
 
 void NixieArtTask::dimObserved(size_t index, char const * value_) {
-    float value {fromString<float>(value_) / 256.0f};
+    float value {fromString<float>(value_) / 1024.0f};
     if (0.0f <= value && value <= 1.0f) {
 	io.post([this, index, value](){
 	    dim[index] = value;
@@ -510,7 +512,7 @@ NixieArtTask::NixieArtTask(
     }},
 
     sensorTask	{},
-//    tsl2591LuxSensor	{sensorTask, &i2cMasters[1]},
+    luxSensor	{sensorTask, &i2cMasters[1]},
     //motionSensor	{sensorTask, &i2cMasters[1]},
 
     level {},
@@ -518,11 +520,11 @@ NixieArtTask::NixieArtTask(
     color {},
 
     levelObserver {
-	{keyValueBroker, levelKey[0], "1",
+	{keyValueBroker, levelKey[0], "256",
 	    [this](char const * value) {levelObserved(0, value);}},
-	{keyValueBroker, levelKey[1], "1",
+	{keyValueBroker, levelKey[1], "256",
 	    [this](char const * value) {levelObserved(1, value);}},
-	{keyValueBroker, levelKey[2], "256",
+	{keyValueBroker, levelKey[2], "1024",
 	    [this](char const * value) {levelObserved(2, value);}},
     },
 
@@ -536,9 +538,9 @@ NixieArtTask::NixieArtTask(
     },
 
     colorObserver {
-	{keyValueBroker, colorKey[0], "#ff0000",
+	{keyValueBroker, colorKey[0], "#ff5500",
 	    [this](char const * value) {colorObserved(0, value);}},
-	{keyValueBroker, colorKey[1], "#0000ff",
+	{keyValueBroker, colorKey[1], "#5500ff",
 	    [this](char const * value) {colorObserved(1, value);}},
     },
 

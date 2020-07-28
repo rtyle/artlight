@@ -448,7 +448,7 @@ float TSL2591LuxSensor::readLux() {
 	static float const luxBrightest {::lux1(::factor(0), chBrightest)};
 	lux = 0 == sensitivity ? luxBrightest : 0.0f;
     }
-#if 1
+#if 0
     auto const pair = sensitivities.pairs[sensitivity];
     ESP_LOGI(name,
 	"lux %f\traw %d\t%d\tsensitivity %d\ttime %f\tgain %f\tlux1 %f\tlux2 %f",
