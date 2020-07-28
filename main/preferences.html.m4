@@ -261,7 +261,7 @@ ifelse(«nixie», ArtLightApplication, «dnl
 				<div>
 					<span class='tab0'>Nixie</span>
 					<label for='cDim'>Dimming</label>
-					<input type='range' id='cDim' name='cDim' required='true' min='0' max='256' step='16'/>
+					<input type='range' id='cDim' name='cDim' required='true' min='0' max='256' step='4'/>
 					<label for='cLevel'>Brightness</label>
 					<input type='range' id='cLevel' name='cLevel' required='true' min='0' max='256' step='4'/>
 				</div>

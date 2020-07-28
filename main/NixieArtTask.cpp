@@ -382,7 +382,7 @@ void NixieArtTask::update_() {
     unsigned dot {0};
     for (auto pwm: dotPwms) {
 	(*pwm)(snapPwm(PCA9685::Pwm::max
-	    * level[2]
+	    * fade[2]
 	    * dots(dot)));
 	++dot;
     }
