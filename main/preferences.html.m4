@@ -242,31 +242,32 @@ ifelse(«clock», ArtLightApplication, «dnl
 ifelse(«nixie», ArtLightApplication, «dnl
 				<div>
 					<span class='tab0'>Bottom</span>
-					<label for='aLevel'>Brightness</label>
-					<input type='range' id='aLevel' name='aLevel' required='true' min='0' max='64' step='4'/>
 					<label for='aDim'>Dimming</label>
 					<input type='range' id='aDim' name='aDim' required='true' min='0' max='256' step='16'/>
+					<label for='aLevel'>Brightness</label>
+					<input type='range' id='aLevel' name='aLevel' required='true' min='0' max='64' step='4'/>
 					<label for='aColor'>Color</label>
 					<input type='text' class='spectrum' id='aColor' name='aColor' required='true' value='#ffffff'/>
 				</div>
 				<div>
 					<span class='tab0'>Top</span>
-					<label for='bLevel'>Brightness</label>
-					<input type='range' id='bLevel' name='bLevel' required='true' min='0' max='64' step='4'/>
 					<label for='bDim'>Dimming</label>
 					<input type='range' id='bDim' name='bDim' required='true' min='0' max='256' step='16'/>
+					<label for='bLevel'>Brightness</label>
+					<input type='range' id='bLevel' name='bLevel' required='true' min='0' max='64' step='4'/>
 					<label for='bColor'>Color</label>
 					<input type='text' class='spectrum' id='bColor' name='bColor' required='true' value='#ffffff'/>
 				</div>
 				<div>
 					<span class='tab0'>Nixie</span>
-					<label for='cLevel'>Brightness</label>
-					<input type='range' id='cLevel' name='cLevel' required='true' min='0' max='256' step='4'/>
 					<label for='cDim'>Dimming</label>
 					<input type='range' id='cDim' name='cDim' required='true' min='0' max='256' step='16'/>
+					<label for='cLevel'>Brightness</label>
+					<input type='range' id='cLevel' name='cLevel' required='true' min='0' max='256' step='4'/>
 				</div>
 »)dnl
 			</fieldset>
+ifelse(-1, regexp(ArtLightApplication, «clock\|cornhole»), , «dnl
 			<fieldset>
 				<legend>Brightness</legend>
 				<div>
@@ -292,6 +293,7 @@ ifelse(«nixie», ArtLightApplication, «dnl
 					<a href='https://en.wikipedia.org/wiki/Gamma_correction'>Help</a>
 				</div>
 			</fieldset>
+»)dnl
 			<fieldset>
 				<legend>Network</legend>
 				<div>
