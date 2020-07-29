@@ -145,56 +145,55 @@ static float digitize1(
     return std::min(1.0f, result);
 }
 
-static unsigned snapPwm(unsigned value) {
+static unsigned snapOff(unsigned cathode, unsigned value) {
     // the default PCA9685 prescale value (30)
     // combined with its internal oscillator (25 MHz)
     // results in a 200 Hz update rate for its 4096 PWM values.
     //	30 = std::round(25000000 / (4096 * 200)) - 1
     // This results in a minimum PWM on time of 1.22 microseconds.
     // https://www.youtube.com/watch?v=TK3E55fytC0
-    // suggests that a "warm" nixie tube can operate at 100000 Hz
+    // suggests that a "warm" nixie tube
+    // *in their circuit* can operate at 100000 Hz
     // (on time of 10 microseconds with a turn on time of less than 5).
     // it would take an update rate of 48.83 Hz to to guarantee
     // that the minimal PWM value (1) would turn on a nixie tube.
     // such a low update rate, however, would likely cause flickering.
-    // it is better to keep the default 200 Hz update rate and avoid
-    // sustained PWM values of less than 5 (5 * 1.22 = 6.1).
-    static unsigned constexpr min {5};
-    return min > value ? 0 : value;
+    //
+    // it is better to keep the default 200 Hz update rate and
+    // avoid minimal values that have been evaluated for our circuit/tubes.
+    static unsigned constexpr min[] {
+	30,	// 0
+	16,	// 1
+	38,	// 2
+	42,	// 3
+	28,	// 4
+	50,	// 5
+	26,	// 6
+	28,	// 7
+	36,	// 8
+	26,	// 9
+	26,	// dot
+    };
+    return min[cathode] > value ? 0 : value;
 }
 
-static float constexpr pwmFactorFrom(unsigned resistanceCathode) {
-    // Dalibor Farny provided
-    //	Zen Nixie Clock v1.5 Schematics
-    // and email suggests that
-    // a 4k7 resistor at the common anode of all digits with
-    // a 0k  resistor at the cathode of the largest  sized digit (8) and
-    // a 4k7 resistor at the cathode of the smallest sized digit (1)
-    // will result in an equivalent brightness between them.
-    // Alternately, he suggests that an equivalent PWM implementation could use
-    // a 1.0 duty cycle with the largest  sized digit and
-    // a 0.7 duty cycle with the smallest sized digit.
-    // using known resistances from the schematic,
-    // this linear function of cathode resistance returns these PWM factors
-    // and interpolates others.
-    return 1.0f - 0.3f * resistanceCathode / 4700.0f;
-};
-
-static float pwmFactorOf(unsigned digit) {
-    // factor for each digit from resistor values in Dalibor Farny schematic
-    static float constexpr pwmFactors[10] {
-	pwmFactorFrom(1200),	// 0
-	pwmFactorFrom(4700),	// 1
-	pwmFactorFrom(1100),	// 2
-	pwmFactorFrom(1500),	// 3
-	pwmFactorFrom(3300),	// 4
-	pwmFactorFrom(1100),	// 5
-	pwmFactorFrom(1100),	// 6
-	pwmFactorFrom(3600),	// 7
-	pwmFactorFrom(   0),	// 8
-	pwmFactorFrom(1000),	// 9
+static float bias(unsigned cathode) {
+    // 8 is the dimmest cathode.
+    // bias others relative to it based on evaluation of our circuit/tubes.
+    static float constexpr min[] {
+	0.8750f,	// 0
+	0.5000f,	// 1
+	0.7500f,	// 2
+	0.7500f,	// 3
+	0.6875f,	// 4
+	0.8125f,	// 5
+	0.7500f,	// 6
+	0.6250f,	// 7
+	1.0000f,	// 8
+	0.7500f,	// 9
+	0.8125f,	// dot
     };
-    return pwmFactors[digit];
+    return min[cathode];
 }
 
 void NixieArtTask::update_() {
@@ -371,10 +370,10 @@ void NixieArtTask::update_() {
 	for (unsigned digit = 0; digit < 10; digit++) {
 	    static unsigned constexpr pwmOf[10]
 		{5, 1, 3, 10, 2, 13, 6, 11, 15, 14};
-	    pwms[pwmOf[digit]](snapPwm(PCA9685::Pwm::max
+	    pwms[pwmOf[digit]](snapOff(digit, PCA9685::Pwm::max
 		* fade[2]
 		* digits[place](digit)
-		* pwmFactorOf(digit)));
+		* bias(digit)));
 	}
 	++place;
     }
@@ -383,9 +382,10 @@ void NixieArtTask::update_() {
     PCA9685::Pwm * dotPwms[] {&pca9685Pwms[1][4], &pca9685Pwms[2][12]};
     unsigned dot {0};
     for (auto pwm: dotPwms) {
-	(*pwm)(snapPwm(PCA9685::Pwm::max
+	(*pwm)(snapOff(10, PCA9685::Pwm::max
 	    * fade[2]
-	    * dots(dot)));
+	    * dots(dot)
+	    * bias(10)));
 	++dot;
     }
 
@@ -443,7 +443,7 @@ static char const * const colorKey[] {
 };
 
 void NixieArtTask::levelObserved(size_t index, char const * value_) {
-    float value {fromString<float>(value_) / 1024.0f};
+    float value {fromString<float>(value_) / 4096.0f};
     if (0.0f <= value && value <= 1.0f) {
 	io.post([this, index, value](){
 	    level[index] = value;
@@ -452,7 +452,7 @@ void NixieArtTask::levelObserved(size_t index, char const * value_) {
 }
 
 void NixieArtTask::dimObserved(size_t index, char const * value_) {
-    float value {fromString<float>(value_) / 1024.0f};
+    float value {fromString<float>(value_) / 4096.0f};
     if (0.0f <= value && value <= 1.0f) {
 	io.post([this, index, value](){
 	    dim[index] = value;
@@ -520,20 +520,20 @@ NixieArtTask::NixieArtTask(
     color {},
 
     levelObserver {
-	{keyValueBroker, levelKey[0], "256",
+	{keyValueBroker, levelKey[0], "1024",
 	    [this](char const * value) {levelObserved(0, value);}},
-	{keyValueBroker, levelKey[1], "256",
+	{keyValueBroker, levelKey[1], "1024",
 	    [this](char const * value) {levelObserved(1, value);}},
-	{keyValueBroker, levelKey[2], "1024",
+	{keyValueBroker, levelKey[2], "4096",
 	    [this](char const * value) {levelObserved(2, value);}},
     },
 
     dimObserver {
-	{keyValueBroker, dimKey[0], "0",
+	{keyValueBroker, dimKey[0], "3840",
 	    [this](char const * value) {dimObserved(0, value);}},
-	{keyValueBroker, dimKey[1], "0",
+	{keyValueBroker, dimKey[1], "3840",
 	    [this](char const * value) {dimObserved(1, value);}},
-	{keyValueBroker, dimKey[2], "0",
+	{keyValueBroker, dimKey[2], "4032",
 	    [this](char const * value) {dimObserved(2, value);}},
     },
 
