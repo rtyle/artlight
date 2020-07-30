@@ -72,6 +72,9 @@ Solder all other components individually, as appropriate.
 Press in pin sockets and solder from the bottom.
 Mount nixie tubes and place PCB on acrylic pedestals.
 
+*WARNING*: The nixie tubes run at 170 volts.
+To reduce exposure, do not plug in until tubes are mounted and PCB is placed on acrylic pedestals.
+
 ### Wall Clock Construction
 
 The microprocessor board is mounted on the back of the art with its luminosity sensor peeking through a hole drilled in the center.
