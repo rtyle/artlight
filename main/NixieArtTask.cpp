@@ -529,9 +529,9 @@ NixieArtTask::NixieArtTask(
     },
 
     dimObserver {
-	{keyValueBroker, dimKey[0], "3840",
+	{keyValueBroker, dimKey[0], "4096",
 	    [this](char const * value) {dimObserved(0, value);}},
-	{keyValueBroker, dimKey[1], "3840",
+	{keyValueBroker, dimKey[1], "4096",
 	    [this](char const * value) {dimObserved(1, value);}},
 	{keyValueBroker, dimKey[2], "4032",
 	    [this](char const * value) {dimObserved(2, value);}},
