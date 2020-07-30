@@ -166,7 +166,7 @@ PCA9685::Pwm::Pwm()
 #endif
 {}
 
-void PCA9685::Pwm::operator()(unsigned value) {
+void PCA9685::Pwm::operator = (unsigned value) {
     if (max <= value) {
 	offFull	= !(onFull = 1);
     } else if (0 < value) {

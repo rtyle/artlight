@@ -160,7 +160,8 @@ static unsigned snapOff(unsigned cathode, unsigned value) {
     // such a low update rate, however, would likely cause flickering.
     //
     // it is better to keep the default 200 Hz update rate and
-    // avoid minimal values that have been evaluated for our circuit/tubes.
+    // snap off sub-minimal values that have been
+    // seen to not properly light the cathodes of the tubes in our circuit.
     static unsigned constexpr min[] {
 	30,	// 0
 	16,	// 1
@@ -370,10 +371,10 @@ void NixieArtTask::update_() {
 	for (unsigned digit = 0; digit < 10; digit++) {
 	    static unsigned constexpr pwmOf[10]
 		{5, 1, 3, 10, 2, 13, 6, 11, 15, 14};
-	    pwms[pwmOf[digit]](snapOff(digit, PCA9685::Pwm::max
+	    pwms[pwmOf[digit]] = snapOff(digit, PCA9685::Pwm::max
 		* fade[2]
 		* digits[place](digit)
-		* bias(digit)));
+		* bias(digit));
 	}
 	++place;
     }
@@ -382,10 +383,10 @@ void NixieArtTask::update_() {
     PCA9685::Pwm * dotPwms[] {&pca9685Pwms[1][4], &pca9685Pwms[2][12]};
     unsigned dot {0};
     for (auto pwm: dotPwms) {
-	(*pwm)(snapOff(10, PCA9685::Pwm::max
+	(*pwm) = snapOff(10, PCA9685::Pwm::max
 	    * fade[2]
 	    * dots(dot)
-	    * bias(10)));
+	    * bias(10));
 	++dot;
     }
 

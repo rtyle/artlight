@@ -85,7 +85,7 @@ public:
 	    uint32_t		:3;
 	#endif
 	Pwm();
-	void operator()(unsigned);
+	void operator = (unsigned);
     };
 
     struct SoftAddressKey {
