@@ -1,20 +1,37 @@
 # artlight
 This repository supports similar applications that artfully animate individually addressable LEDs.
 
-Currently, there is a cornhole and a clock application supported by this repository.
+Currently, there is a cornhole, wall clock and nixie tube clock application supported by this repository.
 
-https://youtu.be/0ISKXnE9frU
+Wall clock: https://youtu.be/0ISKXnE9frU
 
 ## Parts
 
-Common parts are
+### Nixie Tube Clock Parts
+
+* [Bill of Materials](https://github.com/rtyle/artlight/blob/master/easyeda/projects/nixie/bom.csv), plus...
+* [AC to 12V DC 1A wall mount power adapter](https://www.digikey.com/product-detail/en/cui-inc/SWI10-12-N-P5/102-4138-ND/6618698)
+* 2 [Harwin 15 pin 2.54mm pitch](https://www.mouser.com/ProductDetail/855-M20-8771546) for SMT mount of Huzzah32 board
+* 44 [Harwin H3161-05](https://www.digikey.com/product-detail/en/harwin-inc/H3161-05/952-2204-ND/3728169) sockets for nixie tube pins
+* [TSL2591 high dynamic range digital light sensor](https://www.adafruit.com/product/1980)
+* [SparkFun Qwiic adapter](https://www.sparkfun.com/products/14495) TSL2591 qwiic mount
+* 4 [Jumper SSH-003T-P0.2-H X2 12"](https://www.digikey.com/product-detail/en/jst-sales-america-inc/ASSHSSH28K305/455-3077-ND/6009453) TSL2591 qwiic cable
+* 2 [Connector housing SH 4pos 1mm white](https://www.digikey.com/product-detail/en/jst-sales-america-inc/SHR-04V-S/455-1394-ND/759883) TSL2591 qwiic connectors
+* [PIR detector I2C module](https://www.holtek.com/productdetail/-/vg/7M21x6)
+* [Preci-Dip 851-87-006-10-001101 PCB connector](https://www.digikey.com/product-detail/en/preci-dip/851-87-006-10-001101/1212-1350-ND/3757600) PIR I2C mount
+* 1 foot [Cast acrylic tubing 2.000" OD x .250" wall thickness](), cut into 9/16" slices, four used as pedestals under PCB's nixie tubes.
+
+### Cornhole and Wall Clock Parts
+
+#### Cornhole and Wall Clock Common Parts
+
 * [ESP32 board](https://www.adafruit.com/product/3405)
 * [TSL2561 digital luminosity sensor breakout](https://www.adafruit.com/product/439)
 * [DotStar digital LED strips](https://www.adafruit.com/product/2241)
 * [2.1mm DC barrel jack (through hole)](https://www.adafruit.com/product/373)
 * [Wi-Fi range extender (optional)](https://www.amazon.com/gp/product/B072MH1434)
 
-### Clock Specific Parts
+#### Wall Clock Specific Parts
 
 Additional parts for the clock application are
 * [40 inch metal wall art](https://www.etsy.com/listing/614388701/round-metal-wall-art-perfect)
@@ -26,7 +43,7 @@ Additional parts for the clock application are
 * [Power Y splitter](https://www.amazon.com/gp/product/B06Y5GP7SF)
 * [2.1mm DC barrel jack (surface mount)](https://www.sparkfun.com/products/12748)
 
-### Cornhole Specific Parts
+#### Cornhole Specific Parts
 
 Additional parts for the cornhole application are
 * Cornhole board
@@ -43,10 +60,19 @@ Additional parts for the cornhole application are
 
 ## Construction
 
-The PCB components were soldered on their respective microprocessor boards.
-When powered by USB, the 5V power jumper must first be removed.
+The PCB components were soldered on their respective boards.
+When Huzzah32 is powered by USB cable, the 5V power jumper must first be removed.
 
-### Clock Construction
+### Nixie Tube Clock Construction
+
+For structural integrity, use a thick (>= 2.0mm) PCB.
+Order PCB with a solder paste stencil.
+Use the stencil to distribute solder paste for all components under the nixie tubes and solder them with a hot air gun.
+Solder all other components individually, as appropriate.
+Press in pin sockets and solder from the bottom.
+Mount nixie tubes and place PCB on acrylic pedestals.
+
+### Wall Clock Construction
 
 The microprocessor board is mounted on the back of the art with its luminosity sensor peeking through a hole drilled in the center.
 Power is routed and split between the microprocessor and 12 o'clock ray boards.
@@ -86,7 +112,7 @@ so that the lights under the board can be seen from above.
 
 ## Use
 
-Both applications must be provisioned on a Wi-Fi LAN.
+Applications must be provisioned on a Wi-Fi LAN.
 Until this is done, they will offer their own Wi-Fi access point where they can be configured securely by a web browser (https://192.168.4.1).
 The SSID and password for Wi-Fi access must be entered.
 Optionally, an mDNS hostname may be given.
@@ -103,13 +129,32 @@ The preferences page may be filled using "factory" default values or with the cu
 Changes to most will take effect immediately.
 If not, then they will take effect when the form is submitted.
 
-Preferences may be used to customize the presentation (color, width and shape) of LED indicators.
+Preferences may be used to customize the presentation.
 Brightness parameters may be set which may include use of the luminosity sensor.
 The mDNS hostname of the board may be changed.
 Parameters may be set in order to accurately present time in the given time zone.
 Over-the-air software updates may also be performed.
 
-## Clock Use
+## Nixie Tube Clock Use
+
+The bottom dot of the colon pulses at 30 beats per minute (a second on and a second off).
+The top dot of the colon pulses at 31 beats per minute.
+This results in pulsing dots that are in phase at the beginning of the minute.
+They separate more as mid-minute is approached and come back together again as the next minute is approached.
+Thus the colon is a very crude seconds display.
+
+Dimming controls should be slid all the way to the left to disable dimming; otherwise, dimming will start to occur as it gets dark.
+The further to the right the dimming control is set, the more dimming will be done.
+When slid all the way to the right, the controlled element will dim to black when the room is black.
+
+In an effort to combat [nixie tube cathode poisoning](https://www.google.com/search?q=nixie+tube+cathode+poisoning)
+the clock will not display minutes during the first minute of every hour.
+Instead, for the first half of the minute, the normal minutes-places will cycle through digits that are not normally used there.
+In the second half of the minute, the hour will be displayed in the normal minutes-places
+and the normal hours-places will cycle through digits that are not normally used there.
+The display can also be temporarily put in a Clean mode (or other modes) until expectations are met.
+
+## Wall Clock Use
 
 There are no additional preferences for the clock application.
 
