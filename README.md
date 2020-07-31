@@ -25,7 +25,7 @@ Optional on-board motion sensor plugin module for automatic on/off control
 * [Preci-Dip 851-87-006-10-001101 PCB connector](https://www.digikey.com/product-detail/en/preci-dip/851-87-006-10-001101/1212-1350-ND/3757600) PIR I2C mount
 
 Optional base (something is required)
-* 1 foot [Cast acrylic tubing 2.000" OD x .250" wall thickness](), cut into 9/16" slices, four used as pedestals under PCB's nixie tubes.
+* 1 foot [Cast acrylic tubing 2.000" OD x .250" wall thickness](), cut into 9/16" slices. Four used as pedestals under PCB's nixie tubes.
 
 ### Cornhole and Wall Clock Parts
 
