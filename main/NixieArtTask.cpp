@@ -145,7 +145,7 @@ static float digitize1(
     return std::min(1.0f, result);
 }
 
-static unsigned snapOff(unsigned cathode, unsigned value) {
+static unsigned snapOffNixie(unsigned cathode, unsigned value) {
     // the default PCA9685 prescale value (30)
     // combined with its internal oscillator (25 MHz)
     // results in a 200 Hz update rate for its 4096 PWM values.
@@ -185,7 +185,7 @@ static float bias(unsigned cathode) {
 	0.8750f,	// 0
 	0.5000f,	// 1
 	0.7500f,	// 2
-	0.7500f,	// 3
+	0.8125f,	// 3
 	0.6875f,	// 4
 	0.8125f,	// 5
 	0.7500f,	// 6
@@ -197,24 +197,37 @@ static float bias(unsigned cathode) {
     return min[cathode];
 }
 
+static float fade(float high, float dim, float min, float ambient) {
+    if (1.0f <= ambient || 0.0f == dim || min > high) {
+	return high;		// snap high
+    } else {
+	if (0.0f == ambient && 1.0 == dim) {
+	    return 0.0f;	// snap off
+	} else {
+	    auto const low {std::max(min, high * (1.0f - dim))};
+	    return low + (high - low) * ambient;
+	}
+    }
+}
+
 void NixieArtTask::update_() {
-    // start dimming after lux drops below 20
+    // start to dim after lux drops below 20
     float const lux {luxSensor ? luxSensor->getLux() : 100.0f};
     float const ambient {lux < 20.0f ? lux / 20.0f : 1.0f};
 
-    // fade factors a function of the subject,
-    // its brightness, dimming factor and current ambient lighting
-    float const fade[] {
-	level[0] * ((1.0f - dim[0]) + dim[0] * ambient),
-	level[1] * ((1.0f - dim[1]) + dim[1] * ambient),
-	level[2] * ((1.0f - dim[2]) + dim[2] * ambient),
+    float constexpr minLed	{4.0f /  256.0f};	// for close color
+    float constexpr minNixie	{64.0 / 4096.0f};	// will not snap off even after digit bias
+
+    float const fades[] {
+	fade(levels[0], dims[0], minLed		, ambient),
+	fade(levels[1], dims[1], minLed		, ambient),
+	fade(levels[2], dims[2], minNixie	, ambient),
     };
 
-    APA102::Message<8> message;
-    unsigned side = 0;
-    for (auto & e: message.encodings) {
-	e = color[side] * fade[side];
-	side ^= 1;
+    APA102::Message<ledCount> message;
+    for (auto & e : message.encodings) {
+	auto side {1 & (&e - message.encodings)};
+	e = colors[side] * fades[side];
     }
 
     // SPI::Transaction constructor queues the message.
@@ -241,7 +254,7 @@ void NixieArtTask::update_() {
     // sputter from used cathodes may "poison"/dirty others.
     // this sputter will be burned off when those others are used.
     // these are the potential unused/dirtyPlaces when left in clock mode.
-    static std::array<std::vector<unsigned>, 4> const dirtyPlaces {{
+    static std::array<std::vector<unsigned>, placeCount> const dirtyPlaces {{
 	{1, 0, 2, 3, 9, 4, 8, 5, 7, 6},	// all used equally
 	{            9,    8,    7, 6},	// only 0-5 used
 	{   0,    3, 9, 4, 8, 5, 7, 6},	// 1 and 2 used twice as much as others
@@ -250,7 +263,7 @@ void NixieArtTask::update_() {
 
     switch (mode.value) {
     case Mode::count : {
-	    std::function<float(unsigned)> * digit {digits};
+	    auto digit {digits};
 	    float /* deciseconds */ sinceModeChange {
 		(microsecondsSinceBoot - microsecondsSinceBootOfModeChange)
 		/ 100000.0f
@@ -266,7 +279,7 @@ void NixieArtTask::update_() {
 	    }
 	} break;
     case Mode::roll : {
-	    std::function<float(unsigned)> * digit {digits};
+	    auto digit {digits};
 	    float const /* seconds */ sinceModeChange {
 		(microsecondsSinceBoot - microsecondsSinceBootOfModeChange)
 		/ 1000000.0f
@@ -280,7 +293,7 @@ void NixieArtTask::update_() {
 	    }
 	} break;
     case Mode::clean : {
-	    std::function<float(unsigned)> * digit {digits};
+	    auto digit {digits};
 	    unsigned const /* decisecond */ counter
 		{static_cast<unsigned>(10.0f * smoothTime.millisecondsSinceTwelveLocaltime(
 			microsecondsSinceBoot)
@@ -294,7 +307,7 @@ void NixieArtTask::update_() {
 	} break;
     case Mode::clock :
     default : {
-	    std::function<float(unsigned)> * digit {digits};
+	    auto digit {digits};
 	    float const secondsSinceTwelveLocaltime
 		{smoothTime.millisecondsSinceTwelveLocaltime(
 			microsecondsSinceBoot)
@@ -371,8 +384,8 @@ void NixieArtTask::update_() {
 	for (unsigned digit = 0; digit < 10; digit++) {
 	    static unsigned constexpr pwmOf[10]
 		{5, 1, 3, 10, 2, 13, 6, 11, 15, 14};
-	    pwms[pwmOf[digit]] = snapOff(digit, PCA9685::Pwm::max
-		* fade[2]
+	    pwms[pwmOf[digit]] = snapOffNixie(digit, PCA9685::Pwm::max
+		* fades[sideCount]
 		* digits[place](digit)
 		* bias(digit));
 	}
@@ -383,8 +396,8 @@ void NixieArtTask::update_() {
     PCA9685::Pwm * dotPwms[] {&pca9685Pwms[1][4], &pca9685Pwms[2][12]};
     unsigned dot {0};
     for (auto pwm: dotPwms) {
-	(*pwm) = snapOff(10, PCA9685::Pwm::max
-	    * fade[2]
+	*pwm = snapOffNixie(10, PCA9685::Pwm::max
+	    * fades[sideCount]
 	    * dots(dot)
 	    * bias(10));
 	++dot;
@@ -428,35 +441,35 @@ static PCA9685::Mode pca9685Mode {
     0,	// invrt	do not invert output logic state
 };
 
-static char const * const levelKey[] {
+static char const * const levelsKey[] {
     "aLevel",
     "bLevel",
     "cLevel",
 };
-static char const * const dimKey[] {
+static char const * const dimsKey[] {
     "aDim",
     "bDim",
     "cDim",
 };
-static char const * const colorKey[] {
+static char const * const colorsKey[] {
     "aColor",
     "bColor",
 };
 
 void NixieArtTask::levelObserved(size_t index, char const * value_) {
-    float value {fromString<float>(value_) / 4096.0f};
+    float value {std::min(1.0f, (0.5f + fromString<float>(value_)) / 4096.0f)};
     if (0.0f <= value && value <= 1.0f) {
 	io.post([this, index, value](){
-	    level[index] = value;
+	    levels[index] = value;
 	});
     }
 }
 
 void NixieArtTask::dimObserved(size_t index, char const * value_) {
-    float value {fromString<float>(value_) / 4096.0f};
+    float value {std::min(1.0f, (0.5f + fromString<float>(value_)) / 4096.0f)};
     if (0.0f <= value && value <= 1.0f) {
 	io.post([this, index, value](){
-	    dim[index] = value;
+	    dims[index] = value;
 	});
     }
 }
@@ -465,7 +478,7 @@ void NixieArtTask::colorObserved(size_t index, char const * value_) {
     if (APA102::isColor(value_)) {
 	APA102::LED<> value(value_);
 	io.post([this, index, value](){
-	    color[index] = value;
+	    colors[index] = value;
 	});
     }
 }
@@ -523,32 +536,32 @@ NixieArtTask::NixieArtTask(
     },
     //motionSensor	{sensorTask, &i2cMasters[1]},
 
-    level {},
-    dim {},
-    color {},
+    levels	{},
+    dims	{},
+    colors	{},
 
-    levelObserver {
-	{keyValueBroker, levelKey[0], "1024",
+    levelsObserver {
+	{keyValueBroker, levelsKey[0], "1024",
 	    [this](char const * value) {levelObserved(0, value);}},
-	{keyValueBroker, levelKey[1], "1024",
+	{keyValueBroker, levelsKey[1], "1024",
 	    [this](char const * value) {levelObserved(1, value);}},
-	{keyValueBroker, levelKey[2], "4096",
+	{keyValueBroker, levelsKey[2], "4096",
 	    [this](char const * value) {levelObserved(2, value);}},
     },
 
-    dimObserver {
-	{keyValueBroker, dimKey[0], "4096",
+    dimsObserver {
+	{keyValueBroker, dimsKey[0], "4096",
 	    [this](char const * value) {dimObserved(0, value);}},
-	{keyValueBroker, dimKey[1], "4096",
+	{keyValueBroker, dimsKey[1], "4096",
 	    [this](char const * value) {dimObserved(1, value);}},
-	{keyValueBroker, dimKey[2], "4032",
+	{keyValueBroker, dimsKey[2], "4095",
 	    [this](char const * value) {dimObserved(2, value);}},
     },
 
-    colorObserver {
-	{keyValueBroker, colorKey[0], "#ff5500",
+    colorsObserver {
+	{keyValueBroker, colorsKey[0], "#ff5500",
 	    [this](char const * value) {colorObserved(0, value);}},
-	{keyValueBroker, colorKey[1], "#5500ff",
+	{keyValueBroker, colorsKey[1], "#5500ff",
 	    [this](char const * value) {colorObserved(1, value);}},
     },
 

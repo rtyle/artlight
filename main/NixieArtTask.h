@@ -13,30 +13,35 @@
 #include "HT7M2xxxMotionSensor.h"
 
 class NixieArtTask: public ArtTask {
+public:
+    static size_t constexpr sideCount	{2};
+    static size_t constexpr placeCount	{4};
+    static size_t constexpr ledCount	{sideCount * placeCount};
+
 private:
     SPI::Bus const spiBus;
     SPI::Device const spiDevice;
 
     std::array<I2C::Master, 2> const i2cMasters;
 
-    std::array<PCA9685, 4> pca9685s;
+    std::array<PCA9685, placeCount> pca9685s;
 
     SensorTask sensorTask;
     std::unique_ptr<LuxSensor> luxSensor;
     //HT7M2xxxMotionSensor motionSensor;
 
-    void levelObserved(size_t index, char const * value);
-    void dimObserved(size_t index, char const * value);
-    void colorObserved(size_t index, char const * value);
+    void levelObserved	(size_t index, char const * value);
+    void dimObserved	(size_t index, char const * value);
+    void colorObserved	(size_t index, char const * value);
 
 protected:
-    float				level[3];
-    float				dim[3];
-    APA102::LED<>			color[2];
+    float				levels	[sideCount + 1];
+    float				dims	[sideCount + 1];
+    APA102::LED<>			colors	[sideCount];
 
-    KeyValueBroker::Observer const	levelObserver[3];
-    KeyValueBroker::Observer const	dimObserver[3];
-    KeyValueBroker::Observer const	colorObserver[2];
+    KeyValueBroker::Observer const	levelsObserver	[sideCount + 1];
+    KeyValueBroker::Observer const	dimsObserver	[sideCount + 1];
+    KeyValueBroker::Observer const	colorsObserver	[sideCount];
 
     uint64_t microsecondsSinceBootOfModeChange;
 

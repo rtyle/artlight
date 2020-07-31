@@ -243,18 +243,18 @@ ifelse(«nixie», ArtLightApplication, «dnl
 				<div>
 					<span class='tab0'>Bottom</span>
 					<label for='aDim'>Dimming</label>
-					<input type='range' id='aDim' name='aDim' required='true' min='0' max='4096' step='256'/>
+					<input type='range' id='aDim' name='aDim' required='true' min='0' max='4096' step='64'/>
 					<label for='aLevel'>Brightness</label>
-					<input type='range' id='aLevel' name='aLevel' required='true' min='0' max='4096' step='256'/>
+					<input type='range' id='aLevel' name='aLevel' required='true' min='0' max='4096' step='64'/>
 					<label for='aColor'>Color</label>
 					<input type='text' class='spectrum' id='aColor' name='aColor' required='true' value='#ffffff'/>
 				</div>
 				<div>
 					<span class='tab0'>Top</span>
 					<label for='bDim'>Dimming</label>
-					<input type='range' id='bDim' name='bDim' required='true' min='0' max='4096' step='256'/>
+					<input type='range' id='bDim' name='bDim' required='true' min='0' max='4096' step='64'/>
 					<label for='bLevel'>Brightness</label>
-					<input type='range' id='bLevel' name='bLevel' required='true' min='0' max='4096' step='256'/>
+					<input type='range' id='bLevel' name='bLevel' required='true' min='0' max='4096' step='64'/>
 					<label for='bColor'>Color</label>
 					<input type='text' class='spectrum' id='bColor' name='bColor' required='true' value='#ffffff'/>
 				</div>
