@@ -13,12 +13,18 @@ Wall clock: https://youtu.be/0ISKXnE9frU
 * [AC to 12V DC 1A wall mount power adapter](https://www.digikey.com/product-detail/en/cui-inc/SWI10-12-N-P5/102-4138-ND/6618698)
 * 2 [Harwin 15 pin 2.54mm pitch](https://www.mouser.com/ProductDetail/855-M20-8771546) for SMT mount of Huzzah32 board
 * 44 [Harwin H3161-05](https://www.digikey.com/product-detail/en/harwin-inc/H3161-05/952-2204-ND/3728169) sockets for nixie tube pins
+
+Optional off-board ambient light sensor for automatic dimming
 * [TSL2591 high dynamic range digital light sensor](https://www.adafruit.com/product/1980)
 * [SparkFun Qwiic adapter](https://www.sparkfun.com/products/14495) TSL2591 qwiic mount
 * 4 [Jumper SSH-003T-P0.2-H X2 12"](https://www.digikey.com/product-detail/en/jst-sales-america-inc/ASSHSSH28K305/455-3077-ND/6009453) TSL2591 qwiic cable
 * 2 [Connector housing SH 4pos 1mm white](https://www.digikey.com/product-detail/en/jst-sales-america-inc/SHR-04V-S/455-1394-ND/759883) TSL2591 qwiic connectors
+
+Optional on-board motion sensor plugin module for automatic on/off control
 * [PIR detector I2C module](https://www.holtek.com/productdetail/-/vg/7M21x6)
 * [Preci-Dip 851-87-006-10-001101 PCB connector](https://www.digikey.com/product-detail/en/preci-dip/851-87-006-10-001101/1212-1350-ND/3757600) PIR I2C mount
+
+Optional base (something is required)
 * 1 foot [Cast acrylic tubing 2.000" OD x .250" wall thickness](), cut into 9/16" slices, four used as pedestals under PCB's nixie tubes.
 
 ### Cornhole and Wall Clock Parts
