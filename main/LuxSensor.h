@@ -11,14 +11,14 @@ protected:
     char const * const	name;
 private:
     asio::io_context &	io;
-    Timer		timer;
     std::atomic<float>	lux;
 
     void update();
 
 protected:
+    Timer		timer;
+
     LuxSensor(char const * name, asio::io_context & io);
-    virtual ~LuxSensor();
     /// implementations must return milliseconds till available
     virtual unsigned tillAvailable() const = 0;
     virtual unsigned increaseSensitivity() = 0;
@@ -30,4 +30,5 @@ protected:
 
 public:
     float getLux();
+    virtual ~LuxSensor();
 };

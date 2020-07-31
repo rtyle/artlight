@@ -6,6 +6,7 @@ LuxSensor::LuxSensor(char const * name_, asio::io_context & io_)
 :
     name	{name_},
     io		{io_},
+    lux		{0.0f},
     // asio timers are not supported
     // adapt a FreeRTOS timer to post an update
     timer{name,
@@ -16,11 +17,8 @@ LuxSensor::LuxSensor(char const * name_, asio::io_context & io_)
 		this->update();
 	    });
 	}
-    },
-    lux{0.0f}
-{
-    timer.start();
-}
+    }
+{}
 
 LuxSensor::~LuxSensor() {}
 

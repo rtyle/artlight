@@ -199,7 +199,7 @@ static float bias(unsigned cathode) {
 
 void NixieArtTask::update_() {
     // start dimming after lux drops below 20
-    float const lux {luxSensor.getLux()};
+    float const lux {luxSensor ? luxSensor->getLux() : 100.0f};
     float const ambient {lux < 20.0f ? lux / 20.0f : 1.0f};
 
     // fade factors a function of the subject,
@@ -513,7 +513,14 @@ NixieArtTask::NixieArtTask(
     }},
 
     sensorTask	{},
-    luxSensor	{sensorTask, &i2cMasters[1]},
+    luxSensor	{[this]() -> LuxSensor * {
+	    try {
+		return new TSL2591LuxSensor(sensorTask, &i2cMasters[1]);
+	    } catch (...) {
+		return nullptr;
+	    }
+	}()
+    },
     //motionSensor	{sensorTask, &i2cMasters[1]},
 
     level {},

@@ -297,6 +297,7 @@ TSL2591LuxSensor::TSL2591LuxSensor(
     assertId();
     setSensitivity();
     start();
+    timer.start();
 }
 
 // how long we should wait for commands to complete
