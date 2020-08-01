@@ -251,7 +251,7 @@ Prepare /dev/ttyUSB0 (default) connected device
      artlightMake erase_flash
      artlightMake erase_otadata
 
-Deploy application through /dev/ttyUSB0 (default) connected device
+Deploy application to /dev/ttyUSB0 (default) connected device
 
     artlightMake flash
 
