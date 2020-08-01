@@ -203,7 +203,58 @@ While decrementing, if the other switch is down too then the score is reset to 0
 Vibration from the board will cause a short "lightning strike" animation to be presented over the existing ring indication.
 A break in the ring's IR beam sensors will cause a short "fireworks" animation to be presented over the existing ring indication.
 
+## Software Build, Deploy and Monitor
 
+These projects were built on a Fedora Linux platform.
+Your mileage may vary elsewhere.
 
+Get toolchain
 
+    sudo dnf install gcc git wget make ncurses-devel flex bison gperf python pyserial future python2-cryptography pyparsing
+    mkdir -p $HOME/esp
+    (
+      cd $HOME/esp
+      wget https\://dl.espressif.com/dl/xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
+      tar xzf xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
+    )
+    
+Get artlight source code with it's dependencies
 
+    git clone http://github.com/rtyle/artlight.git
+    cd artlight
+    git submodule update --init --recursive
+  
+[Create certificates](https://github.com/rtyle/artlight/blob/master/README.certificates.txt)
+
+artlightMake shortcut
+
+    artlightMake() { PATH=$PATH:$HOME/esp/xtensa-esp32-elf/bin IDF_PATH=esp-idf make ArtLightApplication=$application $* ; }
+    artlightMake help
+
+Select application (choose one)
+
+    application=clock
+    application=cornhole
+    application=nixie
+
+Build application
+
+    artlightMake clean
+    artlightMake all
+
+Grant user access to USB serial devices then **relogin** to get access
+
+    sudo usermod -a -G dialout $USER
+
+Prepare /dev/ttyUSB0 (default) connected device
+
+     artlightMake erase_flash
+     artlightMake erase_otadata
+
+Deploy application through /dev/ttyUSB0 (default) connected device
+
+    artlightMake flash
+
+Monitor device
+
+    artlightMake monitor
