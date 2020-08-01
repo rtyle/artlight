@@ -1,5 +1,5 @@
 # artlight
-This repository supports similar applications that artfully animate individually addressable LEDs.
+This repository supports similar applications that artfully animate lights.
 
 Currently, there is a cornhole, wall clock and nixie tube clock application supported by this repository.
 
