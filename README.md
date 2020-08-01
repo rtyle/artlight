@@ -73,7 +73,7 @@ When Huzzah32 is powered by USB cable, the 5V power jumper must first be removed
 
 ### Nixie Tube Clock Construction
 
-[PCB design](https://github.com/rtyle/artlight/tree/master/easyeda/projects/nixie)
+[PCB design files](https://github.com/rtyle/artlight/tree/master/easyeda/projects/nixie)
 
 For structural integrity, use a thick (>= 2.0mm) PCB.
 Order PCB with a solder paste stencil.
@@ -87,7 +87,7 @@ To reduce exposure, do not plug in until tubes are mounted and PCB is placed on 
 
 ### Wall Clock Construction
 
-[PCB design (artlight files)](https://github.com/rtyle/artlight/tree/master/eagle/projects/artlight)
+[PCB design (artlight.*) files](https://github.com/rtyle/artlight/tree/master/eagle/projects/artlight)
 
 The microprocessor board is mounted on the back of the art with its luminosity sensor peeking through a hole drilled in the center.
 Power is routed and split between the microprocessor and 12 o'clock ray boards.
@@ -104,7 +104,7 @@ Only clock and data signals need to tunnel under the rays as 5V and GND can be t
 
 ### Cornhole Construction
 
-[PCB design (artlight.cornhole files)](https://github.com/rtyle/artlight/tree/master/eagle/projects/artlight)
+[PCB design (artlight.cornhole.*) files](https://github.com/rtyle/artlight/tree/master/eagle/projects/artlight)
 
 The power bank is mounted with strong magnets under the board so that it might easily be unplugged, removed, charged, replaced and plugged back in.
 Power from it may be switched on and off (with the on/off switch).
