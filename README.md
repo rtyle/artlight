@@ -3,6 +3,8 @@ This repository supports similar applications that artfully animate individually
 
 Currently, there is a cornhole, wall clock and nixie tube clock application supported by this repository.
 
+Nixie tube clock: https://youtu.be/5ZdNDDC60QM
+
 Wall clock: https://youtu.be/0ISKXnE9frU
 
 ## Parts
