@@ -14,6 +14,8 @@ static uint16_t translate(uint16_t value) {
 #endif
 }
 
+// scope of everything in this anonymous namespace
+// is limited to this translation unit and has internal linkage
 namespace {
 
 struct RegisterKey {
@@ -43,6 +45,7 @@ HT7M2xxxMotionSensor::HT7M2xxxMotionSensor(
     pirRawData		{0x800}
 {
     assertId();
+    timer.start();
 }
 
 // how long we should wait for commands to complete

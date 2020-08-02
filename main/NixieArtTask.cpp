@@ -9,7 +9,9 @@
 #undef APA102_RGB
 
 #include "Curve.h"
+#include "HT7M2xxxMotionSensor.h"
 #include "NixieArtTask.h"
+#include "TSL2591LuxSensor.h"
 #include "Timer.h"
 #include "fromString.h"
 
@@ -214,6 +216,8 @@ void NixieArtTask::update_() {
     // start to dim after lux drops below 20
     float const lux {luxSensor ? luxSensor->getLux() : 100.0f};
     float const ambient {lux < 20.0f ? lux / 20.0f : 1.0f};
+
+//    float const motion {motionSensor ? motionSensor->getMotion() : 0.0f};
 
     float constexpr minLed	{4.0f /  256.0f};	// for close color
     float constexpr minNixie	{64.0 / 4096.0f};	// will not snap off even after digit bias
@@ -534,14 +538,21 @@ NixieArtTask::NixieArtTask(
 	    }
 	}()
     },
-    //motionSensor	{sensorTask, &i2cMasters[1]},
+    motionSensor	{[this]() -> MotionSensor * {
+	    try {
+		return new HT7M2xxxMotionSensor(sensorTask, &i2cMasters[1]);
+	    } catch (...) {
+		return nullptr;
+	    }
+	}()
+    },
 
     levels	{},
     dims	{},
     colors	{},
 
     levelsObserver {
-	{keyValueBroker, levelsKey[0], "1024",
+	{keyValueBroker, levelsKey[0],  "192",
 	    [this](char const * value) {levelObserved(0, value);}},
 	{keyValueBroker, levelsKey[1], "1024",
 	    [this](char const * value) {levelObserved(1, value);}},
@@ -559,9 +570,9 @@ NixieArtTask::NixieArtTask(
     },
 
     colorsObserver {
-	{keyValueBroker, colorsKey[0], "#ff5500",
+	{keyValueBroker, colorsKey[0], "#aa80ff",
 	    [this](char const * value) {colorObserved(0, value);}},
-	{keyValueBroker, colorsKey[1], "#5500ff",
+	{keyValueBroker, colorsKey[1], "#aa80ff",
 	    [this](char const * value) {colorObserved(1, value);}},
     },
 

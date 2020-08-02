@@ -8,9 +8,8 @@
 #include "PCA9685.h"
 #include "SensorTask.h"
 #include "SPI.h"
-#include "TSL2561LuxSensor.h"
-#include "TSL2591LuxSensor.h"
-#include "HT7M2xxxMotionSensor.h"
+#include "LuxSensor.h"
+#include "MotionSensor.h"
 
 class NixieArtTask: public ArtTask {
 public:
@@ -27,8 +26,8 @@ private:
     std::array<PCA9685, placeCount> pca9685s;
 
     SensorTask sensorTask;
-    std::unique_ptr<LuxSensor> luxSensor;
-    //HT7M2xxxMotionSensor motionSensor;
+    std::unique_ptr<LuxSensor>		luxSensor;
+    std::unique_ptr<MotionSensor>	motionSensor;
 
     void levelObserved	(size_t index, char const * value);
     void dimObserved	(size_t index, char const * value);
