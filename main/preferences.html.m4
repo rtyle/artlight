@@ -241,32 +241,44 @@ ifelse(«clock», ArtLightApplication, «dnl
 »)dnl
 ifelse(«nixie», ArtLightApplication, «dnl
 				<div>
-					<span class='tab0'>Bottom</span>
-					<label for='aDim'>Dimming</label>
-					<input type='range' id='aDim' name='aDim' required='true' min='0' max='4096' step='64'/>
-					<label for='aLevel'>Brightness</label>
-					<input type='range' id='aLevel' name='aLevel' required='true' min='0' max='4096' step='64'/>
+					<span class='tab0' title='LEDs'>Bottom</span>
+					<label for='aDim' title='dimming of brightness as a function of ambient light sensed'/>Dimming</label>
+					<input type='range' id='aDim' name='aDim' required='true' min='0' max='4096' step='64' title='none ... full'/>
+					<label for='aLevel' title='undimmed level'>Brightness</label>
+					<input type='range' id='aLevel' name='aLevel' required='true' min='0' max='4096' step='64' title='off ... brightest'/>
 					<label for='aColor'>Color</label>
 					<input type='text' class='spectrum' id='aColor' name='aColor' required='true' value='#ffffff'/>
 				</div>
 				<div>
-					<span class='tab0'>Top</span>
-					<label for='bDim'>Dimming</label>
-					<input type='range' id='bDim' name='bDim' required='true' min='0' max='4096' step='64'/>
-					<label for='bLevel'>Brightness</label>
-					<input type='range' id='bLevel' name='bLevel' required='true' min='0' max='4096' step='64'/>
+					<span class='tab0' title='LEDs'>Top</span>
+					<label for='bDim' title='dimming of brightness as a function of ambient light sensed'/>Dimming</label>
+					<input type='range' id='bDim' name='bDim' required='true' min='0' max='4096' step='64' title='none ... full'/>
+					<label for='bLevel' title='undimmed level'>Brightness</label>
+					<input type='range' id='bLevel' name='bLevel' required='true' min='0' max='4096' step='64' title='off ... brightest'/>
 					<label for='bColor'>Color</label>
 					<input type='text' class='spectrum' id='bColor' name='bColor' required='true' value='#ffffff'/>
 				</div>
 				<div>
-					<span class='tab0'>Nixie</span>
-					<label for='cDim'>Dimming</label>:
-					<input type='range' id='cDim' name='cDim' required='true' min='0' max='4096' step='64'/>
-					<label for='cLevel'>Brightness</label>
-					<input type='range' id='cLevel' name='cLevel' required='true' min='0' max='4096' step='256'/>
+					<span class='tab0' title='tube cathodes'>Nixie</span>
+					<label for='cDim' title='dimming of brightness as a function of ambient light sensed'/>Dimming</label>
+					<input type='range' id='cDim' name='cDim' required='true' min='0' max='4096' step='64' title='none ... full'/>
+					<label for='cLevel' title='undimmed level'>Brightness</label>
+					<input type='range' id='cLevel' name='cLevel' required='true' min='0' max='4096' step='256' title='off ... brightest'/>
 				</div>
 »)dnl
 			</fieldset>
+ifelse(«nixie», ArtLightApplication, «dnl
+			<fieldset>
+				<legend>Sensor Control</legend>
+				<div>
+					<span class='tab0'><span title='measure from optional light sensor'>Lux</span> <span title='dimming occurs for values between the black and white points'>Clipping</span></span>
+					<label for='black' title='lux values below this are considered black'>Black Point</label>
+					<input type='range' id='black' name='black' required='true' min='0' max='10' step='1' title='2^0 ... 2^-10'/>
+					<label for='white' title='lux values above this are considered white'>White Point</label>
+					<input type='range' id='white' name='white' required='true' min='0' max='10' step='1' title='2^0 ... 2^10'/>
+				</div>
+			</fieldset>
+»)dnl
 ifelse(-1, regexp(ArtLightApplication, «clock\|cornhole»), , «dnl
 			<fieldset>
 				<legend>Brightness</legend>

@@ -37,10 +37,14 @@ protected:
     float				levels	[sideCount + 1];
     float				dims	[sideCount + 1];
     APA102::LED<>			colors	[sideCount];
+    float				black;
+    float				white;
 
     KeyValueBroker::Observer const	levelsObserver	[sideCount + 1];
     KeyValueBroker::Observer const	dimsObserver	[sideCount + 1];
     KeyValueBroker::Observer const	colorsObserver	[sideCount];
+    KeyValueBroker::Observer const	blackObserver;
+    KeyValueBroker::Observer const	whiteObserver;
 
     uint64_t microsecondsSinceBootOfModeChange;
 

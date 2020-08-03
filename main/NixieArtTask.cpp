@@ -199,23 +199,24 @@ static float bias(unsigned cathode) {
     return min[cathode];
 }
 
-static float fade(float high, float dim, float min, float ambient) {
-    if (1.0f <= ambient || 0.0f == dim || min > high) {
+static float fade(float high, float dim, float min, float from) {
+    if (1.0f <= from || 0.0f == dim || min > high) {
 	return high;		// snap high
     } else {
-	if (0.0f == ambient && 1.0 == dim) {
+	if (0.0f == from && 1.0 == dim) {
 	    return 0.0f;	// snap off
 	} else {
 	    auto const low {std::max(min, high * (1.0f - dim))};
-	    return low + (high - low) * ambient;
+	    return low + (high - low) * from;
 	}
     }
 }
 
 void NixieArtTask::update_() {
-    // start to dim after lux drops below 20
-    float const lux {luxSensor ? luxSensor->getLux() : 100.0f};
-    float const ambient {lux < 20.0f ? lux / 20.0f : 1.0f};
+    // clip whites and clip blacks for fading between
+    float lux {luxSensor ? luxSensor->getLux() : white};
+    if (black > lux) lux = 0.0f;
+    float const fadeFrom {lux < white ? lux / white : 1.0f};
 
 //    float const motion {motionSensor ? motionSensor->getMotion() : 0.0f};
 
@@ -223,9 +224,9 @@ void NixieArtTask::update_() {
     float constexpr minNixie	{64.0 / 4096.0f};	// will not snap off even after digit bias
 
     float const fades[] {
-	fade(levels[0], dims[0], minLed		, ambient),
-	fade(levels[1], dims[1], minLed		, ambient),
-	fade(levels[2], dims[2], minNixie	, ambient),
+	fade(levels[0], dims[0], minLed		, fadeFrom),
+	fade(levels[1], dims[1], minLed		, fadeFrom),
+	fade(levels[2], dims[2], minNixie	, fadeFrom),
     };
 
     APA102::Message<ledCount> message;
@@ -461,7 +462,7 @@ static char const * const colorsKey[] {
 };
 
 void NixieArtTask::levelObserved(size_t index, char const * value_) {
-    float value {std::min(1.0f, (0.5f + fromString<float>(value_)) / 4096.0f)};
+    float value {std::min(1.0f, (0.5f + fromString<unsigned>(value_)) / 4096.0f)};
     if (0.0f <= value && value <= 1.0f) {
 	io.post([this, index, value](){
 	    levels[index] = value;
@@ -470,7 +471,7 @@ void NixieArtTask::levelObserved(size_t index, char const * value_) {
 }
 
 void NixieArtTask::dimObserved(size_t index, char const * value_) {
-    float value {std::min(1.0f, (0.5f + fromString<float>(value_)) / 4096.0f)};
+    float value {std::min(1.0f, (0.5f + fromString<unsigned>(value_)) / 4096.0f)};
     if (0.0f <= value && value <= 1.0f) {
 	io.post([this, index, value](){
 	    dims[index] = value;
@@ -550,6 +551,8 @@ NixieArtTask::NixieArtTask(
     levels	{},
     dims	{},
     colors	{},
+    black	{1.0f / (1 << 10)},
+    white	{1.0f * (1 <<  4)},
 
     levelsObserver {
 	{keyValueBroker, levelsKey[0],  "192",
@@ -565,7 +568,7 @@ NixieArtTask::NixieArtTask(
 	    [this](char const * value) {dimObserved(0, value);}},
 	{keyValueBroker, dimsKey[1], "4096",
 	    [this](char const * value) {dimObserved(1, value);}},
-	{keyValueBroker, dimsKey[2], "4095",
+	{keyValueBroker, dimsKey[2], "4032",
 	    [this](char const * value) {dimObserved(2, value);}},
     },
 
@@ -574,6 +577,20 @@ NixieArtTask::NixieArtTask(
 	    [this](char const * value) {colorObserved(0, value);}},
 	{keyValueBroker, colorsKey[1], "#aa80ff",
 	    [this](char const * value) {colorObserved(1, value);}},
+    },
+
+    blackObserver {keyValueBroker, "black", "10",
+	[this](char const * value) {
+	    io.post([this, value](){
+		black = 1.0f / (1 << fromString<unsigned>(value));
+	    });
+	}
+    },
+
+    whiteObserver {keyValueBroker, "white", "4",
+	[this](char const * value) {
+	    white = 1.0f * (1 << fromString<unsigned>(value));
+	}
     },
 
     microsecondsSinceBootOfModeChange(0u),
