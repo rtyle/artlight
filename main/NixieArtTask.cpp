@@ -213,206 +213,205 @@ static float fade(float high, float dim, float min, float from) {
 }
 
 void NixieArtTask::update_() {
-    // clip whites and clip blacks for fading between
-    float lux {luxSensor ? luxSensor->getLux() : white};
-    if (black > lux) lux = 0.0f;
-    float const fadeFrom {lux < white ? lux / white : 1.0f};
+    // construct the default (off) LED and nixie image
+    APA102::Message<ledCount> ledMessage;
+    PCA9685::Pwm pca9685Pwms[pca9685s.size()][PCA9685::pwmCount];
 
-//    float const motion {motionSensor ? motionSensor->getMotion() : 0.0f};
+    if (!motionSensor || !motionSensor->getCachedTriggerTimeInterval()
+	    || motionSensor->getMotion()) {
+	// clip lux blacks and whites for value to fade from
+	float lux {luxSensor ? luxSensor->getLux() : white};
+	if (black > lux) lux = 0.0f;
+	float const fadeFrom {lux < white ? lux / white : 1.0f};
 
-    float constexpr minLed	{4.0f /  256.0f};	// for close color
-    float constexpr minNixie	{64.0 / 4096.0f};	// will not snap off even after digit bias
+	float constexpr minLed {4.0f /  256.0f}; // for close color
+	float const fadeLeds[sideCount] {
+	    fade(levels[0], dims[0], minLed, fadeFrom),
+	    fade(levels[1], dims[1], minLed, fadeFrom),
+	};
 
-    float const fades[] {
-	fade(levels[0], dims[0], minLed		, fadeFrom),
-	fade(levels[1], dims[1], minLed		, fadeFrom),
-	fade(levels[2], dims[2], minNixie	, fadeFrom),
-    };
+	float constexpr minNixie {64.0 / 4096.0f}; // will not snap off even after digit bias
+	float const fadeNixie = fade(levels[2], dims[2], minNixie, fadeFrom);
 
-    APA102::Message<ledCount> message;
-    for (auto & e : message.encodings) {
-	auto side {1 & (&e - message.encodings)};
-	e = colors[side] * fades[side];
-    }
+	for (auto & e : ledMessage.encodings) {
+	    auto side {1 & (&e - ledMessage.encodings)};
+	    e = colors[side] * fadeLeds[side];
+	}
 
-    // SPI::Transaction constructor queues the message.
-    // SPI::Transaction destructor waits for result.
-    // queue both before waiting for result of either.
-    {
-	SPI::Transaction transaction(spiDevice, SPI::Transaction::Config()
-	    .tx_buffer_(&message)
-	    .length_(message.length()));
-    }
+	uint64_t const microsecondsSinceBoot {get_time_since_boot()};
 
-    uint64_t const microsecondsSinceBoot {get_time_since_boot()};
+	std::function<float(unsigned)> digits[pca9685s.size()] {
+	    [](unsigned) {return 0.0f;},
+	    [](unsigned) {return 0.0f;},
+	    [](unsigned) {return 0.0f;},
+	    [](unsigned) {return 0.0f;},
+	};
+	std::function<float(unsigned)> dots {
+	    [](unsigned) {return 0.0f;}
+	};
 
-    std::function<float(unsigned)> digits[pca9685s.size()] {
-	[](unsigned) {return 0.0f;},
-	[](unsigned) {return 0.0f;},
-	[](unsigned) {return 0.0f;},
-	[](unsigned) {return 0.0f;},
-    };
-    std::function<float(unsigned)> dots {
-	[](unsigned) {return 0.0f;}
-    };
+	// sputter from used cathodes may "poison"/dirty others.
+	// this sputter will be burned off when those others are used.
+	// these are the potential unused/dirtyPlaces when left in clock mode.
+	static std::array<std::vector<unsigned>, placeCount> const dirtyPlaces {{
+	    {1, 0, 2, 3, 9, 4, 8, 5, 7, 6},	// all used equally
+	    {            9,    8,    7, 6},	// only 0-5 used
+	    {   0,    3, 9, 4, 8, 5, 7, 6},	// 1 and 2 used twice as much as others
+	    {   0, 2, 3, 9, 4, 8, 5, 7, 6},	// only 1 used
+	}};
 
-    // sputter from used cathodes may "poison"/dirty others.
-    // this sputter will be burned off when those others are used.
-    // these are the potential unused/dirtyPlaces when left in clock mode.
-    static std::array<std::vector<unsigned>, placeCount> const dirtyPlaces {{
-	{1, 0, 2, 3, 9, 4, 8, 5, 7, 6},	// all used equally
-	{            9,    8,    7, 6},	// only 0-5 used
-	{   0,    3, 9, 4, 8, 5, 7, 6},	// 1 and 2 used twice as much as others
-	{   0, 2, 3, 9, 4, 8, 5, 7, 6},	// only 1 used
-    }};
-
-    switch (mode.value) {
-    case Mode::count : {
-	    auto digit {digits};
-	    float /* deciseconds */ sinceModeChange {
-		(microsecondsSinceBoot - microsecondsSinceBootOfModeChange)
-		/ 100000.0f
-	    };
-	    unsigned order {4};
-	    for (unsigned place = pca9685s.size(); place--;) {
-		MesaDial dial {inDigitsOf(sinceModeChange), 1.0f / 10.0f, order};
-		*digit++ = [dial](unsigned digit) {
-		    return digitize0(10, digit, 0, dial);
+	switch (mode.value) {
+	case Mode::count : {
+		auto digit {digits};
+		float /* deciseconds */ sinceModeChange {
+		    (microsecondsSinceBoot - microsecondsSinceBootOfModeChange)
+		    / 100000.0f
 		};
-		sinceModeChange /= 10.0f;
-		order *= 10;
-	    }
-	} break;
-    case Mode::roll : {
-	    auto digit {digits};
-	    float const /* seconds */ sinceModeChange {
-		(microsecondsSinceBoot - microsecondsSinceBootOfModeChange)
-		/ 1000000.0f
-	    };
-	    unsigned order {4};
-	    for (unsigned place = pca9685s.size(); place--;) {
-		MesaDial dial {inDigitsOf(sinceModeChange), 1.0f / 10.0f, order};
-		*digit++ = [dial](unsigned digit) {
-		    return digitize0(10, digit, 0, dial);
+		unsigned order {4};
+		for (unsigned place = pca9685s.size(); place--;) {
+		    MesaDial dial {inDigitsOf(sinceModeChange), 1.0f / 10.0f, order};
+		    *digit++ = [dial](unsigned digit) {
+			return digitize0(10, digit, 0, dial);
+		    };
+		    sinceModeChange /= 10.0f;
+		    order *= 10;
+		}
+	    } break;
+	case Mode::roll : {
+		auto digit {digits};
+		float const /* seconds */ sinceModeChange {
+		    (microsecondsSinceBoot - microsecondsSinceBootOfModeChange)
+		    / 1000000.0f
 		};
-	    }
-	} break;
-    case Mode::clean : {
-	    auto digit {digits};
-	    unsigned const /* decisecond */ counter
-		{static_cast<unsigned>(10.0f * smoothTime.millisecondsSinceTwelveLocaltime(
-			microsecondsSinceBoot)
-		    / static_cast<float>(millisecondsPerSecond))};
-	    for (auto & dirtyPlace: dirtyPlaces) {
-		unsigned const value {dirtyPlace[counter % dirtyPlace.size()]};
-		*digit++ = [value](unsigned digit) {
-		    return value == digit ? 1.0f : 0.0f;
-		};
-	    }
-	} break;
-    case Mode::clock :
-    default : {
-	    auto digit {digits};
-	    float const secondsSinceTwelveLocaltime
-		{smoothTime.millisecondsSinceTwelveLocaltime(
-			microsecondsSinceBoot)
-		    / static_cast<float>(millisecondsPerSecond)};
-	    MesaDial hourDial
-		{inDayOf(secondsSinceTwelveLocaltime), 1.0f / 12.0f, 4 * 60 * 60};
-	    float const inHour {inHourOf(secondsSinceTwelveLocaltime)};
-	    MesaDial minuteDial
-		{inHour, 1.0f / 60.0f, 4 * 60};
-	    unsigned const /* decisecond inHour */ counter
-		{static_cast<unsigned>(inHour * 60.0f * 60.0f * 10.0f)};
-	    bool const clean	{600 > counter};
-	    bool const thatHalf	{300 > counter};
-	    unsigned place {0};
-	    for (auto & dirtyPlace: dirtyPlaces) {
-		bool const thisHalf {place >> 1};
-		if (clean && thisHalf == thatHalf) {
+		unsigned order {4};
+		for (unsigned place = pca9685s.size(); place--;) {
+		    MesaDial dial {inDigitsOf(sinceModeChange), 1.0f / 10.0f, order};
+		    *digit++ = [dial](unsigned digit) {
+			return digitize0(10, digit, 0, dial);
+		    };
+		}
+	    } break;
+	case Mode::clean : {
+		auto digit {digits};
+		unsigned const /* decisecond */ counter
+		    {static_cast<unsigned>(10.0f * smoothTime.millisecondsSinceTwelveLocaltime(
+			    microsecondsSinceBoot)
+			/ static_cast<float>(millisecondsPerSecond))};
+		for (auto & dirtyPlace: dirtyPlaces) {
 		    unsigned const value {dirtyPlace[counter % dirtyPlace.size()]};
 		    *digit++ = [value](unsigned digit) {
 			return value == digit ? 1.0f : 0.0f;
 		    };
-		} else {
-		    if (thisHalf == thatHalf) {
-			switch (1 & place) {
-			case 1:
-			    *digit++ = [minuteDial](unsigned digit) {
-				return digitize0(60, digit, 1, minuteDial);
-			    };
-			    break;
-			case 0:
-			    *digit++ = [minuteDial](unsigned digit) {
-				return digitize0(60, digit, 0, minuteDial);
-			    };
-			    break;
-			}
+		}
+	    } break;
+	case Mode::clock :
+	default : {
+		auto digit {digits};
+		float const secondsSinceTwelveLocaltime
+		    {smoothTime.millisecondsSinceTwelveLocaltime(
+			    microsecondsSinceBoot)
+			/ static_cast<float>(millisecondsPerSecond)};
+		MesaDial hourDial
+		    {inDayOf(secondsSinceTwelveLocaltime), 1.0f / 12.0f, 4 * 60 * 60};
+		float const inHour {inHourOf(secondsSinceTwelveLocaltime)};
+		MesaDial minuteDial
+		    {inHour, 1.0f / 60.0f, 4 * 60};
+		unsigned const /* decisecond inHour */ counter
+		    {static_cast<unsigned>(inHour * 60.0f * 60.0f * 10.0f)};
+		bool const clean	{600 > counter};
+		bool const thatHalf	{300 > counter};
+		unsigned place {0};
+		for (auto & dirtyPlace: dirtyPlaces) {
+		    bool const thisHalf {place >> 1};
+		    if (clean && thisHalf == thatHalf) {
+			unsigned const value {dirtyPlace[counter % dirtyPlace.size()]};
+			*digit++ = [value](unsigned digit) {
+			    return value == digit ? 1.0f : 0.0f;
+			};
 		    } else {
-			switch (1 & place) {
-			case 1:
-			    *digit++ = [hourDial](unsigned digit) {
-				auto const value {digitize1(12, digit, 1, hourDial)};
-				return 0 == digit && 0.0f < value ? 0.0f : value;
-			    };
-			    break;
-			case 0:
-			    *digit++ = [hourDial](unsigned digit) {
-				return digitize1(12, digit, 0, hourDial);
-			    };
-			    break;
+			if (thisHalf == thatHalf) {
+			    switch (1 & place) {
+			    case 1:
+				*digit++ = [minuteDial](unsigned digit) {
+				    return digitize0(60, digit, 1, minuteDial);
+				};
+				break;
+			    case 0:
+				*digit++ = [minuteDial](unsigned digit) {
+				    return digitize0(60, digit, 0, minuteDial);
+				};
+				break;
+			    }
+			} else {
+			    switch (1 & place) {
+			    case 1:
+				*digit++ = [hourDial](unsigned digit) {
+				    auto const value {digitize1(12, digit, 1, hourDial)};
+				    return 0 == digit && 0.0f < value ? 0.0f : value;
+				};
+				break;
+			    case 0:
+				*digit++ = [hourDial](unsigned digit) {
+				    return digitize1(12, digit, 0, hourDial);
+				};
+				break;
+			    }
 			}
 		    }
+		    ++place;
 		}
-		++place;
-	    }
-	    {
-		WaveDial dial[2] {
-		    {inBiSecondOf	(secondsSinceTwelveLocaltime)},
-		    {inNearBiSecondOf	(secondsSinceTwelveLocaltime)},
-		};
-		dots = [dial](unsigned dot) {
-		    return dial[dot](0.0f);
-		};
-	    }
-	} break;
-    }
-
-    // we will set all of a PCA9685's Pwm values at once with setPwms (below)
-    // with an image that we will create
-    // a decimal place digit and colon dot at a time.
-    PCA9685::Pwm pca9685Pwms[pca9685s.size()][PCA9685::pwmCount];
-
-    // set decimal place digits in image
-    unsigned place {0};
-    for (auto & pwms: pca9685Pwms) {
-	for (unsigned digit = 0; digit < 10; digit++) {
-	    static unsigned constexpr pwmOf[10]
-		{5, 1, 3, 10, 2, 13, 6, 11, 15, 14};
-	    pwms[pwmOf[digit]] = snapOffNixie(digit, PCA9685::Pwm::max
-		* fades[sideCount]
-		* digits[place](digit)
-		* bias(digit));
+		{
+		    WaveDial dial[2] {
+			{inBiSecondOf	(secondsSinceTwelveLocaltime)},
+			{inNearBiSecondOf	(secondsSinceTwelveLocaltime)},
+		    };
+		    dots = [dial](unsigned dot) {
+			return dial[dot](0.0f);
+		    };
+		}
+	    } break;
 	}
-	++place;
-    }
 
-    // set colon dots in image
-    PCA9685::Pwm * dotPwms[] {&pca9685Pwms[1][4], &pca9685Pwms[2][12]};
-    unsigned dot {0};
-    for (auto pwm: dotPwms) {
-	*pwm = snapOffNixie(10, PCA9685::Pwm::max
-	    * fades[sideCount]
-	    * dots(dot)
-	    * bias(10));
-	++dot;
+	// set decimal place digits in image
+	unsigned place {0};
+	for (auto & pwms: pca9685Pwms) {
+	    for (unsigned digit = 0; digit < 10; digit++) {
+		static unsigned constexpr pwmOf[10]
+		    {5, 1, 3, 10, 2, 13, 6, 11, 15, 14};
+		pwms[pwmOf[digit]] = snapOffNixie(digit, PCA9685::Pwm::max
+		    * fadeNixie
+		    * digits[place](digit)
+		    * bias(digit));
+	    }
+	    ++place;
+	}
+
+	// set colon dots in image
+	PCA9685::Pwm * dotPwms[] {&pca9685Pwms[1][4], &pca9685Pwms[2][12]};
+	unsigned dot {0};
+	for (auto pwm: dotPwms) {
+	    *pwm = snapOffNixie(10, PCA9685::Pwm::max
+		* fadeNixie
+		* dots(dot)
+		* bias(10));
+	    ++dot;
+	}
     }
 
     // show the image
-    place = 0;
+
+    // SPI::Transaction constructor queues the ledMessage.
+    // SPI::Transaction destructor waits for result.
+    // queue both before waiting for result of either.
+    {
+	SPI::Transaction transaction(spiDevice, SPI::Transaction::Config()
+	    .tx_buffer_(&ledMessage)
+	    .length_(ledMessage.length()));
+    }
+
     for (auto & pca9685: pca9685s) {
+	auto const place {&pca9685 - pca9685s.data()};
 	pca9685.setPwms(0, pca9685Pwms[place], PCA9685::pwmCount, true);
-	++place;
     }
 }
 
@@ -539,7 +538,7 @@ NixieArtTask::NixieArtTask(
 	    }
 	}()
     },
-    motionSensor	{[this]() -> MotionSensor * {
+    motionSensor	{[this]() -> HT7M2xxxMotionSensor * {
 	    try {
 		return new HT7M2xxxMotionSensor(sensorTask, &i2cMasters[1]);
 	    } catch (...) {
@@ -580,18 +579,58 @@ NixieArtTask::NixieArtTask(
     },
 
     blackObserver {keyValueBroker, "black", "10",
-	[this](char const * value) {
+	[this](char const * value_) {
+	    unsigned const value {fromString<unsigned>(value_)};
 	    io.post([this, value](){
-		black = 1.0f / (1 << fromString<unsigned>(value));
+		black = 1.0f / (1 << value);
 	    });
 	}
     },
 
     whiteObserver {keyValueBroker, "white", "4",
-	[this](char const * value) {
-	    white = 1.0f * (1 << fromString<unsigned>(value));
+	[this](char const * value_) {
+	    unsigned const value {fromString<unsigned>(value_)};
+	    io.post([this, value](){
+		white = 1.0f * (1 << value);
+	    });
 	}
     },
+
+    pirgainObserver {keyValueBroker, "pirgain", "16",
+	[this](char const * value_) {
+	    if (motionSensor) {
+		unsigned const value {fromString<unsigned>(value_)};
+		static_cast<asio::io_context &>(sensorTask).post([this, value](){
+		    motionSensor->setConfiguration1(
+			motionSensor->getConfiguration1().setPirGain(value));
+		});
+	    }
+	}
+    },
+
+    pirbaseObserver {keyValueBroker, "pirbase", "0",
+	[this](char const * value_) {
+	    if (motionSensor) {
+		unsigned value = fromString<unsigned>(value_);
+		static_cast<asio::io_context &>(sensorTask).post([this, value](){
+		    motionSensor->setConfiguration1(
+			motionSensor->getConfiguration1().setPirThreshold(value));
+		});
+	    }
+	}
+    },
+
+    pirtimeObserver {keyValueBroker, "pirtime", "3",
+	[this](char const * value_) {
+	    if (motionSensor) {
+		unsigned value = fromString<unsigned>(value_);
+		static_cast<asio::io_context &>(sensorTask).post([this, value](){
+		    motionSensor->setTriggerTimeInterval(((1 << value) - 1) * 10);
+		});
+	    }
+	}
+    },
+
 
     microsecondsSinceBootOfModeChange(0u),
 

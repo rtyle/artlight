@@ -14,10 +14,10 @@ private:
     I2C::Master const * const i2cMaster;
     static uint8_t constexpr address = 0b1001100;
 
+    std::atomic<unsigned> cachedTriggerTimeInterval;
+
     uint16_t getRegister(uint8_t key) const;
     void setRegister(uint8_t key, uint16_t value) const;
-
-    uint16_t pirRawData;
 
 public:
     HT7M2xxxMotionSensor(
@@ -26,27 +26,30 @@ public:
 
     virtual ~HT7M2xxxMotionSensor();
 
-    struct StandbyPeriod {
+    struct PirPeriod {
 	enum : uint8_t {
 	    _4ms	= 0b00,
 	    _8ms	= 0b01,
-	    _16ms	= 0b01,
+	    _16ms	= 0b10,
 	    _32ms	= 0b11,
 	};
     };
+    static unsigned constexpr pirPeriodDecode(unsigned encoding) {
+	return 1 << (2 + encoding);
+    }
     struct Configuration0 {
 	#if BYTE_ORDER == BIG_ENDIAN
-	    uint16_t	temperatureCelsius	:8;
-	    uint16_t				:5;
-	    uint16_t	standbyPeriod		:2;
+	    signed	temperatureCelsius	:8;
+	    unsigned				:6;
+	    unsigned	pirPeriod		:2;
 	#else
-	    uint16_t	standbyPeriod		:2;
-	    uint16_t				:5;
-	    uint16_t	temperatureCelsius	:8;
+	    signed	temperatureCelsius	:8;
+	    unsigned	pirPeriod		:2;
+	    unsigned				:6;
 	#endif
 	Configuration0(
-	    uint8_t	standbyPeriod,
-	    uint8_t	temperatureCelsius = 0);
+	    signed	temperatureCelsius,
+	    unsigned	pirStandbyPeriod);
     };
     Configuration0 getConfiguration0() const;
     void setConfiguration0(Configuration0 value) const;
@@ -63,7 +66,10 @@ public:
 	    _0v9	= 0b111,
 	};
     };
-    struct Lvd {
+    static float constexpr pirThresholdDecode(unsigned encoding) {
+	return (2.0f + encoding) / 10.0f;
+    }
+    struct LowVoltageDetectThreshold {
 	enum : uint8_t {
 	    _2v0	= 0b000,
 	    _2v2	= 0b001,
@@ -77,92 +83,98 @@ public:
     };
     struct Configuration1 {
 	#if BYTE_ORDER == BIG_ENDIAN
-	    uint16_t	lvd		:3;
-	    uint16_t	lvdEnable	:1;
-	    uint16_t	pirEnable	:1;
-	    uint16_t			:1;
-	    uint16_t	retrigger	:1;
-	    uint16_t	actEnable	:1;
-	    uint16_t	pirThreshold	:3;
-	    uint16_t	gain		:5;
+	    unsigned	lowVoltageDetectThreshold	:3;
+	    bool	lowVoltageDetectEnable		:1;
+	    bool	pirDetectEnable			:1;
+	    bool					:1;
+	    bool	pirRetrigger			:1;
+	    bool	pirTriggeredPinEnable		:1;
+	    unsigned	pirThreshold			:3;
+	    unsigned	pirGain				:5;
 	#else
-	    uint16_t	gain		:5;
-	    uint16_t	pirThreshold	:3;
-	    uint16_t	actEnable	:1;
-	    uint16_t	retrigger	:1;
-	    uint16_t			:1;
-	    uint16_t	pirEnable	:1;
-	    uint16_t	lvdEnable	:1;
-	    uint16_t	lvd		:3;
+	    bool	pirTriggeredPinEnable		:1;
+	    bool	pirRetrigger			:1;
+	    bool					:1;
+	    bool	pirDetectEnable			:1;
+	    bool	lowVoltageDetectEnable		:1;
+	    unsigned	lowVoltageDetectThreshold	:3;
+	    unsigned	pirGain				:5;
+	    unsigned	pirThreshold			:3;
 	#endif
 	Configuration1(
-	    uint8_t	gain,		//< 32 + 2 * gain
-	    uint8_t	pirThreshold,
-	    bool	actEnable,
-	    bool	retrigger,
-	    bool	pirEnable,
-	    bool	lvdEnable,
-	    uint8_t	lvd);
+	    unsigned	lowVoltageDetectThreshold,
+	    bool	lowVoltageDetectEnable,
+	    bool	pirDetectEnable,
+	    bool	pirRetrigger,
+	    bool	pirTriggeredPinEnable,
+	    unsigned	pirThreshold,
+	    unsigned	pirGain);
+	Configuration1 & setPirThreshold(unsigned value);
+	Configuration1 & setPirGain(unsigned value);
     };
+    static unsigned constexpr pirGainDecode(unsigned encoding) {
+	return 32 + 2 * encoding;
+    }
     Configuration1 getConfiguration1() const;
     void setConfiguration1(Configuration1 value) const;
 
     struct Configuration2 {
 	#if BYTE_ORDER == BIG_ENDIAN
-	    uint8_t	luminanceThreshold;
-	    uint8_t	address;
+	    unsigned	darkThreshold		:7;
+	    bool	pirDetectIfDarkEnable	:1;
+	    unsigned	address			:7;
+	    bool				:1;
 	#else
-	    uint8_t	address;
-	    uint8_t	luminanceThreshold;
+	    bool	pirDetectIfDarkEnable	:1;
+	    unsigned	darkThreshold		:7;
+	    bool				:1;
+	    unsigned	address			:7;
 	#endif
 	    Configuration2(
-	    uint8_t	address,
-	    uint8_t	luminanceThreshold);
+		unsigned	darkThreshold,	///< vs. optical sensor a/d
+		bool		pirDetectIfDarkEnable,
+		unsigned	address);
     };
     Configuration2 getConfiguration2() const;
     void setConfiguration2(Configuration2 value) const;
 
     /// 100ms unit
-    uint16_t getTriggerTimeInterval() const;
-    void setTriggerTimeInterval(uint16_t value) const;
+    unsigned getCachedTriggerTimeInterval() const;
+    unsigned getTriggerTimeInterval() const;
+    void setTriggerTimeInterval(unsigned value);
 
-    uint16_t getPirRawData() const;
-    uint16_t getOpticalSensorRawData() const;
-    uint16_t getTemperatureSensorRawData() const;
+    unsigned getPirRawData() const;
+    unsigned getOpticalSensorRawData() const;
+    unsigned getTemperatureSensorRawData() const;
 
     struct Status {
 	#if BYTE_ORDER == BIG_ENDIAN
-	    uint16_t	initializing		:1;
-	    uint16_t				:6;
-	    uint16_t	lvd			:1;
-	    uint16_t	dark			:1;
-	    uint16_t				:4;
-	    uint16_t	pirNoiseDetected	:1;
-	    uint16_t	pirTriggeredAgain	:1;
-	    uint16_t	pirTriggered		:1;
+	    bool	notReady		:1;
+	    unsigned				:6;
+	    bool	lowVoltageDetected	:1;
+	    bool	dark			:1;
+	    unsigned				:4;
+	    bool	pirNoiseDetected	:1;
+	    bool	pirRetriggered		:1;
+	    bool	pirTriggered		:1;
 	#else
-	    uint16_t	pirTriggered		:1;
-	    uint16_t	pirTriggeredAgain	:1;
-	    uint16_t	pirNoiseDetected	:1;
-	    uint16_t				:4;
-	    uint16_t	dark			:1;
-	    uint16_t	lvd			:1;
-	    uint16_t				:6;
-	    uint16_t	initializing		:1;
+	    bool	lowVoltageDetected	:1;
+	    unsigned				:6;
+	    bool	notReady		:1;
+	    bool	pirTriggered		:1;
+	    bool	pirRetriggered		:1;
+	    bool	pirNoiseDetected	:1;
+	    unsigned				:4;
+	    bool	dark			:1;
 	#endif
     };
     Status getStatus() const;
 
-    uint16_t getManufacturerId() const;
-    uint16_t getFirmwareVersion() const;
+    unsigned getManufacturerId() const;
+    unsigned getFirmwareVersion() const;
 
     void assertId() const;
 
-    unsigned tillAvailable() const override;
-    unsigned increaseSensitivity() override;
-    unsigned decreaseSensitivity() override;
-    /// implementations may throw
-    /// std::underflow_error (increaseSensitivity) or
-    /// std::overflow_error (decreaseSensitivity)
-    float readMotion() override;
+    unsigned period() const override;
+    bool readMotion() override;
 };

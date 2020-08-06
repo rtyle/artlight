@@ -6,7 +6,7 @@ MotionSensor::MotionSensor(char const * name_, asio::io_context & io_)
 :
     name	{name_},
     io		{io_},
-    motion	{0.0f},
+    motion	{false},
     // asio timers are not supported
     // adapt a FreeRTOS timer to post an update
     timer{name,
@@ -22,29 +22,16 @@ MotionSensor::MotionSensor(char const * name_, asio::io_context & io_)
 
 MotionSensor::~MotionSensor() {}
 
-static TickType_t soonAfterAvailable(unsigned available) {
-    return 2 + available / portTICK_PERIOD_MS;
-}
-
 void MotionSensor::update() {
-    // we try to skate on the edge (just under an overflow_error)
     try {
 	motion = readMotion();
-	timer.setPeriod(soonAfterAvailable(increaseSensitivity()));
-    } catch (std::underflow_error e) {
-#if 0
-	ESP_LOGE(name, "underflow %s", e.what());
-#endif
-	timer.setPeriod(soonAfterAvailable(increaseSensitivity()));
-    } catch (std::overflow_error e) {
-#if 0
-	ESP_LOGE(name, "overflow %s", e.what());
-#endif
-	timer.setPeriod(soonAfterAvailable(decreaseSensitivity()));
+	timer.setPeriod(period() / portTICK_PERIOD_MS);
     } catch (esp_err_t & e) {
 	ESP_LOGE(name, "error %x", e);
+    } catch (...) {
+	ESP_LOGE(name, "unknown error");
     }
     timer.start();
 }
 
-float MotionSensor::getMotion() {return motion;}
+bool MotionSensor::getMotion() {return motion;}

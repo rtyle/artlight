@@ -9,7 +9,7 @@
 #include "SensorTask.h"
 #include "SPI.h"
 #include "LuxSensor.h"
-#include "MotionSensor.h"
+#include "HT7M2xxxMotionSensor.h"
 
 class NixieArtTask: public ArtTask {
 public:
@@ -27,7 +27,7 @@ private:
 
     SensorTask sensorTask;
     std::unique_ptr<LuxSensor>		luxSensor;
-    std::unique_ptr<MotionSensor>	motionSensor;
+    std::unique_ptr<HT7M2xxxMotionSensor>	motionSensor;
 
     void levelObserved	(size_t index, char const * value);
     void dimObserved	(size_t index, char const * value);
@@ -45,6 +45,9 @@ protected:
     KeyValueBroker::Observer const	colorsObserver	[sideCount];
     KeyValueBroker::Observer const	blackObserver;
     KeyValueBroker::Observer const	whiteObserver;
+    KeyValueBroker::Observer const	pirgainObserver;
+    KeyValueBroker::Observer const	pirbaseObserver;
+    KeyValueBroker::Observer const	pirtimeObserver;
 
     uint64_t microsecondsSinceBootOfModeChange;
 
