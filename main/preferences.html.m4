@@ -278,13 +278,13 @@ ifelse(«nixie», ArtLightApplication, «dnl
 					<input type='range' id='white' name='white' required='true' min='0' max='10' step='1' title='2^0 ... 2^10'/>
 				</div>
 				<div>
-					<span class='tab0' title='when detected, turn on display for a time'>Motion Sensor</span>
-					<label for='pirgain' title='amplification/sensitivity'>Gain</label>
+					<span class='tab0'><span title='detected from optional motion sensor'>Motion</span> <span title='turn display on when motion detected'>On</span>/<span title='turn display off after time'>Off</span></span>
+					<label for='pirgain' title='detection amplification/sensitivity'>Gain</label>
 					<input type='range' id='pirgain' name='pirgain' required='true' min='0' max='31' step='1' title='32 + 2 times 0 ... 31'/>
 					<label for='pirbase' title='detection threshold'>Base</label>
 					<input type='range' id='pirbase' name='pirbase' required='true' min='0' max='7' step='1' title='0 ... 7'/>
-					<label for='pirtime' title='time display is on'>Time</label>
-					<input type='range' id='pirtime' name='pirtime' required='true' min='0' max='16' step='0' title='1 less than 2^0 ... 2^16 seconds'/>
+					<label for='pirtime' title='time display is on (0 => always)'>Time</label>
+					<input type='range' id='pirtime' name='pirtime' required='true' min='0' max='12' step='0' title='1 less than 2^0 ... 2^12 seconds'/>
 				</div>
 			</fieldset>
 »)dnl
