@@ -43,6 +43,8 @@ void LuxSensor::update() {
 	timer.setPeriod(soonAfterAvailable(decreaseSensitivity()));
     } catch (esp_err_t & e) {
 	ESP_LOGE(name, "error %x", e);
+    } catch (...) {
+	ESP_LOGE(name, "unknown error");
     }
     timer.start();
 }
