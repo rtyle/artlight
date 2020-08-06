@@ -57,24 +57,6 @@ bool isColor(char const * color);
 // then each LED in an SK9822 string will update after it first sees
 // sync word clocked through it.
 
-size_t constexpr messageBits(size_t size) {return 32 + size * 65 / 2 + 32;}
-
-template<size_t size>
-struct Message {
-private:
-    uint32_t	start;
-public:
-    uint32_t	encodings[size];
-private:
-    uint32_t	update;
-    uint8_t	pad[(messageBits(size) + 7 / 8)
-		    - sizeof start - sizeof encodings - sizeof update];
-public:
-    Message() : start(0), update(0) {std::memset(pad, 0, sizeof pad);}
-    size_t length() const {return messageBits(size);}
-    void gamma();
-};
-
 // APA102 expects SPI clock to idle high (CPOL 1)
 // and data samples to be taken on the rising edge (CPHA 1)
 auto constexpr spiCPOL = 1;
@@ -247,6 +229,33 @@ public:
 	    << std::setw(2) << static_cast<unsigned>(part.blue);
 	return stream.str();
     }
+};
+
+size_t constexpr messageBits(size_t size) {return 32 + size * 65 / 2 + 32;}
+
+template<size_t size>
+struct Message {
+private:
+    uint32_t	start;
+public:
+    uint32_t	encodings[size];
+private:
+    uint32_t	update;
+    uint8_t	pad[(messageBits(size) + 7 / 8)
+		    - sizeof start - sizeof encodings - sizeof update];
+public:
+    Message() :
+	start		{},
+	encodings	{},
+	update		{},
+	pad		{}
+    {
+	for (auto & e: encodings) {
+	    e = LED<>();
+	}
+    }
+    size_t length() const {return messageBits(size);}
+    void gamma();
 };
 
 }
