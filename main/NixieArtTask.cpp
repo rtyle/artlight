@@ -231,7 +231,7 @@ void NixieArtTask::update_() {
 	};
 
 	float constexpr minNixie {64.0 / 4096.0f}; // will not snap off even after digit bias
-	float const fadeNixie = fade(levels[2], dims[2], minNixie, fadeFrom);
+	float const fadeNixie {fade(levels[2], dims[2], minNixie, fadeFrom)};
 
 	for (auto & e : ledMessage.encodings) {
 	    auto side {1 & (&e - ledMessage.encodings)};
@@ -430,7 +430,7 @@ void NixieArtTask::update() {
     updated = 0;
 }
 
-static PCA9685::Mode pca9685Mode {
+static PCA9685::Mode const pca9685Mode {
     0,	// allcall
     0,	// sub3
     0,	// sub2
@@ -611,7 +611,7 @@ NixieArtTask::NixieArtTask(
     pirbaseObserver {keyValueBroker, "pirbase", "0",
 	[this](char const * value_) {
 	    if (motionSensor) {
-		unsigned value = fromString<unsigned>(value_);
+		unsigned const value {fromString<unsigned>(value_)};
 		static_cast<asio::io_context &>(sensorTask).post([this, value](){
 		    motionSensor->setConfiguration1(
 			motionSensor->getConfiguration1().setPirThreshold(value));
@@ -623,7 +623,7 @@ NixieArtTask::NixieArtTask(
     pirtimeObserver {keyValueBroker, "pirtime", "3",
 	[this](char const * value_) {
 	    if (motionSensor) {
-		unsigned value = fromString<unsigned>(value_);
+		unsigned const value {fromString<unsigned>(value_)};
 		static_cast<asio::io_context &>(sensorTask).post([this, value](){
 		    motionSensor->setTriggerTimeInterval(((1 << value) - 1) * 10);
 		});

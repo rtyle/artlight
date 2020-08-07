@@ -171,7 +171,7 @@ struct IntegrationTime {
     unsigned	overflow;
 };
 
-static float constexpr normalIntegrationTime = 400.0f;
+static float constexpr normalIntegrationTime {400.0f};
 
 static std::array<IntegrationTime, 6> constexpr integrationTimes {{
     {0b000,	100.0f,	36863},
@@ -301,7 +301,7 @@ TSL2591LuxSensor::TSL2591LuxSensor(
 }
 
 // how long we should wait for commands to complete
-static TickType_t constexpr wait = 1;
+static TickType_t constexpr wait {1};
 
 void TSL2591LuxSensor::assertId() const {
     uint8_t id;
@@ -314,7 +314,7 @@ void TSL2591LuxSensor::assertId() const {
 }
 
 void TSL2591LuxSensor::setSensitivity() const {
-    auto pair = sensitivities.pairs[sensitivity];
+    auto pair {sensitivities.pairs[sensitivity]};
     i2cMaster->commands(address, wait)
 	.writeByte(ControlCommand())
 	.writeByte(Control(pair.first.encoding, pair.second.encoding));
@@ -371,9 +371,9 @@ std::array<uint16_t, 2> TSL2591LuxSensor::readChannels() {
     if (!status.available) {
 	throw std::underflow_error("TSL2591 not available");
     }
-    auto pair = sensitivities.pairs[sensitivity];
+    auto pair {sensitivities.pairs[sensitivity]};
     std::array<uint16_t, 2> raw;
-    auto i = 0;
+    auto i {0};
     for (auto & e: raw) {
 	i2cMaster->commands(address, wait)
 	    .writeByte(ChannelCommand(i++))
@@ -413,7 +413,7 @@ std::array<uint16_t, 2> TSL2591LuxSensor::readChannels() {
 
 static float factor(unsigned sensitivity) {
     static float constexpr dgf {923.0f};
-    auto const pair = sensitivities.pairs[sensitivity];
+    auto const pair {sensitivities.pairs[sensitivity]};
     return dgf						// DGF
 	/ (pair.first.value * pair.second.value);	// / (ATime * AGain)
 }
@@ -430,11 +430,11 @@ static float lux2(float factor, std::array<uint16_t, 2> ch) {
 }
 
 float TSL2591LuxSensor::readLux() {
-    std::array<uint16_t, 2> ch = readChannels();
-    float const factor	= ::factor(sensitivity);
-    float const lux1	= ::lux1(factor, ch);
-    float const lux2	= ::lux2(factor, ch);
-    float lux		= std::max(lux1, lux2);
+    std::array<uint16_t, 2> ch {readChannels()};
+    float const factor	{::factor(sensitivity)};
+    float const lux1	{::lux1(factor, ch)};
+    float const lux2	{::lux2(factor, ch)};
+    float lux		{std::max(lux1, lux2)};
     if (0 > lux) {
 	// less than 0 lux, in the real world, is impossible.
 	// there was no exceptional condition (e.g. underflow or overflow)
@@ -450,7 +450,7 @@ float TSL2591LuxSensor::readLux() {
 	lux = 0 == sensitivity ? luxBrightest : 0.0f;
     }
 #if 0
-    auto const pair = sensitivities.pairs[sensitivity];
+    auto const pair {sensitivities.pairs[sensitivity]};
     ESP_LOGI(name,
 	"lux %f\traw %d\t%d\tsensitivity %d\ttime %f\tgain %f\tlux1 %f\tlux2 %f",
 	lux,

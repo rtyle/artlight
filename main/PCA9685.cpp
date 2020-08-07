@@ -6,12 +6,12 @@ namespace {
 
 struct RegisterKey {
     enum : uint8_t {
-	mode1		= 0x00,
-	mode2		= 0x01,
+	mode1			= 0x00,
+	mode2			= 0x01,
 
-	subadr1		= 0x02,
-	subadr2		= 0x03,
-	subadr3		= 0x04,
+	subadr1			= 0x02,
+	subadr2			= 0x03,
+	subadr3			= 0x04,
 	allcalladr		= 0x05,
 
 	pwm0_on_l		= 0x06,
@@ -96,10 +96,10 @@ struct RegisterKey {
 
 	// ... reserved ...
 
-	all_pwm_on_l	= 0xfa,
-	all_pwm_on_h	= 0xfb,
-	all_pwm_off_l	= 0xfc,
-	all_pwm_off_h	= 0xfd,
+	all_pwm_on_l		= 0xfa,
+	all_pwm_on_h		= 0xfb,
+	all_pwm_off_l		= 0xfc,
+	all_pwm_off_h		= 0xfd,
 
 	pre_scale		= 0xfe,
 	test_mode		= 0xff,
@@ -201,7 +201,7 @@ PCA9685::PCA9685(
 }
 
 // how long we should wait for commands to complete
-static TickType_t constexpr wait = 1;
+static TickType_t constexpr wait {1};
 
 uint8_t PCA9685::getRegister(uint8_t key) const {
     uint8_t value;

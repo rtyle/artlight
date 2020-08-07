@@ -9,7 +9,7 @@
 class TSL2591LuxSensor : public LuxSensor {
 private:
     I2C::Master const * const i2cMaster;
-    static uint8_t constexpr address = 0x29;
+    static uint8_t constexpr address {0x29};
     unsigned sensitivity;
 
     void assertId() const;

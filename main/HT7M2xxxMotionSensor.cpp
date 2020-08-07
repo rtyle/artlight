@@ -50,7 +50,7 @@ HT7M2xxxMotionSensor::HT7M2xxxMotionSensor(
 }
 
 // how long we should wait for commands to complete
-static TickType_t constexpr wait = 1;
+static TickType_t constexpr wait {1};
 
 uint16_t HT7M2xxxMotionSensor::getRegister(uint8_t key) const {
     uint16_t value;
