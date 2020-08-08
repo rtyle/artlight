@@ -517,7 +517,7 @@ NixieArtTask::NixieArtTask(
 	{I2C::Config()
 		.sda_io_num_(GPIO_NUM_27) //.sda_pullup_en_(GPIO_PULLUP_ENABLE)
 		.scl_io_num_(GPIO_NUM_33) //.scl_pullup_en_(GPIO_PULLUP_ENABLE)
-		.master_clk_speed_(200000),	// I2C fast mode
+		.master_clk_speed_(400000),	// I2C fast mode
 	    I2C_NUM_1, 0
 	}
     }},
