@@ -38,18 +38,28 @@ public:
 	return 1 << (2 + encoding);
     }
     struct Configuration0 {
-	#if BYTE_ORDER == BIG_ENDIAN
-	    signed	temperatureCelsius	:8;
-	    unsigned				:6;
-	    unsigned	pirPeriod		:2;
-	#else
-	    signed	temperatureCelsius	:8;
-	    unsigned	pirPeriod		:2;
-	    unsigned				:6;
-	#endif
+	union {
+	    uint16_t	encoding;
+	    struct {
+	    #if BYTE_ORDER == BIG_ENDIAN
+		signed		temperatureCelsius	:8;
+		unsigned				:6;
+		unsigned	pirPeriod		:2;
+	    #else
+		signed		temperatureCelsius	:8;
+		unsigned	pirPeriod		:2;
+		unsigned				:6;
+	    #endif
+	    };
+	};
+	Configuration0(uint16_t encoding);
 	Configuration0(
 	    signed	temperatureCelsius,
-	    unsigned	pirStandbyPeriod);
+	    unsigned	pirPeriod);
+	#define setter(name) Configuration0 & name##_(decltype(name) s);
+	setter(temperatureCelsius)
+	setter(pirPeriod)
+	#undef setter
     };
     Configuration0 getConfiguration0() const;
     void setConfiguration0(Configuration0 value) const;
@@ -82,25 +92,31 @@ public:
 	};
     };
     struct Configuration1 {
-	#if BYTE_ORDER == BIG_ENDIAN
-	    unsigned	lowVoltageDetectThreshold	:3;
-	    bool	lowVoltageDetectEnable		:1;
-	    bool	pirDetectEnable			:1;
-	    bool					:1;
-	    bool	pirRetrigger			:1;
-	    bool	pirTriggeredPinEnable		:1;
-	    unsigned	pirThreshold			:3;
-	    unsigned	pirGain				:5;
-	#else
-	    bool	pirTriggeredPinEnable		:1;
-	    bool	pirRetrigger			:1;
-	    bool					:1;
-	    bool	pirDetectEnable			:1;
-	    bool	lowVoltageDetectEnable		:1;
-	    unsigned	lowVoltageDetectThreshold	:3;
-	    unsigned	pirGain				:5;
-	    unsigned	pirThreshold			:3;
-	#endif
+	union {
+	    uint16_t	encoding;
+	    struct {
+		#if BYTE_ORDER == BIG_ENDIAN
+		    unsigned	lowVoltageDetectThreshold	:3;
+		    bool	lowVoltageDetectEnable		:1;
+		    bool	pirDetectEnable			:1;
+		    bool					:1;
+		    bool	pirRetrigger			:1;
+		    bool	pirTriggeredPinEnable		:1;
+		    unsigned	pirThreshold			:3;
+		    unsigned	pirGain				:5;
+		#else
+		    bool	pirTriggeredPinEnable		:1;
+		    bool	pirRetrigger			:1;
+		    bool					:1;
+		    bool	pirDetectEnable			:1;
+		    bool	lowVoltageDetectEnable		:1;
+		    unsigned	lowVoltageDetectThreshold	:3;
+		    unsigned	pirGain				:5;
+		    unsigned	pirThreshold			:3;
+		#endif
+	    };
+	};
+	Configuration1(uint16_t encoding);
 	Configuration1(
 	    unsigned	lowVoltageDetectThreshold,
 	    bool	lowVoltageDetectEnable,
@@ -109,8 +125,15 @@ public:
 	    bool	pirTriggeredPinEnable,
 	    unsigned	pirThreshold,
 	    unsigned	pirGain);
-	Configuration1 & setPirThreshold(unsigned value);
-	Configuration1 & setPirGain(unsigned value);
+	#define setter(name) Configuration1 & name##_(decltype(name) s);
+	setter(lowVoltageDetectThreshold)
+	setter(lowVoltageDetectEnable)
+	setter(pirDetectEnable)
+	setter(pirRetrigger)
+	setter(pirTriggeredPinEnable)
+	setter(pirThreshold)
+	setter(pirGain)
+	#undef setter
     };
     static unsigned constexpr pirGainDecode(unsigned encoding) {
 	return 32 + 2 * encoding;
@@ -119,21 +142,32 @@ public:
     void setConfiguration1(Configuration1 value) const;
 
     struct Configuration2 {
-	#if BYTE_ORDER == BIG_ENDIAN
-	    unsigned	darkThreshold		:7;
-	    bool	pirDetectIfDarkEnable	:1;
-	    unsigned	address			:7;
-	    bool				:1;
-	#else
-	    bool	pirDetectIfDarkEnable	:1;
-	    unsigned	darkThreshold		:7;
-	    bool				:1;
-	    unsigned	address			:7;
-	#endif
-	    Configuration2(
-		unsigned	darkThreshold,	///< vs. optical sensor a/d
-		bool		pirDetectIfDarkEnable,
-		unsigned	address);
+	union {
+	    uint16_t	encoding;
+	    struct {
+		#if BYTE_ORDER == BIG_ENDIAN
+		    unsigned	darkThreshold		:7;
+		    bool	pirDetectIfDarkEnable	:1;
+		    unsigned	address			:7;
+		    bool				:1;
+		#else
+		    bool	pirDetectIfDarkEnable	:1;
+		    unsigned	darkThreshold		:7;
+		    bool				:1;
+		    unsigned	address			:7;
+		#endif
+	    };
+	};
+	Configuration2(uint16_t encoding);
+	Configuration2(
+	    unsigned	darkThreshold,	///< vs. optical sensor a/d
+	    bool	pirDetectIfDarkEnable,
+	    unsigned	address);
+	#define setter(name) Configuration2 & name##_(decltype(name) s);
+	setter(darkThreshold)
+	setter(pirDetectIfDarkEnable)
+	setter(address)
+	#undef setter
     };
     Configuration2 getConfiguration2() const;
     void setConfiguration2(Configuration2 value) const;
@@ -148,25 +182,31 @@ public:
     unsigned getTemperatureSensorRawData() const;
 
     struct Status {
-	#if BYTE_ORDER == BIG_ENDIAN
-	    bool	notReady		:1;
-	    unsigned				:6;
-	    bool	lowVoltageDetected	:1;
-	    bool	dark			:1;
-	    unsigned				:4;
-	    bool	pirNoiseDetected	:1;
-	    bool	pirRetriggered		:1;
-	    bool	pirTriggered		:1;
-	#else
-	    bool	lowVoltageDetected	:1;
-	    unsigned				:6;
-	    bool	notReady		:1;
-	    bool	pirTriggered		:1;
-	    bool	pirRetriggered		:1;
-	    bool	pirNoiseDetected	:1;
-	    unsigned				:4;
-	    bool	dark			:1;
-	#endif
+	union {
+	    uint16_t	encoding;
+	    struct {
+		#if BYTE_ORDER == BIG_ENDIAN
+		    bool	notReady		:1;
+		    unsigned				:6;
+		    bool	lowVoltageDetected	:1;
+		    bool	dark			:1;
+		    unsigned				:4;
+		    bool	pirNoiseDetected	:1;
+		    bool	pirRetriggered		:1;
+		    bool	pirTriggered		:1;
+		#else
+		    bool	lowVoltageDetected	:1;
+		    unsigned				:6;
+		    bool	notReady		:1;
+		    bool	pirTriggered		:1;
+		    bool	pirRetriggered		:1;
+		    bool	pirNoiseDetected	:1;
+		    unsigned				:4;
+		    bool	dark			:1;
+		#endif
+	    };
+	};
+	Status(uint16_t encoding);
     };
     Status getStatus() const;
 
@@ -176,5 +216,5 @@ public:
     void assertId() const;
 
     unsigned period() const override;
-    bool readMotion() override;
+    bool readMotion() const override;
 };

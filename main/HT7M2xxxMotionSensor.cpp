@@ -74,6 +74,12 @@ void HT7M2xxxMotionSensor::assertId() const {
 }
 
 HT7M2xxxMotionSensor::Configuration0::Configuration0(
+    uint16_t encoding_)
+:
+    encoding	{encoding_}
+{}
+
+HT7M2xxxMotionSensor::Configuration0::Configuration0(
     signed	temperatureCelsius_,
     unsigned	pirPeriod_)
 :
@@ -81,15 +87,25 @@ HT7M2xxxMotionSensor::Configuration0::Configuration0(
     pirPeriod		{pirPeriod_}
 {}
 
+#define setter(name) HT7M2xxxMotionSensor::Configuration0 & HT7M2xxxMotionSensor::Configuration0::name##_(decltype(name) s) {name = s; return *this;}
+setter(temperatureCelsius)
+setter(pirPeriod)
+#undef setter
+
 HT7M2xxxMotionSensor::Configuration0
 HT7M2xxxMotionSensor::getConfiguration0() const {
-    uint16_t const value {getRegister(RegisterKey::configuration0)};
-    return *reinterpret_cast<Configuration0 const *>(&value);
+    return getRegister(RegisterKey::configuration0);
 }
 
 void HT7M2xxxMotionSensor::setConfiguration0(Configuration0 value) const {
-    setRegister(RegisterKey::configuration0, *reinterpret_cast<uint16_t *>(&value));
+    setRegister(RegisterKey::configuration0, value.encoding);
 }
+
+HT7M2xxxMotionSensor::Configuration1::Configuration1(
+    uint16_t encoding_)
+:
+    encoding	{encoding_}
+{}
 
 HT7M2xxxMotionSensor::Configuration1::Configuration1(
     unsigned	lowVoltageDetectThreshold_,
@@ -119,27 +135,31 @@ HT7M2xxxMotionSensor::Configuration1::Configuration1(
 #endif
 {}
 
-HT7M2xxxMotionSensor::Configuration1 &
-HT7M2xxxMotionSensor::Configuration1::setPirThreshold(unsigned value) {
-    pirThreshold = value;
-    return *this;
-}
-
-HT7M2xxxMotionSensor::Configuration1 &
-HT7M2xxxMotionSensor::Configuration1::setPirGain(unsigned value) {
-    pirGain = value;
-    return *this;
-}
+#define setter(name) HT7M2xxxMotionSensor::Configuration1 & HT7M2xxxMotionSensor::Configuration1::name##_(decltype(name) s) \
+    {name = s; return *this;}
+setter(pirTriggeredPinEnable)
+setter(pirRetrigger)
+setter(pirDetectEnable)
+setter(lowVoltageDetectEnable)
+setter(lowVoltageDetectThreshold)
+setter(pirGain)
+setter(pirThreshold)
+#undef setter
 
 HT7M2xxxMotionSensor::Configuration1
 HT7M2xxxMotionSensor::getConfiguration1() const {
-    uint16_t const value {getRegister(RegisterKey::configuration1)};
-    return *reinterpret_cast<Configuration1 const *>(&value);
+    return getRegister(RegisterKey::configuration1);
 }
 
 void HT7M2xxxMotionSensor::setConfiguration1(Configuration1 value) const {
-    setRegister(RegisterKey::configuration1, *reinterpret_cast<uint16_t *>(&value));
+    setRegister(RegisterKey::configuration1, value.encoding);
 }
+
+HT7M2xxxMotionSensor::Configuration2::Configuration2(
+    uint16_t encoding_)
+:
+    encoding	{encoding_}
+{}
 
 HT7M2xxxMotionSensor::Configuration2::Configuration2(
     unsigned	darkThreshold_,
@@ -157,14 +177,19 @@ HT7M2xxxMotionSensor::Configuration2::Configuration2(
 #endif
 {}
 
+#define setter(name) HT7M2xxxMotionSensor::Configuration2 & HT7M2xxxMotionSensor::Configuration2::name##_(decltype(name) s) {name = s; return *this;}
+setter(pirDetectIfDarkEnable)
+setter(darkThreshold)
+setter(address)
+#undef setter
+
 HT7M2xxxMotionSensor::Configuration2
 HT7M2xxxMotionSensor::getConfiguration2() const {
-    uint16_t const value {getRegister(RegisterKey::configuration2)};
-    return *reinterpret_cast<Configuration2 const *>(&value);
+    return getRegister(RegisterKey::configuration2);
 }
 
 void HT7M2xxxMotionSensor::setConfiguration2(Configuration2 value) const {
-    setRegister(RegisterKey::configuration2, *reinterpret_cast<uint16_t *>(&value));
+    setRegister(RegisterKey::configuration2, value.encoding);
 }
 
 unsigned HT7M2xxxMotionSensor::getCachedTriggerTimeInterval() const {
@@ -192,9 +217,14 @@ unsigned HT7M2xxxMotionSensor::getTemperatureSensorRawData() const {
     return translate(getRegister(RegisterKey::temperatureSensorRawData));
 }
 
+HT7M2xxxMotionSensor::Status::Status(
+    uint16_t encoding_)
+:
+    encoding	{encoding_}
+{}
+
 HT7M2xxxMotionSensor::Status HT7M2xxxMotionSensor::getStatus() const {
-    uint16_t const value {getRegister(RegisterKey::status)};
-    return *reinterpret_cast<Status const *>(&value);
+    return getRegister(RegisterKey::status);
 }
 
 unsigned HT7M2xxxMotionSensor::getManufacturerId() const {
@@ -206,10 +236,10 @@ unsigned HT7M2xxxMotionSensor::getFirmwareVersion() const {
 }
 
 unsigned HT7M2xxxMotionSensor::period() const {
-    return 200;
+    return 500;
 }
 
-bool HT7M2xxxMotionSensor::readMotion() {
+bool HT7M2xxxMotionSensor::readMotion() const {
 #if 0
     {
 	Configuration0 const c0 {getConfiguration0()};
@@ -234,10 +264,14 @@ bool HT7M2xxxMotionSensor::readMotion() {
 	    pirRawData);
     }
 #endif
+#if 0
+    for (auto i = 0u; i < 1000; ++i) {
+	getStatus();
+    }
+#endif
     Status const status {getStatus()};
 #if 0
-    ESP_LOGI(name, "%c\tnotReady %u\tlowVoltageDetected %u\tdark %u\tpirNoiseDetected %u\tpirRetriggered %u\tpirTriggered %u",
-	status.pirTriggered ? '*' : ' ',
+    ESP_LOGI(name, "notReady %u\tlowVoltageDetected %u\tdark %u\tpirNoiseDetected %u\tpirRetriggered %u\tpirTriggered %u",
 	status.notReady,
 	status.lowVoltageDetected,
 	status.dark,

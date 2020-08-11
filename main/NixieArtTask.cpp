@@ -517,7 +517,7 @@ NixieArtTask::NixieArtTask(
 	{I2C::Config()
 		.sda_io_num_(GPIO_NUM_27) //.sda_pullup_en_(GPIO_PULLUP_ENABLE)
 		.scl_io_num_(GPIO_NUM_33) //.scl_pullup_en_(GPIO_PULLUP_ENABLE)
-		.master_clk_speed_(400000),	// I2C fast mode
+		.master_clk_speed_(200000),
 	    I2C_NUM_1, 0
 	}
     }},
@@ -532,8 +532,16 @@ NixieArtTask::NixieArtTask(
     sensorTask	{},
     luxSensor	{[this]() -> LuxSensor * {
 	    try {
+#if 0
+		ESP_LOGE(name, "TSL2591: disabled");
+		return nullptr;
+#endif
 		return new TSL2591LuxSensor(sensorTask, &i2cMasters[1]);
+	    } catch (esp_err_t & e) {
+		ESP_LOGE(name, "TSL2591 %s (0x%x): disabled", esp_err_to_name(e), e);
+		return nullptr;
 	    } catch (...) {
+		ESP_LOGE(name, "TSL2591 unknown error: disabled");
 		return nullptr;
 	    }
 	}()
@@ -541,7 +549,11 @@ NixieArtTask::NixieArtTask(
     motionSensor	{[this]() -> HT7M2xxxMotionSensor * {
 	    try {
 		return new HT7M2xxxMotionSensor(sensorTask, &i2cMasters[1]);
+	    } catch (esp_err_t & e) {
+		ESP_LOGE(name, "HT7M2xxx %s (0x%x): disabled", esp_err_to_name(e), e);
+		return nullptr;
 	    } catch (...) {
+		ESP_LOGE(name, "HT7M2xxx unknown error: disabled");
 		return nullptr;
 	    }
 	}()
@@ -602,7 +614,7 @@ NixieArtTask::NixieArtTask(
 		unsigned const value {fromString<unsigned>(value_)};
 		static_cast<asio::io_context &>(sensorTask).post([this, value](){
 		    motionSensor->setConfiguration1(
-			motionSensor->getConfiguration1().setPirGain(value));
+			motionSensor->getConfiguration1().pirGain_(value));
 		});
 	    }
 	}
@@ -614,7 +626,7 @@ NixieArtTask::NixieArtTask(
 		unsigned const value {fromString<unsigned>(value_)};
 		static_cast<asio::io_context &>(sensorTask).post([this, value](){
 		    motionSensor->setConfiguration1(
-			motionSensor->getConfiguration1().setPirThreshold(value));
+			motionSensor->getConfiguration1().pirThreshold_(value));
 		});
 	    }
 	}
@@ -646,6 +658,19 @@ NixieArtTask::NixieArtTask(
 
     updated(0)
 {
+    if (motionSensor) {
+#if 1
+	motionSensor->setConfiguration0(motionSensor->getConfiguration0()
+	    .pirPeriod_(HT7M2xxxMotionSensor::PirPeriod::_32ms));
+	motionSensor->setConfiguration1(motionSensor->getConfiguration1()
+	    .lowVoltageDetectEnable_	(false)
+	    .pirDetectEnable_		(true)
+	    .pirRetrigger_		(false)
+	    .pirTriggeredPinEnable_	(false));
+	motionSensor->setConfiguration2(motionSensor->getConfiguration2()
+	    .pirDetectIfDarkEnable_	(false));
+#endif
+    }
     sensorTask.start();
 }
 
