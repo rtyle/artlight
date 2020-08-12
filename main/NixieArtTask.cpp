@@ -613,8 +613,12 @@ NixieArtTask::NixieArtTask(
 	    if (motionSensor) {
 		unsigned const value {fromString<unsigned>(value_)};
 		static_cast<asio::io_context &>(sensorTask).post([this, value](){
-		    motionSensor->setConfiguration1(
-			motionSensor->getConfiguration1().pirGain_(value));
+		    try {
+			motionSensor->setConfiguration1(
+			    motionSensor->getConfiguration1().pirGain_(value));
+		    } catch (esp_err_t & e) {
+			ESP_LOGE(name, "motionSensor setPirGain %s (0x%x)", esp_err_to_name(e), e);
+		    }
 		});
 	    }
 	}
@@ -625,8 +629,12 @@ NixieArtTask::NixieArtTask(
 	    if (motionSensor) {
 		unsigned const value {fromString<unsigned>(value_)};
 		static_cast<asio::io_context &>(sensorTask).post([this, value](){
-		    motionSensor->setConfiguration1(
-			motionSensor->getConfiguration1().pirThreshold_(value));
+		    try {
+			motionSensor->setConfiguration1(
+			    motionSensor->getConfiguration1().pirThreshold_(value));
+		    } catch (esp_err_t & e) {
+			ESP_LOGE(name, "motionSensor setPirThreshold %s (0x%x)", esp_err_to_name(e), e);
+		    }
 		});
 	    }
 	}
@@ -637,12 +645,15 @@ NixieArtTask::NixieArtTask(
 	    if (motionSensor) {
 		unsigned const value {fromString<unsigned>(value_)};
 		static_cast<asio::io_context &>(sensorTask).post([this, value](){
-		    motionSensor->setTriggerTimeInterval(((1 << value) - 1) * 10);
+		    try {
+			motionSensor->setTriggerTimeInterval(((1 << value) - 1) * 10);
+		    } catch (esp_err_t & e) {
+			ESP_LOGE(name, "motionSensor setTriggerTimeInterval %s (0x%x)", esp_err_to_name(e), e);
+		    }
 		});
 	    }
 	}
     },
-
 
     microsecondsSinceBootOfModeChange(0u),
 
