@@ -337,8 +337,7 @@ uint8_t TSL2591LuxSensor::readStatus() const {
     i2cMaster->commands(address, wait)
 	.writeByte(StatusCommand())
 	.startRead()
-	.readByte(&status)
-    ;
+	.readByte(&status);
     return status;
 }
 
