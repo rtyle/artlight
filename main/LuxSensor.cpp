@@ -28,21 +28,29 @@ static TickType_t soonAfterAvailable(unsigned available) {
 
 void LuxSensor::update() {
     // we try to skate on the edge (just under an overflow_error)
+    bool up {true};
     try {
 	lux = readLux();
-	timer.setPeriod(soonAfterAvailable(increaseSensitivity()));
     } catch (std::underflow_error e) {
 #if 0
 	ESP_LOGE(name, "underflow %s", e.what());
 #endif
-	timer.setPeriod(soonAfterAvailable(increaseSensitivity()));
     } catch (std::overflow_error e) {
 #if 0
 	ESP_LOGE(name, "overflow %s", e.what());
 #endif
-	timer.setPeriod(soonAfterAvailable(decreaseSensitivity()));
+	up = false;
     } catch (esp_err_t & e) {
-	ESP_LOGE(name, "%s (0x%x)", esp_err_to_name(e), e);
+	ESP_LOGE(name, "readLux %s (0x%x)", esp_err_to_name(e), e);
+    } catch (...) {
+	ESP_LOGE(name, "readLux unknown error");
+    }
+    try {
+	timer.setPeriod(soonAfterAvailable(up
+	    ? increaseSensitivity()
+	    : decreaseSensitivity()));
+    } catch (esp_err_t & e) {
+	ESP_LOGE(name, "set sensitivity %s (0x%x)", esp_err_to_name(e), e);
     } catch (...) {
 	ESP_LOGE(name, "unknown error");
     }
