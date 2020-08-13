@@ -1,6 +1,7 @@
 #include <esp_log.h>
 
 #include "Error.h"
+#include "Finally.h"
 #include "I2C.h"
 
 namespace I2C {
@@ -102,14 +103,9 @@ Master::Commands & Master::Commands::readBytes(
 }
 
 Master::Commands::~Commands() noexcept(false) {
-    try {
-	Error::throwIf(i2c_master_stop(*this));
-	Error::throwIf(i2c_master_cmd_begin(master, *this, wait));
-	i2c_cmd_link_delete(*this);
-    } catch (...) {
-	i2c_cmd_link_delete(*this);
-	throw;
-    }
+    Finally finally	{[this](){i2c_cmd_link_delete(*this);}};
+    Error::throwIf(i2c_master_stop(*this));
+    Error::throwIf(i2c_master_cmd_begin(master, *this, wait));
 }
 
 Master::Master(
