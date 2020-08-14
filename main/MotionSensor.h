@@ -24,7 +24,8 @@ protected:
     virtual bool readMotion() const = 0;
 
 public:
-    /// implementations must hold motion state for duration, in deciseconds
+    /// overrides must call MotionSensor::setDuration
+    /// and hold motion state for duration, in deciseconds
     virtual void setDuration(unsigned value);
 
     bool getMotion();
