@@ -25,7 +25,7 @@ struct RegisterKey {
 	configuration0			= 0x00,
 	configuration1			= 0x01,
 	configuration2			= 0x02,
-	triggerTimeInterval		= 0x03,
+	triggerDuration			= 0x03,
 	eepromAccess			= 0x04,
 	pirRawData			= 0x05,
 	opticalSensorRawData		= 0x06,
@@ -54,12 +54,10 @@ static TickType_t constexpr wait {1};
 
 uint16_t HT7M2xxxMotionSensor::getRegister(uint8_t key) const {
     uint16_t value;
-    {
-	i2cMaster->commands(address, wait)
-	    .writeByte(key)
-	    .startRead()
-	    .readBytes(&value, sizeof value);
-    }
+    i2cMaster->commands(address, wait)
+	.writeByte(key)
+	.startRead()
+	.readBytes(&value, sizeof value);
     return value;
 }
 
@@ -192,17 +190,13 @@ void HT7M2xxxMotionSensor::setConfiguration2(Configuration2 value) const {
     setRegister(RegisterKey::configuration2, value.encoding);
 }
 
-unsigned HT7M2xxxMotionSensor::getCachedTriggerTimeInterval() const {
-    return cachedTriggerTimeInterval;
+unsigned HT7M2xxxMotionSensor::getDuration() const {
+    return translate(getRegister(RegisterKey::triggerDuration));
 }
 
-unsigned HT7M2xxxMotionSensor::getTriggerTimeInterval() const {
-    return translate(getRegister(RegisterKey::triggerTimeInterval));
-}
-
-void HT7M2xxxMotionSensor::setTriggerTimeInterval(unsigned value) {
-    setRegister(RegisterKey::triggerTimeInterval, translate(value));
-    cachedTriggerTimeInterval = value;
+void HT7M2xxxMotionSensor::setDuration(unsigned value) {
+    MotionSensor::setDuration(value);
+    setRegister(RegisterKey::triggerDuration, translate(value));
 }
 
 unsigned HT7M2xxxMotionSensor::getPirRawData() const {
@@ -235,7 +229,7 @@ unsigned HT7M2xxxMotionSensor::getFirmwareVersion() const {
     return translate(getRegister(RegisterKey::firmwareVersion));
 }
 
-unsigned HT7M2xxxMotionSensor::period() const {
+unsigned HT7M2xxxMotionSensor::getPeriod() const {
     return 500;
 }
 
@@ -245,9 +239,9 @@ bool HT7M2xxxMotionSensor::readMotion() const {
 	Configuration0 const c0 {getConfiguration0()};
 	Configuration1 const c1 {getConfiguration1()};
 	Configuration2 const c2 {getConfiguration2()};
-	unsigned const triggerTimeInterval {getTriggerTimeInterval()};
+	unsigned const duration {getDuration()};
 	unsigned const pirRawData {getPirRawData()};
-	ESP_LOGI(name, "\ttemperature %d°C\tpirPeriod %ums\tlowVoltageDetectThreshold %u\tlowVoltageDetectEnable %u\tpirDetectEnable %u\tpirRetrigger %u\tpirTriggeredPinEnable %u\tpirThreshold %.1fv\tpirGain %u\tdarkThreshold %u\tpirDetectIfDarkEnable %u\taddress %02x\ttriggerTimeInterval %ums\tpirRawData %u",
+	ESP_LOGI(name, "\ttemperature %d°C\tpirPeriod %ums\tlowVoltageDetectThreshold %u\tlowVoltageDetectEnable %u\tpirDetectEnable %u\tpirRetrigger %u\tpirTriggeredPinEnable %u\tpirThreshold %.1fv\tpirGain %u\tdarkThreshold %u\tpirDetectIfDarkEnable %u\taddress %02x\tduration %ums\tpirRawData %u",
 	    c0.temperatureCelsius,
 	    pirPeriodDecode(c0.pirPeriod),
 	    c1.lowVoltageDetectThreshold,
@@ -260,26 +254,33 @@ bool HT7M2xxxMotionSensor::readMotion() const {
 	    c2.darkThreshold,
 	    c2.pirDetectIfDarkEnable,
 	    c2.address,
-	    triggerTimeInterval * 100,
+	    duration * 100,
 	    pirRawData);
     }
 #endif
 #if 0
-    for (auto i = 0u; i < 1000; ++i) {
-	getStatus();
+    for (auto i = 0u; ; ++i) {
+	try {
+	    getStatus();
+	} catch (...) {
+	    ESP_LOGE(name, "%p getStatus count %u", nullptr, i);
+	    return false;
+	}
     }
 #endif
-    Status const status {getStatus()};
 #if 0
-    ESP_LOGI(name, "notReady %u\tlowVoltageDetected %u\tdark %u\tpirNoiseDetected %u\tpirRetriggered %u\tpirTriggered %u",
-	status.notReady,
-	status.lowVoltageDetected,
-	status.dark,
-	status.pirNoiseDetected,
-	status.pirRetriggered,
-	status.pirTriggered);
+    {
+	Status const status {getStatus()};
+	ESP_LOGI(name, "notReady %u\tlowVoltageDetected %u\tdark %u\tpirNoiseDetected %u\tpirRetriggered %u\tpirTriggered %u",
+	    status.notReady,
+	    status.lowVoltageDetected,
+	    status.dark,
+	    status.pirNoiseDetected,
+	    status.pirRetriggered,
+	    status.pirTriggered);
+    }
 #endif
-    return status.pirTriggered;
+    return getStatus().pirTriggered;
 }
 
 HT7M2xxxMotionSensor::~HT7M2xxxMotionSensor() {}

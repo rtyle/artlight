@@ -14,8 +14,6 @@ private:
     I2C::Master const * const i2cMaster;
     static uint8_t constexpr address = 0b1001100;
 
-    std::atomic<unsigned> cachedTriggerTimeInterval;
-
     uint16_t getRegister(uint8_t key) const;
     void setRegister(uint8_t key, uint16_t value) const;
 
@@ -173,9 +171,8 @@ public:
     void setConfiguration2(Configuration2 value) const;
 
     /// 100ms unit
-    unsigned getCachedTriggerTimeInterval() const;
-    unsigned getTriggerTimeInterval() const;
-    void setTriggerTimeInterval(unsigned value);
+    unsigned getDuration() const;
+    void setDuration(unsigned value) override;
 
     unsigned getPirRawData() const;
     unsigned getOpticalSensorRawData() const;
@@ -215,6 +212,6 @@ public:
 
     void assertId() const;
 
-    unsigned period() const override;
+    unsigned getPeriod() const override;
     bool readMotion() const override;
 };

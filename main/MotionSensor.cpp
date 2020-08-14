@@ -22,15 +22,26 @@ MotionSensor::MotionSensor(char const * name_, asio::io_context & io_)
 
 MotionSensor::~MotionSensor() {}
 
+void MotionSensor::setDuration(unsigned value) {
+    if (value) {
+	if (!timer.isActive()) {
+	    timer.start();
+	}
+    } else {
+	motion = true;
+	timer.stop();
+    }
+}
+
 void MotionSensor::update() {
     try {
 	motion = readMotion();
-	timer.setPeriod(period() / portTICK_PERIOD_MS);
     } catch (esp_err_t & e) {
 	ESP_LOGE(name, "%s (0x%x)", esp_err_to_name(e), e);
     } catch (...) {
 	ESP_LOGE(name, "unknown error");
     }
+    timer.setPeriod(getPeriod() / portTICK_PERIOD_MS);
     timer.start();
 }
 

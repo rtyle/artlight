@@ -217,8 +217,7 @@ void NixieArtTask::update_() {
     APA102::Message<ledCount> ledMessage;
     PCA9685::Pwm pca9685Pwms[pca9685s.size()][PCA9685::pwmCount];
 
-    if (!motionSensor || !motionSensor->getCachedTriggerTimeInterval()
-	    || motionSensor->getMotion()) {
+    if (!motionSensor || motionSensor->getMotion()) {
 	// clip lux blacks and whites for value to fade from
 	float lux {luxSensor ? luxSensor->getLux() : white};
 	if (black > lux) lux = 0.0f;
@@ -646,9 +645,9 @@ NixieArtTask::NixieArtTask(
 		unsigned const value {fromString<unsigned>(value_)};
 		static_cast<asio::io_context &>(sensorTask).post([this, value](){
 		    try {
-			motionSensor->setTriggerTimeInterval(((1 << value) - 1) * 10);
+			motionSensor->setDuration(((1 << value) - 1) * 10);
 		    } catch (esp_err_t & e) {
-			ESP_LOGE(name, "motionSensor setTriggerTimeInterval %s (0x%x)", esp_err_to_name(e), e);
+			ESP_LOGE(name, "motionSensor setDuration %s (0x%x)", esp_err_to_name(e), e);
 		    }
 		});
 	    }

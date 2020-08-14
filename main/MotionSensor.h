@@ -20,10 +20,13 @@ protected:
 
     MotionSensor(char const * name, asio::io_context & io);
     /// implementations must return milliseconds polling period
-    virtual unsigned period() const = 0;
+    virtual unsigned getPeriod() const = 0;
     virtual bool readMotion() const = 0;
 
 public:
+    /// implementations must hold motion state for duration, in deciseconds
+    virtual void setDuration(unsigned value);
+
     bool getMotion();
     virtual ~MotionSensor();
 };
