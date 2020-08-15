@@ -675,7 +675,7 @@ NixieArtTask::NixieArtTask(
 	motionSensor->setConfiguration1(motionSensor->getConfiguration1()
 	    .lowVoltageDetectEnable_	(false)
 	    .pirDetectEnable_		(true)
-	    .pirRetrigger_		(false)
+	    .pirRetrigger_		(true)
 	    .pirTriggeredPinEnable_	(false));
 	motionSensor->setConfiguration2(motionSensor->getConfiguration2()
 	    .pirDetectIfDarkEnable_	(false));
