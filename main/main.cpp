@@ -2,7 +2,6 @@
 
 #include <nvs_flash.h>
 
-#include "ArtTask.h"
 #include "AsioTask.h"
 #include "Event.h"
 #include "I2C.h"

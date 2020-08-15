@@ -3,15 +3,17 @@
 #include <array>
 
 #include "APA102.h"
-#include "ArtTask.h"
+#include "AsioTask.h"
+#include "HT7M2xxxMotionSensor.h"
 #include "I2C.h"
+#include "KeyValueBroker.h"
+#include "LuxSensor.h"
 #include "PCA9685.h"
 #include "SensorTask.h"
 #include "SPI.h"
-#include "LuxSensor.h"
-#include "HT7M2xxxMotionSensor.h"
+#include "TimePreferences.h"
 
-class NixieArtTask: public ArtTask {
+class NixieArtTask: public AsioTask, TimePreferences {
 public:
     static size_t constexpr sideCount	{2};
     static size_t constexpr placeCount	{4};

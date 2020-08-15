@@ -487,10 +487,10 @@ void NixieArtTask::colorObserved(size_t index, char const * value_) {
 }
 
 NixieArtTask::NixieArtTask(
-    KeyValueBroker &		keyValueBroker_)
+    KeyValueBroker &		keyValueBroker)
 :
-    ArtTask		{"NixieArtTask", 5, 0x10000, 1,
-			keyValueBroker_, 128},
+    AsioTask		{"NixieArtTask", 5, 0x10000, 1},
+    TimePreferences	{io, keyValueBroker, 128},
 
     spiBus {HSPI_HOST, SPI::Bus::Config()
 	.mosi_io_num_(SPI::Bus::HspiConfig.mosi_io_num)
@@ -535,7 +535,7 @@ NixieArtTask::NixieArtTask(
 		ESP_LOGE(name, "TSL2591: disabled");
 		return nullptr;
 #endif
-		return new TSL2591LuxSensor(sensorTask, &i2cMasters[1]);
+		return new TSL2591LuxSensor(sensorTask.io, &i2cMasters[1]);
 	    } catch (esp_err_t & e) {
 		ESP_LOGE(name, "TSL2591 %s (0x%x): disabled", esp_err_to_name(e), e);
 		return nullptr;
@@ -547,7 +547,7 @@ NixieArtTask::NixieArtTask(
     },
     motionSensor	{[this]() -> HT7M2xxxMotionSensor * {
 	    try {
-		return new HT7M2xxxMotionSensor(sensorTask, &i2cMasters[1]);
+		return new HT7M2xxxMotionSensor(sensorTask.io, &i2cMasters[1]);
 	    } catch (esp_err_t & e) {
 		ESP_LOGE(name, "HT7M2xxx %s (0x%x): disabled", esp_err_to_name(e), e);
 		return nullptr;
@@ -611,7 +611,7 @@ NixieArtTask::NixieArtTask(
 	[this](char const * value_) {
 	    if (motionSensor) {
 		unsigned const value {fromString<unsigned>(value_)};
-		static_cast<asio::io_context &>(sensorTask).post([this, value](){
+		sensorTask.io.post([this, value](){
 		    try {
 			motionSensor->setConfiguration1(
 			    motionSensor->getConfiguration1().pirGain_(value));
@@ -627,7 +627,7 @@ NixieArtTask::NixieArtTask(
 	[this](char const * value_) {
 	    if (motionSensor) {
 		unsigned const value {fromString<unsigned>(value_)};
-		static_cast<asio::io_context &>(sensorTask).post([this, value](){
+		sensorTask.io.post([this, value](){
 		    try {
 			motionSensor->setConfiguration1(
 			    motionSensor->getConfiguration1().pirThreshold_(value));
@@ -643,7 +643,7 @@ NixieArtTask::NixieArtTask(
 	[this](char const * value_) {
 	    if (motionSensor) {
 		unsigned const value {fromString<unsigned>(value_)};
-		static_cast<asio::io_context &>(sensorTask).post([this, value](){
+		sensorTask.io.post([this, value](){
 		    try {
 			motionSensor->setDuration(((1 << value) - 1) * 10);
 		    } catch (esp_err_t & e) {

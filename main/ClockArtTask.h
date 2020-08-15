@@ -1,17 +1,21 @@
 #pragma once
 
-#include "DialArtTask.h"
+#include "AsioTask.h"
 #include "Button.h"
+#include "DialPreferences.h"
 #include "I2C.h"
+#include "KeyValueBroker.h"
 #include "LEDC.h"
+#include "LightPreferences.h"
 #include "Pin.h"
 #include "SensorTask.h"
 #include "SPI.h"
 #include "TSL2561LuxSensor.h"
+#include "TimePreferences.h"
 
 using APA102::LED;
 
-class ClockArtTask: public DialArtTask {
+class ClockArtTask: public AsioTask, TimePreferences, DialPreferences, LightPreferences {
 private:
     SPI::Bus const spiBus[2];
     SPI::Device const spiDevice[2];

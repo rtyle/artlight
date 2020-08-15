@@ -1,16 +1,14 @@
 #pragma once
 
-#include "AsioTask.h"
+#include <asio.hpp>
+
 #include "GammaEncode.h"
 #include "KeyValueBroker.h"
-#include "SmoothTime.h"
 
-/// An ArtTask is an abstract base class for an implementation that
-///	* uses devices on the system's SPI buses
-///	* adjusts its presentation based on current ambient lighting levels
-///	* adjusts its presentation based on updated values for interesting keys
+/// A LightPreferences is a base class for an implementation that
+/// that supports preferences for presentation based on ambient lighting
 
-class ArtTask : public AsioTask {
+class LightPreferences {
 public:
     struct Dim {
     private:
@@ -32,10 +30,6 @@ public:
     };
 
 protected:
-    KeyValueBroker &			keyValueBroker;
-
-    KeyValueBroker::Observer const	timezoneObserver;
-
     Range				range;
     KeyValueBroker::Observer const	rangeObserver;
     Dim					dim;
@@ -47,14 +41,7 @@ protected:
     unsigned				gamma;
     KeyValueBroker::Observer const	gammaObserver;
 
-    SmoothTime				smoothTime;
-
-    ArtTask(
-	char const *		name,
-	UBaseType_t		priority,
-	size_t			stackSize,
-	BaseType_t		core,
-
-	KeyValueBroker &	keyValueBroker,
-	size_t			smoothTimeStepCount);
+    LightPreferences(
+	asio::io_context &	io,
+	KeyValueBroker &	keyValueBroker);
 };

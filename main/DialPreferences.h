@@ -1,13 +1,17 @@
 #pragma once
 
+#include <asio.hpp>
+
 #include "APA102.h"
+#include "KeyValueBroker.h"
 
-#include "ArtTask.h"
-
-/// A DialArtTask is an abstract ArtTask
+/// A DialPreferences is a base class for an implementation that
 /// that supports preferences for LED dial indicators
 
-class DialArtTask : public ArtTask {
+class DialPreferences {
+private:
+    asio::io_context & io_;
+
 public:
     struct Shape {
     private:
@@ -32,12 +36,7 @@ protected:
     KeyValueBroker::Observer const	colorObserver[3];
     KeyValueBroker::Observer const	shapeObserver[3];
 
-    DialArtTask(
-	char const *		name,
-	UBaseType_t		priority,
-	size_t			stackSize,
-	BaseType_t		core,
-
-	KeyValueBroker &	keyValueBroker,
-	size_t			smoothTimeStepCount = 4096);
+    DialPreferences(
+	asio::io_context &	io,
+	KeyValueBroker &	keyValueBroker);
 };

@@ -14,10 +14,9 @@ private:
     asio::io_context joinableIo;
     asio::io_context::work work;
 
-protected:
+public:
     asio::io_context io;
 
-public:
     AsioTask(
 	char const *	name,
 	UBaseType_t	priority,

@@ -327,10 +327,12 @@ void ClockArtTask::update() {
 }
 
 ClockArtTask::ClockArtTask(
-    KeyValueBroker &		keyValueBroker_)
+    KeyValueBroker &		keyValueBroker)
 :
-    DialArtTask		("ClockArtTask", 5, 0x10000, 1,
-    			keyValueBroker_, 512),
+    AsioTask		{"ClockArtTask", 5, 0x10000, 1},
+    TimePreferences	{io, keyValueBroker, 512},
+    DialPreferences	{io, keyValueBroker},
+    LightPreferences	{io, keyValueBroker},
 
 
     spiBus {
@@ -368,7 +370,7 @@ ClockArtTask::ClockArtTask(
 	I2C_NUM_0, 0},
 
     sensorTask	{},
-    luxSensor	{sensorTask, &i2cMaster},
+    luxSensor	{sensorTask.io, &i2cMaster},
 
     mode(Mode::clock),
     modeObserver(keyValueBroker, "mode", mode.toString(),

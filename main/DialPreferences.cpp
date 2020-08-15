@@ -1,10 +1,10 @@
-#include "DialArtTask.h"
+#include "DialPreferences.h"
 
 #include "fromString.h"
 
-char const * const DialArtTask::Shape::string[] {"bell", "wave", "bloom"};
-DialArtTask::Shape::Shape(Value value_) : value(value_) {}
-DialArtTask::Shape::Shape(char const * value) : value(
+char const * const DialPreferences::Shape::string[] {"bell", "wave", "bloom"};
+DialPreferences::Shape::Shape(Value value_) : value(value_) {}
+DialPreferences::Shape::Shape(char const * value) : value(
     [value](){
 	size_t i = 0;
 	for (auto e: string) {
@@ -14,7 +14,7 @@ DialArtTask::Shape::Shape(char const * value) : value(
 	return bell;
     }()
 ) {}
-char const * DialArtTask::Shape::toString() const {
+char const * DialPreferences::Shape::toString() const {
     return string[value];
 }
 
@@ -34,42 +34,36 @@ char const * const shapeKey[] {
     "cShape",
 };
 
-void DialArtTask::widthObserved(size_t index, char const * value_) {
+void DialPreferences::widthObserved(size_t index, char const * value_) {
     float value = fromString<float>(value_);
     if (0.0f <= value && value <= 64.0f) {
-	io.post([this, index, value](){
+	io_.post([this, index, value](){
 	    width[index] = value;
 	});
     }
 }
 
-void DialArtTask::colorObserved(size_t index, char const * value_) {
+void DialPreferences::colorObserved(size_t index, char const * value_) {
     if (APA102::isColor(value_)) {
 	APA102::LED<> value(value_);
-	io.post([this, index, value](){
+	io_.post([this, index, value](){
 	    color[index] = value;
 	});
     }
 }
 
-void DialArtTask::shapeObserved(size_t index, char const * value_) {
+void DialPreferences::shapeObserved(size_t index, char const * value_) {
     Shape value(value_);
-    io.post([this, index, value](){
+    io_.post([this, index, value](){
 	shape[index] = value;
     });
 }
 
-DialArtTask::DialArtTask(
-    char const *		name,
-    UBaseType_t			priority,
-    size_t			stackSize,
-    BaseType_t			core,
-
-    KeyValueBroker &		keyValueBroker_,
-    size_t			smoothTimeStepCount)
+DialPreferences::DialPreferences(
+    asio::io_context &		io,
+    KeyValueBroker &		keyValueBroker)
 :
-    ArtTask		{name, priority, stackSize, core,
-			keyValueBroker_, smoothTimeStepCount},
+    io_ {io},
 
     width {},
     color {},

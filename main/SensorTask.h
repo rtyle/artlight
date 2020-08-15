@@ -7,7 +7,5 @@ class SensorTask : public AsioTask {
 public:
     SensorTask();
 
-    operator asio::io_context & ();
-
     /* virtual */ void run() override;
 };

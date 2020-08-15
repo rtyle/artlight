@@ -406,8 +406,12 @@ static unsigned constexpr holdDuration		= 500000;
 CornholeArtTask::CornholeArtTask(
     KeyValueBroker &		keyValueBroker_)
 :
-    DialArtTask		{"CornholeArtTask", 5, 16384, 1,
-    			keyValueBroker_},
+    AsioTask		{"CornholeArtTask", 5, 16384, 1},
+    TimePreferences	{io, keyValueBroker_, 4096},
+    DialPreferences	{io, keyValueBroker_},
+    LightPreferences	{io, keyValueBroker_},
+
+    keyValueBroker {keyValueBroker_},
 
     spiBus {VSPI_HOST, SPI::Bus::Config()
 	.mosi_io_num_(SPI::Bus::VspiConfig.mosi_io_num)
@@ -430,7 +434,7 @@ CornholeArtTask::CornholeArtTask(
 	I2C_NUM_0, 0},
 
     sensorTask	{},
-    luxSensor	{sensorTask, &i2cMaster},
+    luxSensor	{sensorTask.io, &i2cMaster},
 
     pinISR(),
     pinTask("pinTask", 5, 4096, tskNO_AFFINITY, 128),
