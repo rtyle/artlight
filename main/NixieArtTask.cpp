@@ -9,7 +9,6 @@
 #undef APA102_RGB
 
 #include "Curve.h"
-#include "HT7M2xxxMotionSensor.h"
 #include "NixieArtTask.h"
 #include "TSL2591LuxSensor.h"
 #include "Timer.h"
@@ -669,7 +668,6 @@ NixieArtTask::NixieArtTask(
     updated(0)
 {
     if (motionSensor) {
-#if 1
 	motionSensor->setConfiguration0(motionSensor->getConfiguration0()
 	    .pirPeriod_(HT7M2xxxMotionSensor::PirPeriod::_32ms));
 	motionSensor->setConfiguration1(motionSensor->getConfiguration1()
@@ -679,7 +677,6 @@ NixieArtTask::NixieArtTask(
 	    .pirTriggeredPinEnable_	(false));
 	motionSensor->setConfiguration2(motionSensor->getConfiguration2()
 	    .pirDetectIfDarkEnable_	(false));
-#endif
     }
     sensorTask.start();
 }
