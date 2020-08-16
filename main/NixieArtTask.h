@@ -28,7 +28,7 @@ private:
     std::array<PCA9685, placeCount> pca9685s;
 
     SensorTask sensorTask;
-    std::unique_ptr<LuxSensor>		luxSensor;
+    std::unique_ptr<LuxSensor>			luxSensor;
     std::unique_ptr<HT7M2xxxMotionSensor>	motionSensor;
 
     void levelObserved	(size_t index, char const * value);
