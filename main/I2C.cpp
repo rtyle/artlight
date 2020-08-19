@@ -63,6 +63,7 @@ Master::Commands::Commands(
     wait	(wait_),
     command	(i2c_cmd_link_create())
 {
+    assert(command);
     start(read, ack);
 }
 
@@ -103,9 +104,11 @@ Master::Commands & Master::Commands::readBytes(
 }
 
 Master::Commands::~Commands() noexcept(false) {
-    Finally finally	{[this](){i2c_cmd_link_delete(*this);}};
-    Error::throwIf(i2c_master_stop(*this));
-    Error::throwIf(i2c_master_cmd_begin(master, *this, wait));
+    if (command) {
+	Finally finally	{[this](){i2c_cmd_link_delete(*this);}};
+	Error::throwIf(i2c_master_stop(*this));
+	Error::throwIf(i2c_master_cmd_begin(master, *this, wait));
+    }
 }
 
 Master::Master(
