@@ -62,7 +62,7 @@ public:
 	Master const &		master;
 	uint8_t const		address;
 	TickType_t const	wait;
-	i2c_cmd_handle_t const	command;
+	i2c_cmd_handle_t	command;
 
 	operator i2c_cmd_handle_t() const;
 

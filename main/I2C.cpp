@@ -105,9 +105,9 @@ Master::Commands & Master::Commands::readBytes(
 
 Master::Commands::~Commands() noexcept(false) {
     if (command) {
-	Finally finally	{[this](){i2c_cmd_link_delete(*this);}};
-	Error::throwIf(i2c_master_stop(*this));
-	Error::throwIf(i2c_master_cmd_begin(master, *this, wait));
+	Finally finally	{[this](){i2c_cmd_link_delete(command); command = nullptr;}};
+	Error::throwIf(i2c_master_stop(command));
+	Error::throwIf(i2c_master_cmd_begin(master, command, wait));
     }
 }
 
