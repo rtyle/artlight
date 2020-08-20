@@ -11,8 +11,8 @@
 
 		sudo dnf install gcc git wget make ncurses-devel flex bison gperf python pyserial future python2-cryptography pyparsing
 		cd ~/esp
-		wget https://dl.espressif.com/dl/xtensa-esp32-elf-linux64-1.22.0-96-g2852398-5.2.0.tar.gz
-		tar xzf xtensa-esp32-elf-linux64-1.22.0-96-g2852398-5.2.0.tar.gz
+		wget https://dl.espressif.com/dl/xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
+		tar xzf xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
 
 		# this doesn't work
 		# some of the IDF makefiles don't use CONFIG_TOOLPREFIX
