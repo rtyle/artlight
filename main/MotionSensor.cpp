@@ -41,7 +41,7 @@ void MotionSensor::update() {
     } catch (...) {
 	ESP_LOGE(name, "unknown error");
     }
-    timer.setPeriod(getPeriod() / portTICK_PERIOD_MS);
+    timer.setPeriod(getPeriod());
     timer.start();
 }
 

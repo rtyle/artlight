@@ -19,7 +19,7 @@ protected:
     Timer		timer;
 
     MotionSensor(char const * name, asio::io_context & io);
-    /// implementations must return milliseconds polling period
+    /// implementations must return polling period in ticks
     virtual unsigned getPeriod() const = 0;
     virtual bool readMotion() const = 0;
 

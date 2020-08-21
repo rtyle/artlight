@@ -230,7 +230,7 @@ unsigned HT7M2xxxMotionSensor::getFirmwareVersion() const {
 }
 
 unsigned HT7M2xxxMotionSensor::getPeriod() const {
-    return 500;
+    return 50;	// * 10ms (tick) units
 }
 
 bool HT7M2xxxMotionSensor::readMotion() const {
