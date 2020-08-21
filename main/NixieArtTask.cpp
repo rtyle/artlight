@@ -678,10 +678,11 @@ NixieArtTask::NixieArtTask(
 	motionSensor->setConfiguration2(motionSensor->getConfiguration2()
 	    .pirDetectIfDarkEnable_	(false));
     }
-    sensorTask.start();
 }
 
 void NixieArtTask::run() {
+    sensorTask.start();
+
     // asio timers are not supported
     // adapt a FreeRTOS timer to post timeout to this task.
     Timer updateTimer(name, 4, true, [this](){
