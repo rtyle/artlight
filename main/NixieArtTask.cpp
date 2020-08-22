@@ -530,10 +530,6 @@ NixieArtTask::NixieArtTask(
     sensorTask	{},
     luxSensor	{[this]() -> LuxSensor * {
 	    try {
-#if 0
-		ESP_LOGE(name, "TSL2591: disabled");
-		return nullptr;
-#endif
 		return new TSL2591LuxSensor(sensorTask.io, &i2cMasters[1]);
 	    } catch (esp_err_t & e) {
 		ESP_LOGE(name, "TSL2591 %s (0x%x): disabled", esp_err_to_name(e), e);
