@@ -715,7 +715,7 @@ NixieArtTask::NixieArtTask(
 	    Mode mode_(value);
 	    io.post([this, mode_](){
 		mode = mode_;
-		microsecondsSinceBootOfModeChange = esp_timer_get_time();
+		microsecondsSinceBootOfModeChange = get_time_since_boot();
 	    });
 	}),
 
