@@ -238,7 +238,7 @@ void NixieArtTask::update_() {
 
 	uint64_t const microsecondsSinceBoot {get_time_since_boot()};
 
-	std::function<float(unsigned)> digits[pca9685s.size()] {
+	std::function<float(unsigned)> placeValues[pca9685s.size()] {
 	    [](unsigned) {return 0.0f;},
 	    [](unsigned) {return 0.0f;},
 	    [](unsigned) {return 0.0f;},
@@ -270,7 +270,7 @@ void NixieArtTask::update_() {
 
 	switch (mode.value) {
 	case Mode::count : {
-		auto digit {digits};
+		auto placeValue {placeValues};
 		float /* deciseconds */ sinceModeChange {
 		    (microsecondsSinceBoot - microsecondsSinceBootOfModeChange)
 		    / 100000.0f
@@ -278,7 +278,7 @@ void NixieArtTask::update_() {
 		unsigned order {4};
 		for (unsigned place = pca9685s.size(); place--;) {
 		    MesaDial dial {inDigitsOf(sinceModeChange), 1.0f / 10.0f, order};
-		    *digit++ = [dial](unsigned digit) {
+		    *placeValue++ = [dial](unsigned digit) {
 			return digitize0(10, digit, 0, dial);
 		    };
 		    sinceModeChange /= 10.0f;
@@ -286,7 +286,7 @@ void NixieArtTask::update_() {
 		}
 	    } break;
 	case Mode::roll : {
-		auto digit {digits};
+		auto placeValue {placeValues};
 		float const /* seconds */ sinceModeChange {
 		    (microsecondsSinceBoot - microsecondsSinceBootOfModeChange)
 		    / 1000000.0f
@@ -294,27 +294,27 @@ void NixieArtTask::update_() {
 		unsigned order {4};
 		for (unsigned place = pca9685s.size(); place--;) {
 		    MesaDial dial {inDigitsOf(sinceModeChange), 1.0f / 10.0f, order};
-		    *digit++ = [dial](unsigned digit) {
+		    *placeValue++ = [dial](unsigned digit) {
 			return digitize0(10, digit, 0, dial);
 		    };
 		}
 	    } break;
 	case Mode::clean : {
-		auto digit {digits};
+		auto placeValue {placeValues};
 		unsigned const /* decisecond */ counter
 		    {static_cast<unsigned>(10.0f * smoothTime.millisecondsSinceTwelveLocaltime(
 			    microsecondsSinceBoot)
 			/ static_cast<float>(millisecondsPerSecond))};
 		for (auto & dirtyPlace: dirtyPlaces) {
 		    unsigned const value {dirtyPlace[counter % dirtyPlace.size()]};
-		    *digit++ = [value](unsigned digit) {
+		    *placeValue++ = [value](unsigned digit) {
 			return value == digit ? 1.0f : 0.0f;
 		    };
 		}
 	    } break;
 	case Mode::clock :
 	default : {
-		auto digit {digits};
+		auto placeValue {placeValues};
 		float const secondsSinceTwelveLocaltime
 		    {smoothTime.millisecondsSinceTwelveLocaltime(
 			    microsecondsSinceBoot)
@@ -329,7 +329,7 @@ void NixieArtTask::update_() {
 		    {static_cast<unsigned>(inHour * 60.0f * 60.0f * 10.0f)};
 		bool const clean {600 > counter};
 
-		unsigned place {0};
+		unsigned placeIndex {0};
 		for (auto & dirtyPlace: dirtyPlaces) {
 #if 0
 		    // any-on:minimum-on ratios (compare with above)
@@ -339,38 +339,38 @@ void NixieArtTask::update_() {
 		    // split the cleaning time in halves
 		    bool const thatHalf {300 > counter};
 		    // clean half the places at a time
-		    bool const thisHalf {place >> 1};
+		    bool const thisHalf {placeIndex >> 1};
 		    if (clean && thisHalf == thatHalf) {
 			unsigned const value {dirtyPlace[counter % dirtyPlace.size()]};
-			*digit++ = [value](unsigned digit) {
+			*placeValue++ = [value](unsigned digit) {
 			    return value == digit ? 1.0f : 0.0f;
 			};
 		    } else {
 			if (thisHalf == thatHalf) {
 			    // display minutes in this half
-			    switch (1 & place) {
+			    switch (1 & placeIndex) {
 			    case 1:
-				*digit++ = [minuteDial](unsigned digit) {
+				*placeValue++ = [minuteDial](unsigned digit) {
 				    return digitize0(60, digit, 1, minuteDial);
 				};
 				break;
 			    case 0:
-				*digit++ = [minuteDial](unsigned digit) {
+				*placeValue++ = [minuteDial](unsigned digit) {
 				    return digitize0(60, digit, 0, minuteDial);
 				};
 				break;
 			    }
 			} else {
 			    // display hours in this half
-			    switch (1 & place) {
+			    switch (1 & placeIndex) {
 			    case 1:
-				*digit++ = [hourDial](unsigned digit) {
+				*placeValue++ = [hourDial](unsigned digit) {
 				    auto const value {digitize1(12, digit, 1, hourDial)};
 				    return 0 == digit && 0.0f < value ? 0.0f : value;
 				};
 				break;
 			    case 0:
-				*digit++ = [hourDial](unsigned digit) {
+				*placeValue++ = [hourDial](unsigned digit) {
 				    return digitize1(12, digit, 0, hourDial);
 				};
 				break;
@@ -381,40 +381,40 @@ void NixieArtTask::update_() {
 		    // any-on:minimum-on ratios (compare with above)
 		    //	1. 240  :1	{6-9}	1/ 4 minute in  60
 		    //	3. 189  :1	{0,2-9}	1    minute in 189
-		    if (clean && (2 > place || (2 < place &&
+		    if (clean && (2 > placeIndex || (2 < placeIndex &&
 			    1.0f / 12.0f <= inDay && 10.0f / 12.0f > inDay))) {
 			unsigned const value {dirtyPlace[counter % dirtyPlace.size()]};
-			*digit++ = [value](unsigned digit) {
+			*placeValue++ = [value](unsigned digit) {
 			    return value == digit ? 1.0f : 0.0f;
 			};
 		    } else {
-			switch (place) {
+			switch (placeIndex) {
 			case 3:
-			    *digit++ = [hourDial](unsigned digit) {
+			    *placeValue++ = [hourDial](unsigned digit) {
 				auto const value {digitize1(12, digit, 1, hourDial)};
 				return 0 == digit && 0.0f < value ? 0.0f : value;
 			    };
 			    break;
 			case 2:
-			    *digit++ = [hourDial](unsigned digit) {
+			    *placeValue++ = [hourDial](unsigned digit) {
 				return digitize1(12, digit, 0, hourDial);
 			    };
 			    break;
 			case 1:
-			    *digit++ = [minuteDial](unsigned digit) {
+			    *placeValue++ = [minuteDial](unsigned digit) {
 				return digitize0(60, digit, 1, minuteDial);
 			    };
 			    break;
 
 			case 0:
-			    *digit++ = [minuteDial](unsigned digit) {
+			    *placeValue++ = [minuteDial](unsigned digit) {
 				return digitize0(60, digit, 0, minuteDial);
 			    };
 			    break;
 			}
 		    }
 #endif
-		    ++place;
+		    ++placeIndex;
 		}
 		{
 		    WaveDial dial[2] {
@@ -429,17 +429,17 @@ void NixieArtTask::update_() {
 	}
 
 	// set decimal place digits in image
-	unsigned place {0};
+	unsigned placeIndex {0};
 	for (auto & pwms: pca9685Pwms) {
 	    for (unsigned digit = 0; digit < 10; digit++) {
 		static unsigned constexpr pwmOf[10]
 		    {5, 1, 3, 10, 2, 13, 6, 11, 15, 14};
 		pwms[pwmOf[digit]] = snapOffNixie(digit, PCA9685::Pwm::max
 		    * fadeNixie
-		    * digits[place](digit)
+		    * placeValues[placeIndex](digit)
 		    * bias(digit));
 	    }
-	    ++place;
+	    ++placeIndex;
 	}
 
 	// set colon dots in image
