@@ -210,7 +210,7 @@ Your mileage may vary elsewhere.
 
 Get toolchain
 
-    sudo dnf install gcc git wget make ncurses-devel flex bison gperf python pyserial future python2-cryptography pyparsing
+    sudo dnf install gcc git wget make ncurses-devel flex bison gperf python python3-pyserial python3-future python3-cryptography python3-pyparsing
     mkdir -p $HOME/esp
     (
       cd $HOME/esp
