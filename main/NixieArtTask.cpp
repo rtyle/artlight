@@ -276,7 +276,7 @@ void NixieArtTask::update_() {
 		    / 100000.0f
 		};
 		unsigned order {4};
-		for (unsigned place = pca9685s.size(); place--;) {
+		for (unsigned placeIndex = pca9685s.size(); placeIndex--;) {
 		    MesaDial dial {inDigitsOf(sinceModeChange), 1.0f / 10.0f, order};
 		    *placeValue++ = [dial](unsigned digit) {
 			return digitize0(10, digit, 0, dial);
@@ -292,7 +292,7 @@ void NixieArtTask::update_() {
 		    / 1000000.0f
 		};
 		unsigned order {4};
-		for (unsigned place = pca9685s.size(); place--;) {
+		for (unsigned placeIndex = pca9685s.size(); placeIndex--;) {
 		    MesaDial dial {inDigitsOf(sinceModeChange), 1.0f / 10.0f, order};
 		    *placeValue++ = [dial](unsigned digit) {
 			return digitize0(10, digit, 0, dial);
