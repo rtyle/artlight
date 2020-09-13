@@ -169,7 +169,7 @@ When slid all the way to the right, the controlled element will dim to black whe
 In an effort to combat [nixie tube cathode poisoning](https://www.google.com/search?q=nixie+tube+cathode+poisoning)
 the clock will not display minutes during the first minute of every hour.
 Instead, the normal minutes-places will cycle through digits that are not normally used there.
-For hours less than 10, the tens digit will similarly cycle.
+For hours less than 10, the tens-of-hours place will similarly cycle.
 The display can also be temporarily put in a Clean mode (or other modes) until expectations are met.
 
 ## Wall Clock Use
