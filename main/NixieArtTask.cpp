@@ -248,6 +248,16 @@ void NixieArtTask::update_() {
 	    [](unsigned) {return 0.0f;}
 	};
 
+	// Cathode Poisoning Prevention Routine
+	// http://docs.daliborfarny.com/doc/r-z568m-nixie-tube/#1550
+	// recommends any-on:minimum-on ratio of no more than 300:1
+	// Normal clock displays digits in places
+	//	0. 10:1	{0-9}	1 minute  in 10
+	//	1. 60:0	{6-9}	0 minutes in 60
+	//	2. 12:1	{0,3-9}	1 hour  in 12
+	//	3.  3:0	{0,2-9}	0 hours in 3 (9 hours in 12 is off)
+	// Unused digits in {1,3} places must be cleaned.
+
 	// sputter from used cathodes may "poison"/dirty others.
 	// this sputter will be burned off when those others are used.
 	// these are the potential unused/dirtyPlaces when left in clock mode.
@@ -309,17 +319,26 @@ void NixieArtTask::update_() {
 		    {smoothTime.millisecondsSinceTwelveLocaltime(
 			    microsecondsSinceBoot)
 			/ static_cast<float>(millisecondsPerSecond)};
-		MesaDial hourDial
-		    {inDayOf(secondsSinceTwelveLocaltime), 1.0f / 12.0f, 4 * 60 * 60};
+		float const inDay {inDayOf(secondsSinceTwelveLocaltime)};
+		MesaDial hourDial {inDay, 1.0f / 12.0f, 4 * 60 * 60};
 		float const inHour {inHourOf(secondsSinceTwelveLocaltime)};
-		MesaDial minuteDial
-		    {inHour, 1.0f / 60.0f, 4 * 60};
+		MesaDial minuteDial {inHour, 1.0f / 60.0f, 4 * 60};
+
+		// clean dirtyPlaces time is the first minute of each hour
 		unsigned const /* decisecond inHour */ counter
 		    {static_cast<unsigned>(inHour * 60.0f * 60.0f * 10.0f)};
-		bool const clean	{600 > counter};
-		bool const thatHalf	{300 > counter};
+		bool const clean {600 > counter};
+
 		unsigned place {0};
 		for (auto & dirtyPlace: dirtyPlaces) {
+#if 0
+		    // any-on:minimum-on ratios (compare with above)
+		    //	1. 480  :1 {6-9}	 1/ 8 minute in  60
+		    //	3. 283.5:1 {0,2-9}	12/18 minute in 189
+
+		    // split the cleaning time in halves
+		    bool const thatHalf {300 > counter};
+		    // clean half the places at a time
 		    bool const thisHalf {place >> 1};
 		    if (clean && thisHalf == thatHalf) {
 			unsigned const value {dirtyPlace[counter % dirtyPlace.size()]};
@@ -328,6 +347,7 @@ void NixieArtTask::update_() {
 			};
 		    } else {
 			if (thisHalf == thatHalf) {
+			    // display minutes in this half
 			    switch (1 & place) {
 			    case 1:
 				*digit++ = [minuteDial](unsigned digit) {
@@ -341,6 +361,7 @@ void NixieArtTask::update_() {
 				break;
 			    }
 			} else {
+			    // display hours in this half
 			    switch (1 & place) {
 			    case 1:
 				*digit++ = [hourDial](unsigned digit) {
@@ -356,6 +377,43 @@ void NixieArtTask::update_() {
 			    }
 			}
 		    }
+#else
+		    // any-on:minimum-on ratios (compare with above)
+		    //	1. 240  :1	{6-9}	1/ 4 minute in  60
+		    //	3. 189  :1	{0,2-9}	1    minute in 189
+		    if (clean && (2 > place || (2 < place &&
+			    1.0f / 12.0f <= inDay && 10.0f / 12.0f > inDay))) {
+			unsigned const value {dirtyPlace[counter % dirtyPlace.size()]};
+			*digit++ = [value](unsigned digit) {
+			    return value == digit ? 1.0f : 0.0f;
+			};
+		    } else {
+			switch (place) {
+			case 3:
+			    *digit++ = [hourDial](unsigned digit) {
+				auto const value {digitize1(12, digit, 1, hourDial)};
+				return 0 == digit && 0.0f < value ? 0.0f : value;
+			    };
+			    break;
+			case 2:
+			    *digit++ = [hourDial](unsigned digit) {
+				return digitize1(12, digit, 0, hourDial);
+			    };
+			    break;
+			case 1:
+			    *digit++ = [minuteDial](unsigned digit) {
+				return digitize0(60, digit, 1, minuteDial);
+			    };
+			    break;
+
+			case 0:
+			    *digit++ = [minuteDial](unsigned digit) {
+				return digitize0(60, digit, 0, minuteDial);
+			    };
+			    break;
+			}
+		    }
+#endif
 		    ++place;
 		}
 		{
