@@ -458,7 +458,6 @@ void NixieArtTask::update_() {
 
     // SPI::Transaction constructor queues the ledMessage.
     // SPI::Transaction destructor waits for result.
-    // queue both before waiting for result of either.
     {
 	SPI::Transaction transaction(spiDevice, SPI::Transaction::Config()
 	    .tx_buffer_(&ledMessage)
