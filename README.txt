@@ -9,7 +9,7 @@
 	# toolchain
 	# https://docs.espressif.com/projects/esp-idf/en/latest/get-started/linux-setup.html
 
-		sudo dnf install gcc git wget make ncurses-devel flex bison gperf python pyserial future python2-cryptography pyparsing
+		sudo dnf install gcc git wget make ncurses-devel flex bison gperf python python3-pyserial python3-future python3-cryptography python3-pyparsing
 		cd ~/esp
 		wget https://dl.espressif.com/dl/xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
 		tar xzf xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
