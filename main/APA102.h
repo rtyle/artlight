@@ -98,7 +98,7 @@ public:
 	;
 	Part(T red_, T green_, T blue_) :
 	    control(~0),
-#ifdef APA102_RGB
+#ifdef APA102_RBG
 	    red(red_), blue(blue_), green(green_)
 #else
 	    blue(blue_), green(green_), red(red_)
