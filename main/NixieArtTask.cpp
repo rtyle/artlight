@@ -4,9 +4,9 @@
 
 #include <esp_log.h>
 
-#define APA102_RGB
+#define APA102_RBG
 #include "APA102.h"
-#undef APA102_RGB
+#undef APA102_RBG
 
 #include "Curve.h"
 #include "NixieArtTask.h"

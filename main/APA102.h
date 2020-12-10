@@ -90,7 +90,7 @@ private:
 public:
     struct Part {
 	T control,
-#ifdef APA102_RGB
+#ifdef APA102_RBG
 	red, blue, green
 #else
 	blue, green, red
