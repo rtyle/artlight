@@ -23,8 +23,8 @@ public:
     Pin(
 	gpio_num_t	gpio_num_,
 	gpio_mode_t	mode,
-	gpio_pullup_t	pull_up_en,
-	gpio_pulldown_t	pull_down_en,
+	gpio_pullup_t	pull_up_en	= GPIO_PULLUP_DISABLE,
+	gpio_pulldown_t	pull_down_en	= GPIO_PULLDOWN_DISABLE,
 	gpio_int_type_t	intr_type	= GPIO_INTR_DISABLE);
     ~Pin();
 
