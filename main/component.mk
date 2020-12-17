@@ -9,6 +9,8 @@ ifeq 'cornhole' '${ArtLightApplication}'
 	CPPFLAGS += -DArtLightApplication_h=\"ArtLightCornhole.h\"
 else ifeq 'clock' '${ArtLightApplication}'
 	CPPFLAGS += -DArtLightApplication_h=\"ArtLightClock.h\"
+else ifeq 'golden' '${ArtLightApplication}'
+	CPPFLAGS += -DArtLightApplication_h=\"ArtLightGolden.h\"
 else ifeq 'nixie' '${ArtLightApplication}'
 	CPPFLAGS += -DArtLightApplication_h=\"ArtLightNixie.h\"
 endif

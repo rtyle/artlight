@@ -182,6 +182,10 @@ ifelse(-1, regexp(ArtLightApplication, «clock\|cornhole»), , «dnl
 						<option value='slide'>Slide</option>
 						<option value='spin'>Spin</option>
 »)dnl
+ifelse(«golden», ArtLightApplication, «dnl
+						<option value='slide'>Slide</option>
+						<option value='spin'>Spin</option>
+»)dnl
 ifelse(«nixie», ArtLightApplication, «dnl
 						<option value='count'>Count</option>
 						<option value='roll'>Roll</option>
@@ -192,7 +196,7 @@ ifelse(«nixie», ArtLightApplication, «dnl
 			</fieldset>
 			<fieldset>
 				<legend>Presentation</legend>
-ifelse(-1, regexp(ArtLightApplication, «clock\|cornhole»), , «dnl
+ifelse(-1, regexp(ArtLightApplication, «clock\|cornhole\|golden»), , «dnl
 				<div>
 					<span class='tab0'>A</span>
 					<label for='aWidth'>Width</label>
