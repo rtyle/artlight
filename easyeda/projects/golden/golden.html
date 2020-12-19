@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset='utf-8'/>
+		<style>
+		</style>
+	</head>
+	<body>
+		<script
+			src="http://code.jquery.com/jquery-3.5.1.min.js"
+			integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+			crossorigin="anonymous"></script>
+		<script>
+			const tau = 2 * Math.PI
+			const phi = (1 + Math.sqrt(5)) / 2
+			const inFirstTurn = theta => theta % tau
+			const toCartesian = (rho, theta) => [rho * Math.cos(theta), rho * Math.sin(theta)]
+			const toPolar = (x, y) => [Math.sqrt(x * x + y * y), inFirstTurn(tau + Math.atan2(y, x))]
+			const ordinals = function*(end, begin = 0) {for (var i = begin; i < end; ++i) {yield i}}
+			const seedCount = 1024
+			const seeds = function(seedCount, scale) {
+				// grow seeds as in a sunflower head from the inside out
+				return Array.from(ordinals(seedCount)).map(i => [scale * Math.sqrt(1 + i), inFirstTurn(i * tau / phi)])
+			}(seedCount + 144, 18)
+			const wendStrip = (seedCount, seeds, theta) => {
+				// return one, roughly increasing, non-crossing, spiral strip through all the seeds
+				const remaining = new Set(ordinals(seedCount))
+				const spiral = []
+				var i = seedCount - 1
+				spiral.unshift(i)
+				remaining.delete(i)
+				while (remaining.size) {
+					i = function() {
+						// relative to i, spin the remaining seeds
+						const a = seeds[i]
+						const spin = seeds.map((b, j) => {if (!remaining.has(j)) {return undefined} else {
+							const c = toCartesian(b[0], b[1] - a[1])
+							return toPolar(c[0] - a[0], c[1])
+						}})
+						// find the smallest acceptable angle in the spin
+						const acceptable = theta
+							+ spin[Array.from(remaining).sort((j, k) => Math.sign(spin[j][1] - spin[k][1]))[0]][1]
+						// order the spin by nearest
+						const nearest = Array.from(remaining).sort((j, k) => Math.sign(spin[j][0] - spin[k][0]))
+						// return the nearest in spin with an acceptable angle
+						var j = 0; for (;; ++j) {if (0 < acceptable - spin[nearest[j]][1]) break}
+						return nearest[j]
+					}()
+					spiral.unshift(i)
+					remaining.delete(i)
+				}
+				return spiral
+			}
+			const neighbors = function(seedCount, seeds) {
+				const nearestOutsiders = Array.from(ordinals(seedCount)).map(i => {	// i < seedCount
+					const a = seeds[i]
+					return Array.from(ordinals(seeds.length, i + 1))	// i < j
+						.map(j => {			// [j, [rho, theta]] 
+							b = seeds[j]
+							return [j, function() {
+								const c = toCartesian(b[0], b[1] - a[1])
+								return toPolar(c[0] - a[0], c[1])
+							}()]
+						})
+						.filter(v => {			// by theta
+							const [rho, theta] = v[1]
+							return theta < tau / 4 || theta > 3 * tau / 4
+						})
+						.sort((p, q) => 		// by rho
+							Math.sign(p[1][0] - q[1][0])
+						)
+						.slice(0, 4)			// nearest
+				})
+				const nearestInsiders = function() {
+					// invert nearestOutsiders
+					const inversion = Array.from(ordinals(seedCount)).map(() => [])
+					nearestOutsiders.forEach((outsiders, j) => {
+						const b = seeds[j]
+						outsiders.forEach(outsider => {
+							const [i] = outsider
+							if (i < seedCount) {
+								const a = seeds[i]
+								const c = toCartesian(b[0], b[1] - a[1])
+								inversion[i].push([j, toPolar(c[0] - a[0], c[1])])
+							}
+						})
+					})
+					// re-sort insiders for each inversion by nearest
+					return inversion.map(insiders => insiders.sort((p, q) => Math.sign(p[1][0] - q[1][0])))
+				}()
+				return function(a, b) {	// join
+					return a.map((v, i) => [v, b[i]])
+				}(nearestInsiders, nearestOutsiders)
+			}(seedCount, seeds)
+			const toCanvas   = (canvas, x, y) => [x + canvas.width / 2, -y + canvas.height / 2]
+			const draw = (canvas, theta, ring, frame) => {
+				const strip = wendStrip(seedCount, seeds, theta)
+				const context = canvas.getContext('2d')
+				context.clearRect(0, 0, canvas.width, canvas.height)
+				const begin = Array.from(ordinals(ring)).sort((i, j) => -Math.sign(seeds[seedCount - i - 1][1] - seeds[seedCount - j - 1][1]))
+				seeds.forEach((v, i) => {if (i < seedCount) {
+					const j = seedCount - i - 1
+					const a = toCanvas(canvas, ...toCartesian(...v))
+					// draw seed
+					const circlePath = new Path2D()
+					circlePath.arc(...a, 2, 0, tau)
+					if (0 === (begin[frame % ring] - j) % ring) {
+						circlePath.arc(...a, 8, 0, tau)
+					}
+					context.fill(circlePath)
+if (1) {
+					// draw ray to one of the nearest neighbors
+					const list = neighbors[i][frame % 2]
+					const k = (Math.floor(frame / 2)) % 4
+					if (k < list.length) {
+						const neighbor = list[k]
+						const [j] = neighbor
+						if (j < seedCount) {
+							const b = toCanvas(canvas, ...toCartesian(...seeds[j]))
+							const rayPath = new Path2D()
+							rayPath.moveTo(...a)
+							rayPath.lineTo(...b)
+							context.stroke(rayPath)
+						}
+					}
+}
+				}})
+if (0) {
+				// draw strip path
+				const stripPath = new Path2D()
+				var i = 0
+				strip.forEach(j => {
+					if (i < seedCount) {
+						const a = toCanvas(canvas, ...toCartesian(...seeds[j]))
+						if (0 === i) {
+							stripPath.moveTo(...a)
+						} else {
+							stripPath.lineTo(...a)
+						}
+					}
+					++i
+				})
+				context.stroke(stripPath)
+}
+			}
+			$(document).ready(() => {
+				const canvas = document.getElementById('canvas')
+				const params = new URLSearchParams(window.location.search.substring(1))
+				const theta	= function(param) {return param ? parseInt(param) :       128}(params.get('theta')) * tau / 1024
+				const ring	= function(param) {return param ? parseInt(param) :        89}(params.get('ring'))
+				var frame	= function(param) {return param ? parseInt(param) :         0}(params.get('frame'))
+				draw(canvas, theta, ring, frame)
+				canvas.onclick = mouseEvent => {
+					draw(canvas, theta, ring, ++frame)
+				}
+				const seedsOnCanvas = seeds.map(v => toCanvas(canvas, ...toCartesian(...v)))
+				canvas.addEventListener('mousemove', e => {
+					const [x, y] = [e.offsetX, e.offsetY]
+					const r = seedsOnCanvas.reduce((s, v, i) => {
+						const [dx, dy] = [v[0] - x, v[1] - y]
+						const d = Math.sqrt(dx * dx + dy * dy)
+						return d < s[1] ? [i, d] : s
+					}, [-1, Number.MAX_SAFE_INTEGER])
+					console.log(r)
+				})
+			})
+		</script>
+		<canvas id='canvas' width='1536' height='1536'></canvas>
+	</body>
+</html>
