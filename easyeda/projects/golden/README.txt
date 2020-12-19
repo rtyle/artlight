@@ -1,3 +1,6 @@
+golden.html is a way to play with the PCB layout in a web browser
+as well as a way to playing with animation of such.
+
 While pcb.json can be uploaded into the EasyEDA online editor ...
 https://easyeda.com/editor
 ... it is too large to save to cloud storage.
