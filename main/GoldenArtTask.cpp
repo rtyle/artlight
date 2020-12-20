@@ -1,4 +1,9 @@
+#include <array>
+#include <cassert>
+#include <cmath>
+#include <limits>
 #include <random>
+#include <set>
 #include <sstream>
 
 #include <esp_log.h>
@@ -18,11 +23,92 @@ extern "C" uint64_t get_time_since_boot();
 using APA102::LED;
 using LEDI = APA102::LED<int>;
 
-static float constexpr pi	{std::acos(-1.0f)};
-static float constexpr tau	{2.0f * pi};
+float constexpr phi	{(1.0f + std::sqrt(5.0f)) / 2.0f};
+float constexpr pi	{std::acos(-1.0f)};
+float constexpr tau	{2.0f * pi};
 
-static float constexpr phi	{(1.0f + std::sqrt(5.0f)) / 2.0f};
-static float constexpr sqrt2	{std::sqrt(2.0f)};
+namespace {
+    struct Cartesian;
+    struct Polar {
+	float rho;
+	float theta;
+	static float normalize(float theta) {
+	    float i;
+	    float f = std::modf(theta / tau, &i);
+	    if (0 > f) f += 1;
+	    return tau * f;
+	}
+	Polar() = default;
+	Polar(float rho_, float theta_) : rho{rho_}, theta{normalize(theta_)} {}
+	Polar(Cartesian const &);
+    };
+    struct Cartesian {
+	float x;
+	float y;
+	Cartesian() = default;
+	Cartesian(float x_, float y_) : x{x_}, y{y_} {}
+	Cartesian(Polar const & _)
+	: Cartesian{_.rho * std::cos(_.theta), _.rho * std::sin(_.theta)} {}
+    };
+    Polar::Polar(Cartesian const & _)
+    : Polar{std::sqrt(_.x * _.x + _.y * _.y), std::atan2(_.y, _.x)} {}
+
+    template<uint16_t size>
+    struct Head {
+	std::array<Polar, size> polar;
+	std::array<Cartesian, size> cartesian;
+	std::array<uint16_t, size> order;
+	Head() {
+	    // calculate polar and cartesian coordinates
+	    {uint16_t i = 0; for (auto & _: polar) {
+		cartesian[i] = Cartesian{
+		    _ = Polar{
+			18.0f * std::sqrt(1.0f + i),
+			static_cast<float>(i) * tau / phi
+		    }
+		};
+	    ++i;}}
+	    // find a spiral path
+	    std::array<uint16_t, size> spiral;
+	    std::set<uint16_t> remaining;
+	    for (uint16_t i = 0; i < size; ++i) remaining.insert(i);
+	    uint16_t * last = &spiral[size];
+	    remaining.erase(remaining.find(*--last = size - 1));
+	    while (!remaining.empty()) {
+		// spin the remaining around the last,
+		// and find the smallest angle amongst them
+		Polar const & a{polar[*last]};
+		float smallest{tau};
+		std::array<Polar, size> spin;
+		for (auto i: remaining) {
+		    Polar const & b{polar[i]};
+		    Cartesian c{Polar{b.rho, b.theta - a.theta}};
+		    Polar p{Cartesian{c.x - a.rho, c.y}};
+		    spin[i] = p;
+		    if (smallest > p.theta) smallest = p.theta;
+		}
+		// next is the nearest within an acceptable angle
+		float acceptable{smallest + tau / 8};
+		float nearest{std::numeric_limits<float>::max()};
+		uint16_t next{size};
+		for (auto i: remaining) {
+		    Polar & p = spin[i];
+		    if (acceptable >= p.theta && nearest > p.rho) {
+			nearest = p.rho;
+			next = i;
+		    }
+		}
+		assert(std::numeric_limits<float>::max() != nearest);
+		remaining.erase(remaining.find(*--last = next));
+	    }
+	    // invert the spiral path for order
+	    for (auto & i: spiral) {
+		order[spiral[i]] = i;
+	    }
+	}
+    };
+}
+static Head<1024> head;
 
 static unsigned constexpr millisecondsPerSecond	{1000u};
 static unsigned constexpr microsecondsPerSecond	{1000000u};
@@ -55,22 +141,7 @@ char const * GoldenArtTask::Mode::toString() const {
 static size_t constexpr ledCount {1024};
 
 void GoldenArtTask::update_() {
-    static size_t constexpr dialCount	{3};
-
     uint64_t const microsecondsSinceBoot {get_time_since_boot()};
-
-    static LEDI const black {0, 0, 0};
-    Blend<LEDI> const blend[dialCount] {
-	{black, color[0]},
-	{black, color[1]},
-	{black, color[2]},
-    };
-
-    static float constexpr scale[dialCount] {
-	phi	/ 1.5f,		//  > 1.0
-	sqrt2	/ 1.5f,		//  < 1.0
-	1.5f	/ 1.5f,		// == 1.0
-    };
 
     // construct static PerlinNoise objects
     static std::mt19937 rng;
