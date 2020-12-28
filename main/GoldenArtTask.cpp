@@ -52,11 +52,29 @@ namespace {
     };
     Polar::Polar(Cartesian const & _)
     : Polar{std::sqrt(_.x * _.x + _.y * _.y), std::atan2(_.y, _.x)} {}
+    template<uint16_t size>
+    struct PolarEndSortTheta {
+        std::array <int16_t, size> order;
+        PolarEndSortTheta(Polar const * polarEnd) {
+            {int16_t i = 0; for (auto & e: order) {e = --i;}}
+            std::sort(order.begin(), order.end(), [polarEnd](int16_t const & a, int16_t const & b){
+                return polarEnd[a].theta < polarEnd[b].theta;
+            });
+        }
+        void copy(std::array<int16_t, size> & to) const {
+            std::copy(order.begin(), order.end(), to.begin());
+        }
+    };
+
+
 
     template<uint16_t size>
     struct Head {
 	std::array<Polar, size> polar;
 	std::array<Cartesian, size> cartesian;
+        std::array<int16_t, 144> rim144;
+        std::array<int16_t,  89> rim89;
+        std::array<int16_t,  55> rim55;
 	std::array<uint16_t, size> order;
 	Head() {
 	    // calculate polar and cartesian coordinates
@@ -68,6 +86,11 @@ namespace {
 		    }
 		};
 	    ++i;}}
+            // orders along the rim
+            Polar const * polarEnd{&polar[polar.size()]};
+            PolarEndSortTheta<144>(polarEnd).copy(rim144);
+            PolarEndSortTheta< 89>(polarEnd).copy(rim89);
+            PolarEndSortTheta< 55>(polarEnd).copy(rim55);
 	    // find a spiral path
 	    std::array<uint16_t, size> spiral;
 	    std::set<uint16_t> remaining;
@@ -108,7 +131,8 @@ namespace {
 	}
     };
 }
-static Head<1024> head;
+size_t constexpr ledCount {1024};
+static Head<ledCount> head;
 
 static unsigned constexpr millisecondsPerSecond	{1000u};
 static unsigned constexpr microsecondsPerSecond	{1000000u};
@@ -138,7 +162,6 @@ char const * GoldenArtTask::Mode::toString() const {
     return string[value];
 }
 
-static size_t constexpr ledCount {1024};
 
 void GoldenArtTask::update_() {
     uint64_t const microsecondsSinceBoot {get_time_since_boot()};
