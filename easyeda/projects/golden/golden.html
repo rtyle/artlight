@@ -11,6 +11,14 @@
 			integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
 			crossorigin="anonymous"></script>
 		<script>
+			Array.prototype.rotate = (function() {
+			    var unshift = Array.prototype.unshift, splice = Array.prototype.splice
+			    return function(count) {
+				var len = this.length >>> 0, count = count >> 0
+				unshift.apply(this, splice.call(this, count % len, len))
+				return this
+			    }
+			})()
 			const tau = 2 * Math.PI
 			const phi = (1 + Math.sqrt(5)) / 2
 			const inFirstTurn = theta => theta % tau
@@ -69,7 +77,7 @@
 						.sort((p, q) => 		// by rho
 							Math.sign(p[1][0] - q[1][0])
 						)
-						.slice(0, 4)			// nearest
+						// .slice(0, 4)			// nearest
 				})
 				const nearestInsiders = function() {
 					// invert nearestOutsiders
@@ -92,28 +100,47 @@
 					return a.map((v, i) => [v, b[i]])
 				}(nearestInsiders, nearestOutsiders)
 			}(seedCount, seeds)
-			const toCanvas   = (canvas, x, y) => [x + canvas.width / 2, -y + canvas.height / 2]
-			const draw = (canvas, theta, ring, frame) => {
-				const strip = wendStrip(seedCount, seeds, theta)
+			const clockwise = (theta) => inFirstTurn(tau + (tau / 4) - theta)
+			const toCanvas = (canvas, x, y) => [x + canvas.width / 2, -y + canvas.height / 2]
+			const dot = (context, x, y, r, color) => {
+				const path = new Path2D()
+				path.arc(x, y, r, 0, tau)
+				context.save()
+				context.fillStyle = color
+				context.fill(path)
+				context.restore()
+			}
+			const draw = (canvas, theta, rimend, rimsize, nearness, frame) => {
+				rimend = Math.min(rimend, seedCount)
+				nearness %= 4
 				const context = canvas.getContext('2d')
 				context.clearRect(0, 0, canvas.width, canvas.height)
-				const begin = Array.from(ordinals(ring)).sort((i, j) => -Math.sign(seeds[seedCount - i - 1][1] - seeds[seedCount - j - 1][1]))
+				const rim = Array.from(ordinals(rimsize)).sort((a, b) => Math.sign(clockwise(seeds[rimend - 1 - a][1]) - clockwise(seeds[rimend - 1 - b][1])))
+				if (seeds[rimend - 1 - rim[rimsize - 1]][1] - tau / 4 < tau / 4 - seeds[rimend - 1 - rim[0]][1]) {
+console.log('rotate')
+					rim.rotate(-1)
+				}
+				for (var i = rimend - 1 - rim[frame % rimsize]; 0 <= i; i -= rimsize) {
+					dot(context, ...toCanvas(canvas, ...toCartesian(...seeds[i])), 12, 'green')
+				}
+				for (var i = rimend - 1 - rim[frame % rimsize];;) {
+					dot(context, ...toCanvas(canvas, ...toCartesian(...seeds[i])), 8, 'black')
+					const list = neighbors[i][0]
+					if (nearness < list.length) {
+						[i] = list[nearness]
+					} else {
+						break;
+					}
+				}
 				seeds.forEach((v, i) => {if (i < seedCount) {
-					const j = seedCount - i - 1
 					const a = toCanvas(canvas, ...toCartesian(...v))
 					// draw seed
-					const circlePath = new Path2D()
-					circlePath.arc(...a, 2, 0, tau)
-					if (0 === (begin[frame % ring] - j) % ring) {
-						circlePath.arc(...a, 8, 0, tau)
-					}
-					context.fill(circlePath)
+					dot(context, ...a, 2, false)
 if (1) {
 					// draw ray to one of the nearest neighbors
-					const list = neighbors[i][frame % 2]
-					const k = (Math.floor(frame / 2)) % 4
-					if (k < list.length) {
-						const neighbor = list[k]
+					const list = neighbors[i][0]
+					if (nearness < list.length) {
+						const neighbor = list[nearness]
 						const [j] = neighbor
 						if (j < seedCount) {
 							const b = toCanvas(canvas, ...toCartesian(...seeds[j]))
@@ -125,8 +152,10 @@ if (1) {
 					}
 }
 				}})
+				
 if (0) {
 				// draw strip path
+				const strip = wendStrip(seedCount, seeds, theta)
 				const stripPath = new Path2D()
 				var i = 0
 				strip.forEach(j => {
@@ -147,11 +176,13 @@ if (0) {
 				const canvas = document.getElementById('canvas')
 				const params = new URLSearchParams(window.location.search.substring(1))
 				const theta	= function(param) {return param ? parseInt(param) :       128}(params.get('theta')) * tau / 1024
-				const ring	= function(param) {return param ? parseInt(param) :        89}(params.get('ring'))
+				const rimend	= function(param) {return param ? parseInt(param) : seedCount}(params.get('rimend'))
+				const rimsize	= function(param) {return param ? parseInt(param) :        89}(params.get('rimsize'))
+				const nearness	= function(param) {return param ? parseInt(param) :         0}(params.get('nearness'))
 				var frame	= function(param) {return param ? parseInt(param) :         0}(params.get('frame'))
-				draw(canvas, theta, ring, frame)
+				draw(canvas, theta, rimend, rimsize, nearness, frame)
 				canvas.onclick = mouseEvent => {
-					draw(canvas, theta, ring, ++frame)
+					draw(canvas, theta, rimend, rimsize, nearness, ++frame)
 				}
 				const seedsOnCanvas = seeds.map(v => toCanvas(canvas, ...toCartesian(...v)))
 				canvas.addEventListener('mousemove', e => {
@@ -165,6 +196,33 @@ if (0) {
 				})
 			})
 		</script>
-		<canvas id='canvas' width='1536' height='1536'></canvas>
+		<canvas id='canvas' width='1280' height='1280'></canvas>
+		<br>
+		<a href="golden.html?nearness=1&rimend=569&rimsize=34">h 1 569 34</a><br>
+		<a href="golden.html?nearness=1&rimend=907&rimsize=89">m 1 907 89</a><br>
+		<a href="golden.html?nearness=2&rimend=1024&rimsize=144">s 2 1024 144</a><br>
+		<br>
+		<a href="golden.html?nearness=3&rimend=1024&rimsize=34">3 1024 34</br> 
+		<a href="golden.html?nearness=3&rimend=917&rimsize=144">3 917 144</a><br>
+		<a href="golden.html?nearness=3&rimend=582&rimsize=21">3 582 21</a><br>
+		<a href="golden.html?nearness=3&rimend=361&rimsize=89">3 361 89</a><br>
+		<br>
+		<a href="golden.html?nearness=2&rimend=1024&rimsize=144">2 1024 144</a><br>
+		<a href="golden.html?nearness=2&rimend=917&rimsize=34">2 917 34</a><br>
+		<a href="golden.html?nearness=2&rimend=569&rimsize=89">2 569 89</a><br>
+		<a href="golden.html?nearness=2&rimend=361&rimsize=21">2 361 21</a><br>
+		<a href="golden.html?nearness=2&rimend=225&rimsize=55">2 225 55</a><br>
+		<br>
+		<a href="golden.html?nearness=1&rimend=1024&rimsize=55">1 1024 55</a><br>
+		<a href="golden.html?nearness=1&rimend=907&rimsize=89">1 907 89</a><br>
+		<a href="golden.html?nearness=1&rimend=569&rimsize=34">1 569 34</a><br>
+		<a href="golden.html?nearness=1&rimend=355&rimsize=55">1 355 55</a><br>
+		<a href="golden.html?nearness=1&rimend=225&rimsize=21">1 225 21</a><br>
+		<br>
+		<a href="golden.html?nearness=0&rimend=1024&rimsize=89">0 1024 89</a><br>
+		<a href="golden.html?nearness=0&rimend=907&rimsize=55">0 907 55</a><br>
+		<a href="golden.html?nearness=0&rimend=355&rimsize=34">0 355 34</a><br>
+		<a href="golden.html?nearness=0&rimend=141&rimsize=21">0 141 21</a><br>
+		<br>
 	</body>
 </html>
