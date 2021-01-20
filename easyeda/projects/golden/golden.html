@@ -57,6 +57,7 @@
 					spiral.unshift(i)
 					remaining.delete(i)
 				}
+				// const layout = []; for (const [i, j] of spiral.entries()) {layout[j] = i}; console.log(layout);
 				return spiral
 			}
 			const neighbors = function(seedCount, seeds) {
@@ -117,9 +118,10 @@
 				context.clearRect(0, 0, canvas.width, canvas.height)
 				const rim = Array.from(ordinals(rimsize)).sort((a, b) => Math.sign(clockwise(seeds[rimend - 1 - a][1]) - clockwise(seeds[rimend - 1 - b][1])))
 				if (seeds[rimend - 1 - rim[rimsize - 1]][1] - tau / 4 < tau / 4 - seeds[rimend - 1 - rim[0]][1]) {
-console.log('rotate')
 					rim.rotate(-1)
 				}
+if (1) {
+				console.log(rim)
 				for (var i = rimend - 1 - rim[frame % rimsize]; 0 <= i; i -= rimsize) {
 					dot(context, ...toCanvas(canvas, ...toCartesian(...seeds[i])), 12, 'green')
 				}
@@ -132,6 +134,7 @@ console.log('rotate')
 						break;
 					}
 				}
+}
 				seeds.forEach((v, i) => {if (i < seedCount) {
 					const a = toCanvas(canvas, ...toCartesian(...v))
 					// draw seed
@@ -224,5 +227,15 @@ if (0) {
 		<a href="golden.html?nearness=0&rimend=355&rimsize=34">0 355 34</a><br>
 		<a href="golden.html?nearness=0&rimend=141&rimsize=21">0 141 21</a><br>
 		<br>
+		<a href="golden.html?nearness=0&rimend=1024&rimsize=144">0 1024 144</a><br>
+		<a href="golden.html?nearness=0&rimend=1024&rimsize=89" >0 1024  89</a><br>
+		<a href="golden.html?nearness=0&rimend=1024&rimsize=55" >0 1024  55</a><br>
+		<a href="golden.html?nearness=0&rimend=1024&rimsize=34" >0 1024  34</a><br>
+		<a href="golden.html?nearness=0&rimend=1024&rimsize=21" >0 1024  21</a><br>
+		<a href="golden.html?nearness=0&rimend=1024&rimsize=13" >0 1024  13</a><br>
+		<a href="golden.html?nearness=0&rimend=1024&rimsize=8"  >0 1024   8</a><br>
+		<a href="golden.html?nearness=0&rimend=1024&rimsize=5"  >0 1024   5</a><br>
+		<a href="golden.html?nearness=0&rimend=1024&rimsize=3"  >0 1024   3</a><br>
+		<a href="golden.html?nearness=0&rimend=1024&rimsize=2"  >0 1024   2</a><br>
 	</body>
 </html>
