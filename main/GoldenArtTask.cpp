@@ -97,7 +97,7 @@ std::array<uint16_t, ledCount> constexpr layout {
      918,  973,  884,  939,  994,  905,  960, 1015,  926,  981,  892,  947, 1002,  913,  968, 1023,
 };
 
-std::array<uint16_t, 144> constexpr rim144 {
+std::array<uint8_t, 144> constexpr rim144 {
       0,  89,  34, 123,  68,  13, 102,  47, 136,  81,  26, 115,  60,   5,  94,  39,
     128,  73,  18, 107,  52, 141,  86,  31, 120,  65,  10,  99,  44, 133,  78,  23,
     112,  57,   2,  91,  36, 125,  70,  15, 104,  49, 138,  83,  28, 117,  62,   7,
@@ -183,18 +183,18 @@ void GoldenArtTask::update_() {
     static std::mt19937 rng;
     static PerlinNoise perlinNoise[] {rng, rng, rng, rng};
     // Perlin noise repeats every 256 units.
-    static unsigned constexpr perlinNoisePeriod {256};
-    static uint64_t constexpr perlinNoisePeriodMicroseconds
+    unsigned constexpr perlinNoisePeriod {256};
+    uint64_t constexpr perlinNoisePeriodMicroseconds
 	{perlinNoisePeriod * microsecondsPerSecond};
     // Perlin noise at an integral grid point is 0.
     // To avoid this, cut between them.
 
-    static int constexpr octaves {1};
+    int constexpr octaves {1};
     float const t {((microsecondsSinceBoot / 8) % perlinNoisePeriodMicroseconds)
 	/ static_cast<float>(microsecondsPerSecond)};
     APA102::Message<1> message0;
     message0.encodings[0] = {[t]() -> uint32_t {
-	static int constexpr max {64};
+	int constexpr max {64};
 	static float constexpr x {0.5f};
 	return LEDI(
 	    max * perlinNoise[0].octaveNoise0_1(x, t, octaves),
@@ -204,7 +204,7 @@ void GoldenArtTask::update_() {
 
     APA102::Message<ledCount> message1;
     {
-	static int constexpr max {8};
+	int constexpr max {64};
 	auto & rim {rim21};
 	auto n {rim.size()};
 	float constexpr r {1.0f};
@@ -213,11 +213,12 @@ void GoldenArtTask::update_() {
 	    float const a {tau * i++ / n};
 	    float const x {r * std::cos(a)};
 	    float const y {r * std::sin(a)};
-	    LEDI led {
-		    static_cast<int>(max * perlinNoise[0].octaveNoise0_1(x, y, t, octaves)),
-		    static_cast<int>(max * perlinNoise[1].octaveNoise0_1(x, y, t, octaves)),
-		    static_cast<int>(max * perlinNoise[2].octaveNoise0_1(x, y, t, octaves))
+	    LED<> led {
+		static_cast<uint8_t>(max * perlinNoise[0].octaveNoise0_1(x, y, t, octaves)),
+		static_cast<uint8_t>(max * perlinNoise[1].octaveNoise0_1(x, y, t, octaves)),
+		static_cast<uint8_t>(max * perlinNoise[2].octaveNoise0_1(x, y, t, octaves))
 	    };
+	    led.part.control = ~0 << 5 | 1;	// scale by 1/31
 	    for (int k = ledCount - 1 - j; 0 <= k; k -= n) {
 		message1.encodings[layout[k]] = led;
 	    }
