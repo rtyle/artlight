@@ -13,6 +13,7 @@
 #include "clip.h"
 #include "fromString.h"
 #include "Blend.h"
+#include "Contrast.h"
 #include "GoldenArtTask.h"
 #include "Curve.h"
 #include "PerlinNoise.hpp"
@@ -24,19 +25,19 @@ extern "C" uint64_t get_time_since_boot();
 using APA102::LED;
 using LEDI = APA102::LED<int>;
 
-float constexpr phi	{(1.0f + std::sqrt(5.0f)) / 2.0f};
-float constexpr pi	{std::acos(-1.0f)};
-float constexpr tau	{2.0f * pi};
+constexpr float phi	{(1.0f + std::sqrt(5.0f)) / 2.0f};
+constexpr float pi	{std::acos(-1.0f)};
+constexpr float tau	{2.0f * pi};
 
 // https://en.wikipedia.org/wiki/Fibonacci_number
 // 0, 1, 2, 3, 4, 5, 6,  7,  8,  9, 10, 11,  12, ...
 // 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, ...
-static unsigned constexpr fibonacci_(unsigned a, unsigned b, unsigned n = 0) {
+static constexpr unsigned fibonacci_(unsigned a, unsigned b, unsigned n = 0) {
     return n
         ? fibonacci_(b, a + b, n - 1)
         : a + b;
 }
-static unsigned constexpr fibonacci(unsigned n) {
+static constexpr unsigned fibonacci(unsigned n) {
     return n > 1
         ? fibonacci_(0, 1, n - 2)
         : n
@@ -44,32 +45,10 @@ static unsigned constexpr fibonacci(unsigned n) {
             : 0;
 }
 
-unsigned constexpr millisecondsPerSecond	{1000u};
-unsigned constexpr microsecondsPerSecond	{1000000u};
+constexpr unsigned millisecondsPerSecond	{1000u};
+constexpr unsigned microsecondsPerSecond	{1000000u};
 
-// A Contrast function object maps a domain from 0 to 1 to a range from 0 to 1
-// to increase the contrast between values.
-// With no (0) curvature, this is an identity mapping; otherwise,
-// it is a normalized arctan mapping that reflects the magnitude of curvature.
-// https://www.desmos.com/calculator/2wgzlu8bqx
-struct Contrast {
-    float const curvature;
-    float const normalize;
-public:
-    Contrast(float curvature_) :
-	curvature(curvature_),
-	normalize(0.0f == curvature
-	    ? 0.0f
-	    : -1.0f / (2.0f * std::atan(-curvature / tau))
-	) {}
-    float operator () (float x) const {
-	return 0.0f == curvature
-	    ? x
-	    : 0.5f + normalize * std::atan(curvature * (x - 0.5f) / pi);
-    }
-};
-
-size_t constexpr ledCount {1024};
+constexpr size_t ledCount {1024};
 
 static Pulse hourPulse	{12};
 static Pulse minutePulse{60};
@@ -112,71 +91,81 @@ void GoldenArtTask::update_() {
     // of each ordered in a clockwise manner from the top.
     // these were imported from exploratory rendering code.
     // see easyeda/projects/golden/golden.html.
-    static std::array<std::vector<uint8_t>, 13> const rimMax {{
-	{ // 0 == fibonacci(0)
-	},
-	{ // 1 == fibonacci(1)
-	    0,
-	},
-	{ // 1 == fibonacci(2)
-	    0,
-	},
-	{ // 2 == fibonacci(3)
-	    0, 1,
-	},
-	{ // 3 == fibonacci(4)
-	    0, 2, 1,
-	},
-	{ // 5 == fibonacci(5)
-	    0, 2, 4, 1, 3,
-	},
-	{ // 8 == fibonacci(6)
-	    0, 5, 2, 7, 4, 1, 6, 3,
-	},
-	{ // 13 == fibonacci(7)
-	     0,  5, 10,  2,  7, 12,  4,  9,  1,  6, 11,  3,  8,
-	},
-	{ // 21 == fibonacci(8)
-	     0, 13,  5, 18, 10,  2, 15,  7, 20, 12,  4, 17,  9,  1, 14,  6,
-	    19, 11,  3, 16,  8,
-	},
-	{ // 34 == fibonacci(9)
-	     0, 13, 26,  5, 18, 31, 10, 23,  2, 15, 28,  7, 20, 33, 12, 25,
-	     4, 17, 30,  9, 22,  1, 14, 27,  6, 19, 32, 11, 24,  3, 16, 29,
-	     8, 21,
-	},
-	{ // 55 == fibonacci(10)
-	     0, 34, 13, 47, 26,  5, 39, 18, 52, 31, 10, 44, 23,  2, 36, 15,
-	    49, 28,  7, 41, 20, 54, 33, 12, 46, 25,  4, 38, 17, 51, 30,  9,
-	    43, 22,  1, 35, 14, 48, 27,  6, 40, 19, 53, 32, 11, 45, 24,  3,
-	    37, 16, 50, 29,  8, 42, 21,
-	},
-	{ // 89 == fibonacci(11)
-	     0, 34, 68, 13, 47, 81, 26, 60,  5, 39, 73, 18, 52, 86, 31, 65,
-	    10, 44, 78, 23, 57,  2, 36, 70, 15, 49, 83, 28, 62,  7, 41, 75,
-	    20, 54, 88, 33, 67, 12, 46, 80, 25, 59,  4, 38, 72, 17, 51, 85,
-	    30, 64,  9, 43, 77, 22, 56,  1, 35, 69, 14, 48, 82, 27, 61,  6,
-	    40, 74, 19, 53, 87, 32, 66, 11, 45, 79, 24, 58,  3, 37, 71, 16,
-	    50, 84, 29, 63,  8, 42, 76, 21, 55,
-	},
-	{ // 144 = fibonacci(12)
-	      0,  89,  34, 123,  68,  13, 102,  47, 136,  81,  26, 115,  60,   5,  94,  39,
-	    128,  73,  18, 107,  52, 141,  86,  31, 120,  65,  10,  99,  44, 133,  78,  23,
-	    112,  57,   2,  91,  36, 125,  70,  15, 104,  49, 138,  83,  28, 117,  62,   7,
-	     96,  41, 130,  75,  20, 109,  54, 143,  88,  33, 122,  67,  12, 101,  46, 135,
-	     80,  25, 114,  59,   4,  93,  38, 127,  72,  17, 106,  51, 140,  85,  30, 119,
-	     64,   9,  98,  43, 132,  77,  22, 111,  56,   1,  90,  35, 124,  69,  14, 103,
-	     48, 137,  82,  27, 116,  61,   6,  95,  40, 129,  74,  19, 108,  53, 142,  87,
-	     32, 121,  66,  11, 100,  45, 134,  79,  24, 113,  58,   3,  92,  37, 126,  71,
-	     16, 105,  50, 139,  84,  29, 118,  63,   8,  97,  42, 131,  76,  21, 110,  55,
-	},
-    }};
+    static constexpr uint8_t rimMax0[fibonacci(0)] {
+    };
+    static constexpr uint8_t rimMax1[fibonacci(1) /* == fibonacci(2) */] {
+        0,
+    };
+    static constexpr uint8_t rimMax2[fibonacci(3)] {
+        0, 1,
+    };
+    static constexpr uint8_t rimMax3[fibonacci(4)] {
+        0, 2, 1,
+    };
+    static constexpr uint8_t rimMax5[fibonacci(5)] {
+        0, 2, 4, 1, 3,
+    };
+    static constexpr uint8_t rimMax8[fibonacci(6)] {
+        0, 5, 2, 7, 4, 1, 6, 3,
+    };
+    static constexpr uint8_t rimMax13[fibonacci(7)] {
+         0,  5, 10,  2,  7, 12,  4,  9,  1,  6, 11,  3,  8,
+    };
+    static constexpr uint8_t rimMax21[fibonacci(8)] {
+         0, 13,  5, 18, 10,  2, 15,  7, 20, 12,  4, 17,  9,  1, 14,  6,
+        19, 11,  3, 16,  8,
+    };
+    static constexpr uint8_t rimMax34[fibonacci(9)] {
+         0, 13, 26,  5, 18, 31, 10, 23,  2, 15, 28,  7, 20, 33, 12, 25,
+         4, 17, 30,  9, 22,  1, 14, 27,  6, 19, 32, 11, 24,  3, 16, 29,
+         8, 21,
+    };
+    static constexpr uint8_t rimMax55[fibonacci(10)] {
+         0, 34, 13, 47, 26,  5, 39, 18, 52, 31, 10, 44, 23,  2, 36, 15,
+        49, 28,  7, 41, 20, 54, 33, 12, 46, 25,  4, 38, 17, 51, 30,  9,
+        43, 22,  1, 35, 14, 48, 27,  6, 40, 19, 53, 32, 11, 45, 24,  3,
+        37, 16, 50, 29,  8, 42, 21,
+    };
+    static constexpr uint8_t rimMax89[fibonacci(11)] {
+         0, 34, 68, 13, 47, 81, 26, 60,  5, 39, 73, 18, 52, 86, 31, 65,
+        10, 44, 78, 23, 57,  2, 36, 70, 15, 49, 83, 28, 62,  7, 41, 75,
+        20, 54, 88, 33, 67, 12, 46, 80, 25, 59,  4, 38, 72, 17, 51, 85,
+        30, 64,  9, 43, 77, 22, 56,  1, 35, 69, 14, 48, 82, 27, 61,  6,
+        40, 74, 19, 53, 87, 32, 66, 11, 45, 79, 24, 58,  3, 37, 71, 16,
+        50, 84, 29, 63,  8, 42, 76, 21, 55,
+    };
+    static constexpr uint8_t rimMax144[fibonacci(12)] {
+          0,  89,  34, 123,  68,  13, 102,  47, 136,  81,  26, 115,  60,   5,  94,  39,
+        128,  73,  18, 107,  52, 141,  86,  31, 120,  65,  10,  99,  44, 133,  78,  23,
+        112,  57,   2,  91,  36, 125,  70,  15, 104,  49, 138,  83,  28, 117,  62,   7,
+         96,  41, 130,  75,  20, 109,  54, 143,  88,  33, 122,  67,  12, 101,  46, 135,
+         80,  25, 114,  59,   4,  93,  38, 127,  72,  17, 106,  51, 140,  85,  30, 119,
+         64,   9,  98,  43, 132,  77,  22, 111,  56,   1,  90,  35, 124,  69,  14, 103,
+         48, 137,  82,  27, 116,  61,   6,  95,  40, 129,  74,  19, 108,  53, 142,  87,
+         32, 121,  66,  11, 100,  45, 134,  79,  24, 113,  58,   3,  92,  37, 126,  71,
+         16, 105,  50, 139,  84,  29, 118,  63,   8,  97,  42, 131,  76,  21, 110,  55,
+    };
+    static constexpr uint8_t const * const rimMax[] {
+        rimMax0,
+        rimMax1,
+        rimMax1,
+        rimMax2,
+        rimMax3,
+        rimMax5,
+        rimMax8,
+        rimMax13,
+        rimMax21,
+        rimMax34,
+        rimMax55,
+        rimMax89,
+        rimMax144,
+    };
 
-    // the natural rendering indeces need to be mapped to the way
-    // the LEDs are actually wired (addressed).
+    // the natural rendering indeces need to be mapped to the path indeces
+    // that reflect the way the LEDs are actually wired (addressed).
     // this order is conducive for board/trace layout.
     // see easyeda/projects/golden/scripts/goldenPath.js
-    std::array<uint16_t, ledCount> constexpr layout {
+    static constexpr uint16_t layout[ledCount] {
 	   0,    4,    8,    2,    6,    9,    3,    7,    1,    5,   22,   13,   18,   10,   15,   20,
 	  12,   17,   23,   14,   19,   11,   16,   21,   29,   38,   24,   33,   42,   27,   36,   45,
 	  31,   40,   25,   34,   43,   28,   37,   47,   32,   41,   26,   35,   44,   30,   39,   49,
@@ -247,21 +236,21 @@ void GoldenArtTask::update_() {
     static std::mt19937 rng;
     static PerlinNoise perlinNoise[] {rng, rng, rng, rng};
     // Perlin noise repeats every 256 units.
-    unsigned constexpr perlinNoisePeriod {256};
-    uint64_t constexpr perlinNoisePeriodMicroseconds
+    constexpr unsigned perlinNoisePeriod {256};
+    constexpr uint64_t perlinNoisePeriodMicroseconds
 	{perlinNoisePeriod * microsecondsPerSecond};
     // Perlin noise at an integral grid point is 0.
     // To avoid this, cut between them.
 
-    int constexpr octaves {1};
+    constexpr int octaves {1};
 
     uint64_t const microsecondsSinceBoot {get_time_since_boot()};
 
     APA102::Message<1> message0;
     {
+	constexpr int max {64};
 	float const t {(microsecondsSinceBoot % perlinNoisePeriodMicroseconds)
 	    / static_cast<float>(microsecondsPerSecond)};
-	int constexpr max {64};
 	for (auto & e: message0.encodings) {
 	    e = LED<> {
 		static_cast<uint8_t>(max * perlinNoise[0].octaveNoise0_1(t, octaves)),
@@ -275,16 +264,16 @@ void GoldenArtTask::update_() {
 
     APA102::Message<ledCount> message1;
     {
+	constexpr int max {64};
+	constexpr float r {1.0f};
 	float const t {((microsecondsSinceBoot / 8) % perlinNoisePeriodMicroseconds)
 	    / static_cast<float>(microsecondsPerSecond)};
-	int constexpr max {64};
 	auto i {8};
-	auto n {fibonacci(i)};
-	auto & rim {rimMax[i]};
-	float constexpr r {1.0f};
-	size_t j = 0;
-	for (auto & k: rim) {
-	    float const a {tau * j++ / n};
+	auto const n {fibonacci(i)};
+	auto kp {rimMax[i]};
+	for (auto j = 0; j < n; ++j, ++kp) {
+	    auto k {*kp};
+	    float const a {tau * j / n};
 	    float const x {r * std::cos(a)};
 	    float const y {r * std::sin(a)};
 	    LED<> led {
