@@ -47,6 +47,28 @@ static unsigned constexpr fibonacci(unsigned n) {
 unsigned constexpr millisecondsPerSecond	{1000u};
 unsigned constexpr microsecondsPerSecond	{1000000u};
 
+// A Contrast function object maps a domain from 0 to 1 to a range from 0 to 1
+// to increase the contrast between values.
+// With no (0) curvature, this is an identity mapping; otherwise,
+// it is a normalized arctan mapping that reflects the magnitude of curvature.
+// https://www.desmos.com/calculator/2wgzlu8bqx
+struct Contrast {
+    float const curvature;
+    float const normalize;
+public:
+    Contrast(float curvature_) :
+	curvature(curvature_),
+	normalize(0.0f == curvature
+	    ? 0.0f
+	    : -1.0f / (2.0f * std::atan(-curvature / tau))
+	) {}
+    float operator () (float x) const {
+	return 0.0f == curvature
+	    ? x
+	    : 0.5f + normalize * std::atan(curvature * (x - 0.5f) / pi);
+    }
+};
+
 size_t constexpr ledCount {1024};
 
 static Pulse hourPulse	{12};
@@ -249,6 +271,8 @@ void GoldenArtTask::update_() {
 	}
     }
 
+    Contrast contrast(20.0f);
+
     APA102::Message<ledCount> message1;
     {
 	float const t {((microsecondsSinceBoot / 8) % perlinNoisePeriodMicroseconds)
@@ -264,9 +288,9 @@ void GoldenArtTask::update_() {
 	    float const x {r * std::cos(a)};
 	    float const y {r * std::sin(a)};
 	    LED<> led {
-		static_cast<uint8_t>(max * perlinNoise[0].octaveNoise0_1(x, y, t, octaves)),
-		static_cast<uint8_t>(max * perlinNoise[1].octaveNoise0_1(x, y, t, octaves)),
-		static_cast<uint8_t>(max * perlinNoise[2].octaveNoise0_1(x, y, t, octaves))
+		static_cast<uint8_t>(max * contrast(perlinNoise[0].octaveNoise0_1(x, y, t, octaves))),
+		static_cast<uint8_t>(max * contrast(perlinNoise[1].octaveNoise0_1(x, y, t, octaves))),
+		static_cast<uint8_t>(max * contrast(perlinNoise[2].octaveNoise0_1(x, y, t, octaves)))
 	    };
 	    led.part.control = ~0 << 5 | 1;	// scale by 1/31
 	    for (auto l {static_cast<int>(ledCount - 1 - k)}; 0 <= l; l -= n) {
