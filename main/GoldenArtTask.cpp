@@ -242,33 +242,34 @@ void GoldenArtTask::update_() {
     // Perlin noise at an integral grid point is 0.
     // To avoid this, cut between them.
 
-    constexpr int octaves {1};
-
     uint64_t const microsecondsSinceBoot {get_time_since_boot()};
+
+    Contrast colorContrast(20.0f);
+    Contrast radiusContrast(10.0f);
 
     APA102::Message<1> message0;
     {
-	constexpr int max {64};
-	float const t {(microsecondsSinceBoot % perlinNoisePeriodMicroseconds)
+	constexpr int colorMax {64};
+	float const x {(microsecondsSinceBoot % perlinNoisePeriodMicroseconds)
 	    / static_cast<float>(microsecondsPerSecond)};
 	for (auto & e: message0.encodings) {
 	    e = LED<> {
-		static_cast<uint8_t>(max * perlinNoise[0].octaveNoise0_1(t, octaves)),
-		static_cast<uint8_t>(max * perlinNoise[1].octaveNoise0_1(t, octaves)),
-		static_cast<uint8_t>(max * perlinNoise[2].octaveNoise0_1(t, octaves))
+		static_cast<uint8_t>(colorMax * colorContrast(perlinNoise[0].noise0_1(x))),
+		static_cast<uint8_t>(colorMax * colorContrast(perlinNoise[1].noise0_1(x))),
+		static_cast<uint8_t>(colorMax * colorContrast(perlinNoise[2].noise0_1(x)))
 	    };
 	}
     }
 
-    Contrast contrast(20.0f);
 
     APA102::Message<ledCount> message1;
     {
-	constexpr int max {64};
-	constexpr float r {1.0f};
-	float const t {((microsecondsSinceBoot / 8) % perlinNoisePeriodMicroseconds)
+	constexpr auto colorMax {64u};
+	constexpr auto radiusMax {2u};
+	float const z {((microsecondsSinceBoot / 8) % perlinNoisePeriodMicroseconds)
 	    / static_cast<float>(microsecondsPerSecond)};
-	auto i {8};
+	float const r {radiusMax * radiusContrast(perlinNoise[3].noise0_1(z))};
+	auto i {8u};
 	auto const n {fibonacci(i)};
 	auto kp {rimMax[i]};
 	for (auto j = 0; j < n; ++j, ++kp) {
@@ -277,9 +278,9 @@ void GoldenArtTask::update_() {
 	    float const x {r * std::cos(a)};
 	    float const y {r * std::sin(a)};
 	    LED<> led {
-		static_cast<uint8_t>(max * contrast(perlinNoise[0].octaveNoise0_1(x, y, t, octaves))),
-		static_cast<uint8_t>(max * contrast(perlinNoise[1].octaveNoise0_1(x, y, t, octaves))),
-		static_cast<uint8_t>(max * contrast(perlinNoise[2].octaveNoise0_1(x, y, t, octaves)))
+		static_cast<uint8_t>(colorMax * colorContrast(perlinNoise[0].noise0_1(x, y, z))),
+		static_cast<uint8_t>(colorMax * colorContrast(perlinNoise[1].noise0_1(x, y, z))),
+		static_cast<uint8_t>(colorMax * colorContrast(perlinNoise[2].noise0_1(x, y, z)))
 	    };
 	    led.part.control = ~0 << 5 | 1;	// scale by 1/31
 	    for (auto l {static_cast<int>(ledCount - 1 - k)}; 0 <= l; l -= n) {
