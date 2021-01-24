@@ -59,7 +59,7 @@ static SawtoothCurve inHourOf  {0.0f, 60.0f * 60.0f};
 static SawtoothCurve inDayOf   {0.0f, 60.0f * 60.0f * 12.0f};	/// 12 hour clock
 
 char const * const GoldenArtTask::Mode::string[]
-    {"clock", "slide", "spin"};
+    {"clock", "swirl", "solid"};
 GoldenArtTask::Mode::Mode(Value value_) : value(value_) {}
 GoldenArtTask::Mode::Mode(char const * value) : value(
     [value](){
@@ -262,13 +262,14 @@ void GoldenArtTask::update_() {
 
 
     APA102::Message<ledCount> message1;
-    {
+    switch (mode.value) {
+    case Mode::Value::swirl: {
 	constexpr auto levelEnd {64.0f};	// [0, levelEnd)
 	constexpr auto radiusMax {1.5f};
 	constexpr auto iBegin {7u};	// first fibonacci(i) spiral
-	constexpr auto iCount {6u};	// # fibonacci(i) spirals in cycle
-	constexpr auto iSeconds {60u};	// during fibonacci(i) spiral
-	constexpr auto zSeconds {8u};	// during perlin noise period
+	constexpr auto iCount {6u};	// number of spirals in cycle
+	constexpr auto iSeconds {60u};	// covers one spiral
+	constexpr auto zSeconds {8u};	// covers perlin noise period
 
 	float const z {((microsecondsSinceBoot / zSeconds) % perlinNoisePeriodMicroseconds)
 	    / static_cast<float>(microsecondsPerSecond)};
@@ -276,7 +277,8 @@ void GoldenArtTask::update_() {
 	Contrast const radiusContrast {10.0f};
 	float const r {radiusMax * radiusContrast(perlinNoise[3].noise0_1(z))};
 
-	// ramp up by even offsets for first half, then ramp down by odds
+	// ramp up by even offsets for first half, then ramp down by odds.
+	// this results in each half having swirls going in the same direction.
 	auto const iEven {2u * static_cast<unsigned>(
 	    ((microsecondsSinceBoot / iSeconds) % (iCount * microsecondsPerSecond))
 		/ static_cast<float>(microsecondsPerSecond)
@@ -304,6 +306,21 @@ void GoldenArtTask::update_() {
 		message1.encodings[layout[l]] = led;
 	    }
 	}
+    } break;
+    default: {
+	constexpr auto levelEnd {64.0f};	// [0, levelEnd)
+	float const x {(microsecondsSinceBoot % perlinNoisePeriodMicroseconds)
+	    / static_cast<float>(microsecondsPerSecond)};
+	LED<> led {
+	    static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[0].noise0_1(x)), 0.0f)),
+	    static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[1].noise0_1(x)), 0.0f)),
+	    static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[2].noise0_1(x)), 0.0f))
+	};
+	led.part.control = ~0 << 5 | 1;	// scale by 1/31
+	for (auto & e: message1.encodings) {
+	    e = led;
+	}
+    } break;
     }
 
     // SPI::Transaction constructor queues the message.

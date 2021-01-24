@@ -19,7 +19,7 @@ private:
     private:
 	static char const * const string[];
     public:
-	enum Value {clock, slide, spin} value;
+	enum Value {clock, swirl, solid} value;
 	Mode(Value);
 	Mode(char const *);
 	char const * toString() const;
