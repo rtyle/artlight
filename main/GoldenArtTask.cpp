@@ -234,7 +234,7 @@ void GoldenArtTask::update_() {
 
     // construct static PerlinNoise objects
     static std::mt19937 rng;
-    static PerlinNoise perlinNoise[] {rng, rng, rng, rng};
+    static PerlinNoise perlinNoise[] {rng, rng, rng, rng, rng};
     // Perlin noise repeats every 256 units.
     constexpr unsigned perlinNoisePeriod {256};
     constexpr uint64_t perlinNoisePeriodMicroseconds
@@ -244,19 +244,18 @@ void GoldenArtTask::update_() {
 
     uint64_t const microsecondsSinceBoot {get_time_since_boot()};
 
-    Contrast colorContrast(20.0f);
-    Contrast radiusContrast(10.0f);
+    Contrast const levelContrast {20.0f};
 
     APA102::Message<1> message0;
     {
-	constexpr int colorMax {64};
+	constexpr auto levelEnd {64.0f};	// [0, levelEnd)
 	float const x {(microsecondsSinceBoot % perlinNoisePeriodMicroseconds)
 	    / static_cast<float>(microsecondsPerSecond)};
 	for (auto & e: message0.encodings) {
 	    e = LED<> {
-		static_cast<uint8_t>(colorMax * colorContrast(perlinNoise[0].noise0_1(x))),
-		static_cast<uint8_t>(colorMax * colorContrast(perlinNoise[1].noise0_1(x))),
-		static_cast<uint8_t>(colorMax * colorContrast(perlinNoise[2].noise0_1(x)))
+		static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[0].noise0_1(x)), 0.0f)),
+		static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[1].noise0_1(x)), 0.0f)),
+		static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[2].noise0_1(x)), 0.0f))
 	    };
 	}
     }
@@ -264,13 +263,31 @@ void GoldenArtTask::update_() {
 
     APA102::Message<ledCount> message1;
     {
-	constexpr auto colorMax {64u};
-	constexpr auto radiusMax {2u};
-	float const z {((microsecondsSinceBoot / 8) % perlinNoisePeriodMicroseconds)
+	constexpr auto levelEnd {64.0f};	// [0, levelEnd)
+	constexpr auto radiusMax {1.5f};
+	constexpr auto iBegin {3u};	// first fibonacci(i) spiral
+	constexpr auto iCount {10u};	// # fibonacci(i) spirals in cycle
+	constexpr auto iSeconds {60u};	// during fibonacci(i) spiral
+	constexpr auto zSeconds {8u};	// during perlin noise period
+
+	float const z {((microsecondsSinceBoot / zSeconds) % perlinNoisePeriodMicroseconds)
 	    / static_cast<float>(microsecondsPerSecond)};
+
+	Contrast const radiusContrast {10.0f};
 	float const r {radiusMax * radiusContrast(perlinNoise[3].noise0_1(z))};
-	auto i {8u};
+
+	// ramp up by even numbers for first half, then ramp down
+	auto const iEven {2u * static_cast<unsigned>(
+	    ((microsecondsSinceBoot / iSeconds) % (iCount * microsecondsPerSecond))
+		/ static_cast<float>(microsecondsPerSecond)
+	)};
+	auto const i {static_cast<unsigned>(iBegin +
+	    (iCount > iEven
+		? iEven
+		: 2 * iCount - iEven - 1)
+	)};
 	auto const n {fibonacci(i)};
+
 	auto kp {rimMax[i]};
 	for (auto j = 0; j < n; ++j, ++kp) {
 	    auto k {*kp};
@@ -278,9 +295,9 @@ void GoldenArtTask::update_() {
 	    float const x {r * std::cos(a)};
 	    float const y {r * std::sin(a)};
 	    LED<> led {
-		static_cast<uint8_t>(colorMax * colorContrast(perlinNoise[0].noise0_1(x, y, z))),
-		static_cast<uint8_t>(colorMax * colorContrast(perlinNoise[1].noise0_1(x, y, z))),
-		static_cast<uint8_t>(colorMax * colorContrast(perlinNoise[2].noise0_1(x, y, z)))
+		static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[0].noise0_1(x, y, z)), 0.0f)),
+		static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[1].noise0_1(x, y, z)), 0.0f)),
+		static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[2].noise0_1(x, y, z)), 0.0f))
 	    };
 	    led.part.control = ~0 << 5 | 1;	// scale by 1/31
 	    for (auto l {static_cast<int>(ledCount - 1 - k)}; 0 <= l; l -= n) {
