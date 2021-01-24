@@ -239,7 +239,7 @@ void GoldenArtTask::update_() {
     constexpr unsigned perlinNoisePeriod {256};
     constexpr uint64_t perlinNoisePeriodMicroseconds
 	{perlinNoisePeriod * microsecondsPerSecond};
-    // Perlin noise at an integral grid point is 0.
+    // Perlin noise at an integral grid point is 0 (0.5 for noise0_1).
     // To avoid this, cut between them.
 
     uint64_t const microsecondsSinceBoot {get_time_since_boot()};
@@ -265,8 +265,8 @@ void GoldenArtTask::update_() {
     {
 	constexpr auto levelEnd {64.0f};	// [0, levelEnd)
 	constexpr auto radiusMax {1.5f};
-	constexpr auto iBegin {3u};	// first fibonacci(i) spiral
-	constexpr auto iCount {10u};	// # fibonacci(i) spirals in cycle
+	constexpr auto iBegin {7u};	// first fibonacci(i) spiral
+	constexpr auto iCount {6u};	// # fibonacci(i) spirals in cycle
 	constexpr auto iSeconds {60u};	// during fibonacci(i) spiral
 	constexpr auto zSeconds {8u};	// during perlin noise period
 
@@ -276,7 +276,7 @@ void GoldenArtTask::update_() {
 	Contrast const radiusContrast {10.0f};
 	float const r {radiusMax * radiusContrast(perlinNoise[3].noise0_1(z))};
 
-	// ramp up by even numbers for first half, then ramp down
+	// ramp up by even offsets for first half, then ramp down by odds
 	auto const iEven {2u * static_cast<unsigned>(
 	    ((microsecondsSinceBoot / iSeconds) % (iCount * microsecondsPerSecond))
 		/ static_cast<float>(microsecondsPerSecond)
