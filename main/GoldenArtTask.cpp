@@ -75,6 +75,45 @@ char const * GoldenArtTask::Mode::toString() const {
     return string[value];
 }
 
+namespace {
+// A Path may be used to construct a standard input iterator
+// that begins at an unsigned value,
+// decrements a unsigned step (default 1) as it is advanced
+// until it exhausts all unsigned values on this path.
+class Path {
+public:
+    class Iterator: public std::iterator<std::input_iterator_tag, unsigned,
+	unsigned, unsigned const *, unsigned> {
+    public:
+	explicit Iterator(Path const * path_)
+	    : path{path_}, value{path->value} {}
+	explicit Iterator()
+	    : path{nullptr}, value{std::numeric_limits<value_type>::max()} {}
+	Iterator & operator++() {
+	    if (path) {
+		if (value < path->step)
+		    value = std::numeric_limits<value_type>::max();
+		else
+		    value -= path->step;
+	    }
+	    return *this;
+	}
+	bool operator==(Iterator that) const {return value == that.value;}
+	bool operator!=(Iterator that) const {return !(*this == that);}
+	reference operator*() const {return value;}
+    private:
+	Path const * path;
+	value_type value;
+    };
+    Path(Iterator::value_type value_, Iterator::value_type step_ = 1) : value{value_}, step{step_} {}
+    Iterator begin() {return Iterator(this);}
+    Iterator end() {return Iterator();}
+private:
+    Iterator::value_type const value;
+    Iterator::value_type const step;
+};
+}
+
 void GoldenArtTask::update_() {
     // LED i [0, ledCount) is rendered like a seed in a sunflower head
     // at polar coordinate
@@ -302,7 +341,7 @@ void GoldenArtTask::update_() {
 		static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[2].noise0_1(x, y, z)), 0.0f))
 	    };
 	    led.part.control = ~0 << 5 | 1;	// scale by 1/31
-	    for (auto l {static_cast<int>(ledCount - 1 - k)}; 0 <= l; l -= n) {
+	    for (auto const & l: Path{ledCount - 1 - k, n}) {
 		message1.encodings[layout[l]] = led;
 	    }
 	}
