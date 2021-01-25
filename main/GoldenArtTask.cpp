@@ -305,9 +305,9 @@ void GoldenArtTask::update_() {
     case Mode::Value::swirl: {
 	constexpr auto levelEnd {64.0f};	// [0, levelEnd)
 	constexpr auto radiusMax {1.5f};
-	constexpr auto iBegin {7u};	// first fibonacci(i) spiral
-	constexpr auto iCount {6u};	// number of spirals in cycle
-	constexpr auto iSeconds {60u};	// covers one spiral
+	constexpr auto iBegin {7u};	// first (fibonacci(i)) swirl
+	constexpr auto iCount {6u};	// number of swirls in cycle
+	constexpr auto iSeconds {60u};	// covers one swirl in cycle
 	constexpr auto zSeconds {8u};	// covers perlin noise period
 
 	float const z {((microsecondsSinceBoot / zSeconds) % perlinNoisePeriodMicroseconds)
