@@ -425,7 +425,7 @@ void GoldenArtTask::update_() {
 	    ++position;
 	}
 	for (auto & e: message1.encodings) {
-	    e &= (~0 << 29) | (1 << 24) | 0xffffff;
+	    e &= ~0 << 5 | 1;	// scale by 1/31
 	}
     } break;
     case Mode::Value::swirl: {
