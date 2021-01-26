@@ -47,6 +47,17 @@ public:
     float operator()(float place) const override;
 };
 
+/// HalfDial is a Dial whose function object
+/// returns static_cast<float>(half ? offset >= 0 : offset <= 0)
+/// where offset is the place relative to our position.
+class HalfDial : Dial {
+private:
+    bool half;
+public:
+    HalfDial(float position, bool half = false);
+    float operator()(float place) const override;
+};
+
 /// MesaDial is a Dial whose function object composes
 /// a mesa/plateau at a Dial position along its falling edge.
 /// The mesa value/height is 1 at its peak/center
@@ -61,7 +72,6 @@ public:
     MesaDial(float position, float width, unsigned order = 1);
     float operator()(float place) const override;
 };
-
 
 /// WaveDial is a Dial whose function object composes
 /// a modified cosine function (wave)
