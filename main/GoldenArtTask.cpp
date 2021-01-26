@@ -33,17 +33,13 @@ constexpr float sqrt2	{std::sqrt(2.0f)};
 // https://en.wikipedia.org/wiki/Fibonacci_number
 // 0, 1, 2, 3, 4, 5, 6,  7,  8,  9, 10, 11,  12, ...
 // 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, ...
-static constexpr unsigned fibonacci_(unsigned a, unsigned b, unsigned n = 0) {
-    return n
-        ? fibonacci_(b, a + b, n - 1)
-        : a + b;
+static constexpr unsigned fibonacci_(unsigned a, unsigned b, unsigned i) {
+    return i ? fibonacci_(b, a + b, i - 1) : a + b;
 }
-static constexpr unsigned fibonacci(unsigned n) {
-    return n > 1
-        ? fibonacci_(0, 1, n - 2)
-        : n
-            ? 1
-            : 0;
+constexpr unsigned n0 {0};
+constexpr unsigned n1 {1};
+static constexpr unsigned fibonacci(unsigned i) {
+    return i > 1 ? fibonacci_(n0, n1, i - 2) : i ? n1 : n0;
 }
 
 constexpr unsigned millisecondsPerSecond	{1000u};
@@ -295,7 +291,6 @@ void GoldenArtTask::update_() {
 	    };
 	}
     }
-
 
     APA102::Message<ledCount> message1;
     switch (mode.value) {
