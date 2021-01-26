@@ -119,7 +119,6 @@ float RippleCurve<T>::operator()(float place) const {
 }
 template float RippleCurve<>::operator()(float place) const;
 template float RippleCurve<Dial>::operator()(float place) const;
-#include <cmath>
 
 SawtoothCurve::SawtoothCurve(float position, float period_)
     : Curve(position), period(period_) {}
