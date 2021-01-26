@@ -28,6 +28,7 @@ using LEDI = APA102::LED<int>;
 constexpr float phi	{(1.0f + std::sqrt(5.0f)) / 2.0f};
 constexpr float pi	{std::acos(-1.0f)};
 constexpr float tau	{2.0f * pi};
+constexpr float sqrt2	{std::sqrt(2.0f)};
 
 // https://en.wikipedia.org/wiki/Fibonacci_number
 // 0, 1, 2, 3, 4, 5, 6,  7,  8,  9, 10, 11,  12, ...
@@ -49,14 +50,6 @@ constexpr unsigned millisecondsPerSecond	{1000u};
 constexpr unsigned microsecondsPerSecond	{1000000u};
 
 constexpr size_t ledCount {1024};
-
-static Pulse hourPulse	{12};
-static Pulse minutePulse{60};
-static Pulse secondPulse{60};
-
-static SawtoothCurve inMinuteOf{0.0f, 60.0f};
-static SawtoothCurve inHourOf  {0.0f, 60.0f * 60.0f};
-static SawtoothCurve inDayOf   {0.0f, 60.0f * 60.0f * 12.0f};	/// 12 hour clock
 
 char const * const GoldenArtTask::Mode::string[]
     {"clock", "swirl", "solid"};
@@ -114,6 +107,10 @@ private:
 };
 }
 
+static constexpr float phaseIn(uint64_t time, uint64_t period) {
+    return (time % period) / static_cast<float>(period);
+}
+
 void GoldenArtTask::update_() {
     // LED i [0, ledCount) is rendered like a seed in a sunflower head
     // at polar coordinate
@@ -130,42 +127,42 @@ void GoldenArtTask::update_() {
     // of each ordered in a clockwise manner from the top.
     // these were imported from exploratory rendering code.
     // see easyeda/projects/golden/golden.html.
-    static constexpr uint8_t rimMax0[fibonacci(0)] {
+    static constexpr uint8_t rim1024_0[fibonacci(0)] {
     };
-    static constexpr uint8_t rimMax1[fibonacci(1) /* == fibonacci(2) */] {
+    static constexpr uint8_t rim1024_1[fibonacci(1) /* == fibonacci(2) */] {
         0,
     };
-    static constexpr uint8_t rimMax2[fibonacci(3)] {
+    static constexpr uint8_t rim1024_2[fibonacci(3)] {
         0, 1,
     };
-    static constexpr uint8_t rimMax3[fibonacci(4)] {
+    static constexpr uint8_t rim1024_3[fibonacci(4)] {
         0, 2, 1,
     };
-    static constexpr uint8_t rimMax5[fibonacci(5)] {
+    static constexpr uint8_t rim1024_5[fibonacci(5)] {
         0, 2, 4, 1, 3,
     };
-    static constexpr uint8_t rimMax8[fibonacci(6)] {
+    static constexpr uint8_t rim1024_8[fibonacci(6)] {
         0, 5, 2, 7, 4, 1, 6, 3,
     };
-    static constexpr uint8_t rimMax13[fibonacci(7)] {
+    static constexpr uint8_t rim1024_13[fibonacci(7)] {
          0,  5, 10,  2,  7, 12,  4,  9,  1,  6, 11,  3,  8,
     };
-    static constexpr uint8_t rimMax21[fibonacci(8)] {
+    static constexpr uint8_t rim1024_21[fibonacci(8)] {
          0, 13,  5, 18, 10,  2, 15,  7, 20, 12,  4, 17,  9,  1, 14,  6,
         19, 11,  3, 16,  8,
     };
-    static constexpr uint8_t rimMax34[fibonacci(9)] {
+    static constexpr uint8_t rim1024_34[fibonacci(9)] {
          0, 13, 26,  5, 18, 31, 10, 23,  2, 15, 28,  7, 20, 33, 12, 25,
          4, 17, 30,  9, 22,  1, 14, 27,  6, 19, 32, 11, 24,  3, 16, 29,
          8, 21,
     };
-    static constexpr uint8_t rimMax55[fibonacci(10)] {
+    static constexpr uint8_t rim1024_55[fibonacci(10)] {
          0, 34, 13, 47, 26,  5, 39, 18, 52, 31, 10, 44, 23,  2, 36, 15,
         49, 28,  7, 41, 20, 54, 33, 12, 46, 25,  4, 38, 17, 51, 30,  9,
         43, 22,  1, 35, 14, 48, 27,  6, 40, 19, 53, 32, 11, 45, 24,  3,
         37, 16, 50, 29,  8, 42, 21,
     };
-    static constexpr uint8_t rimMax89[fibonacci(11)] {
+    static constexpr uint8_t rim1024_89[fibonacci(11)] {
          0, 34, 68, 13, 47, 81, 26, 60,  5, 39, 73, 18, 52, 86, 31, 65,
         10, 44, 78, 23, 57,  2, 36, 70, 15, 49, 83, 28, 62,  7, 41, 75,
         20, 54, 88, 33, 67, 12, 46, 80, 25, 59,  4, 38, 72, 17, 51, 85,
@@ -173,7 +170,7 @@ void GoldenArtTask::update_() {
         40, 74, 19, 53, 87, 32, 66, 11, 45, 79, 24, 58,  3, 37, 71, 16,
         50, 84, 29, 63,  8, 42, 76, 21, 55,
     };
-    static constexpr uint8_t rimMax144[fibonacci(12)] {
+    static constexpr uint8_t rim1024_144[fibonacci(12)] {
           0,  89,  34, 123,  68,  13, 102,  47, 136,  81,  26, 115,  60,   5,  94,  39,
         128,  73,  18, 107,  52, 141,  86,  31, 120,  65,  10,  99,  44, 133,  78,  23,
         112,  57,   2,  91,  36, 125,  70,  15, 104,  49, 138,  83,  28, 117,  62,   7,
@@ -184,20 +181,20 @@ void GoldenArtTask::update_() {
          32, 121,  66,  11, 100,  45, 134,  79,  24, 113,  58,   3,  92,  37, 126,  71,
          16, 105,  50, 139,  84,  29, 118,  63,   8,  97,  42, 131,  76,  21, 110,  55,
     };
-    static constexpr uint8_t const * const rimMax[] {
-        rimMax0,
-        rimMax1,
-        rimMax1,
-        rimMax2,
-        rimMax3,
-        rimMax5,
-        rimMax8,
-        rimMax13,
-        rimMax21,
-        rimMax34,
-        rimMax55,
-        rimMax89,
-        rimMax144,
+    static constexpr uint8_t const * const rim1024[] {
+        rim1024_0,
+        rim1024_1,
+        rim1024_1,
+        rim1024_2,
+        rim1024_3,
+        rim1024_5,
+        rim1024_8,
+        rim1024_13,
+        rim1024_21,
+        rim1024_34,
+        rim1024_55,
+        rim1024_89,
+        rim1024_144,
     };
 
     // the natural rendering indeces need to be mapped to the path indeces
@@ -302,6 +299,135 @@ void GoldenArtTask::update_() {
 
     APA102::Message<ledCount> message1;
     switch (mode.value) {
+    case Mode::Value::clock: {
+	static Pulse const pulses[] {
+	    {12},
+	    {60},
+	    {60},
+	};
+
+	static SawtoothCurve const sawtoothCurves[] {
+	    {0.0f, 60.0f * 60.0f * 12.0f},	// 12 hour clock
+	    {0.0f, 60.0f * 60.0f},
+	    {0.0f, 60.0f},
+	};
+
+	static constexpr float scales[] {
+	    phi		/ 1.5f,		//  > 1.0
+	    sqrt2	/ 1.5f,		//  < 1.0
+	    1.5f	/ 1.5f,		// == 1.0
+	};
+
+	static constexpr uint8_t const * const rims[] {
+	    rim1024_21,
+	    rim1024_55,
+	    rim1024_144,
+	};
+	static constexpr size_t rimEnds[] {
+	    1024,
+	    1024,
+	    1024,
+	};
+	static constexpr size_t rimSizes[] {
+	    21,
+	    55,
+	    144,
+	};
+
+	float const inRimWidths[] {
+	    static_cast<float>(width[0]) / rimSizes[0],
+	    static_cast<float>(width[1]) / rimSizes[1],
+	    static_cast<float>(width[2]) / rimSizes[2],
+	};
+
+	static LED<> const black{0, 0, 0};
+	Blend<LED<>> const blends[] {
+	    {black, color[0] / 4},
+	    {black, color[1] / 4},
+	    {black, color[2] / 4},
+	};
+
+	float const secondsSinceTwelveLocaltime {
+	    smoothTime.millisecondsSinceTwelveLocaltime(microsecondsSinceBoot)
+		/ static_cast<float>(millisecondsPerSecond)};
+
+	float const positions[] {
+	    pulses[0](sawtoothCurves[0](secondsSinceTwelveLocaltime)),
+	    pulses[1](sawtoothCurves[1](secondsSinceTwelveLocaltime)),
+	    pulses[2](sawtoothCurves[2](secondsSinceTwelveLocaltime)),
+	};
+
+	auto * scale		{scales};
+	auto * rim		{rims};
+	auto * rimEnd		{rimEnds};
+	auto * rimSize		{rimSizes};
+	auto * inRimWidth	{inRimWidths};
+	auto * blend		{blends};
+	auto * position		{positions};
+	for (auto i = 0u; i < 3; ++i) {
+
+	    std::function<LED<>(float)> render = [](float){return LED<>();};
+	    if (*inRimWidth) {
+		auto const waveWidth = 2.0f / *rimSize;
+		switch (shape[i].value) {
+		case Shape::Value::bell: {
+			BellCurve<Dial> dial(*position, *inRimWidth);
+			render = [blend, dial](float place) {
+			    return (*blend)(dial(place));
+			};
+		    }
+		    break;
+		case Shape::Value::wave: {
+			BellStandingWaveDial dial(*position,
+			    *inRimWidth,
+			    phaseIn(microsecondsSinceBoot,
+				microsecondsPerSecond * 2.0f
+				/ *scale / waveWidth),
+			    waveWidth);
+			render = [blend, dial](float place) {
+			    return (*blend)(dial(place));
+			};
+		    }
+		    break;
+		case Shape::Value::bloom: {
+			Dial dial(*position);
+			BumpCurve bump(0.0f, *inRimWidth);
+			BloomCurve bloom(0.0f, *inRimWidth,
+			    phaseIn(microsecondsSinceBoot,
+				microsecondsPerSecond * 2.0f
+				/ *scale));
+			render = [blend, dial, bump, bloom](float place) {
+			    float const offset {dial(place)};
+			    return (*blend)(bump(offset) * bloom(offset));
+			};
+		    }
+		    break;
+		}
+	    }
+
+	    auto const * kp = *rim;
+	    for (auto j = 0u; j < *rimSize; ++j) {
+		auto const k {*kp++};
+		auto const place {static_cast<float>(j) / *rimSize};
+		LED<> addend = render(place);
+		for (auto const & l: Path{*rimEnd - 1 - k, *rimSize}) {
+		    uint32_t & encoding {message1.encodings[layout[l]]};
+		    encoding = LED<>(encoding) + addend;
+		}
+	    }
+
+	    ++scale;
+	    ++rim;
+	    ++rimEnd;
+	    ++rimSize;
+	    ++inRimWidth;
+	    ++blend;
+	    ++position;
+	}
+	for (auto & e: message1.encodings) {
+	    e &= (~0 << 29) | (1 << 24) | 0xffffff;
+	}
+    } break;
     case Mode::Value::swirl: {
 	constexpr auto levelEnd {64.0f};	// [0, levelEnd)
 	constexpr auto radiusMax {1.5f};
@@ -329,9 +455,9 @@ void GoldenArtTask::update_() {
 	)};
 	auto const n {fibonacci(i)};
 
-	auto kp {rimMax[i]};
-	for (auto j = 0; j < n; ++j, ++kp) {
-	    auto k {*kp};
+	auto kp {rim1024[i]};
+	for (auto j = 0; j < n; ++j) {
+	    auto k {*kp++};
 	    float const a {tau * j / n};
 	    float const x {r * std::cos(a)};
 	    float const y {r * std::sin(a)};
