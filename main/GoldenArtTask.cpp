@@ -360,24 +360,24 @@ void GoldenArtTask::update_() {
 		    BellCurve<> bell {0.0f, *inRimWidth};
 		    auto const waveWidth {2.0f / *rimSize};
 		    switch (shape[i].value) {
-		    case Shape::Value::bell: {
-			render = [dial, half, bell, blend](float place) {
-			    float const offset {dial(place)};
-			    return (*blend)(half(offset) * bell(offset));
-			};
-		    } break;
-		    case Shape::Value::wave: {
-			BellStandingWaveDial wave{*position,
-			    *inRimWidth,
-			    phaseIn(microsecondsSinceBoot,
-				microsecondsPerSecond * 2.0f / waveWidth),
-			    waveWidth};
-			render = [dial, half, wave, blend](float place) {
-			    float const offset {dial(place)};
-			    return (*blend)(half(offset) * wave(place));
-			};
-		    } break;
-		    case Shape::Value::bloom: {
+			case Shape::Value::bell: {
+			    render = [dial, half, bell, blend](float place) {
+				float const offset {dial(place)};
+				return (*blend)(half(offset) * bell(offset));
+			    };
+			} break;
+			case Shape::Value::wave: {
+			    BellStandingWaveDial wave{*position,
+				*inRimWidth,
+				phaseIn(microsecondsSinceBoot,
+				    microsecondsPerSecond * 2.0f / waveWidth),
+				waveWidth};
+			    render = [dial, half, wave, blend](float place) {
+				float const offset {dial(place)};
+				return (*blend)(half(offset) * wave(place));
+			    };
+			} break;
+			case Shape::Value::bloom: {
 			    BumpCurve bump{0.0f, *inRimWidth};
 			    BloomCurve bloom{0.0f, *inRimWidth,
 				phaseIn(microsecondsSinceBoot,
@@ -386,8 +386,7 @@ void GoldenArtTask::update_() {
 				float const offset {dial(place)};
 				return (*blend)(half(offset) * bump(offset) * bloom(offset));
 			    };
-			}
-			break;
+			} break;
 		    }
 		}
 
