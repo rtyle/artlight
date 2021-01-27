@@ -17,7 +17,6 @@
 #include "GoldenArtTask.h"
 #include "Curve.h"
 #include "PerlinNoise.hpp"
-#include "Pulse.h"
 #include "Timer.h"
 
 extern "C" uint64_t get_time_since_boot();
@@ -28,7 +27,6 @@ using LEDI = APA102::LED<int>;
 constexpr float phi	{(1.0f + std::sqrt(5.0f)) / 2.0f};
 constexpr float pi	{std::acos(-1.0f)};
 constexpr float tau	{2.0f * pi};
-constexpr float sqrt2	{std::sqrt(2.0f)};
 
 // https://en.wikipedia.org/wiki/Fibonacci_number
 // 0, 1, 2, 3, 4, 5, 6,  7,  8,  9, 10, 11,  12, ...
@@ -114,9 +112,10 @@ void GoldenArtTask::update_() {
     // where scale was chosen to space the LEDs adequately
     // (18 mil for SK9822 5050 (5.0 x 5.0 mm) LEDs).
     //
-    // such rendering creates a family of spirals for each fibonacci number where
-    // * the fibonacci number is the number of spirals in the family and
-    // * the fibonacci number separates neighboring LEDs in any spiral.
+    // such rendering creates a family of spirals for each fibonacci number N
+    // where
+    // * N is the number of spirals in the family and
+    // * N separates neighboring LEDs in any spiral.
 
     // for rendering a family of spirals,
     // it is convenient to have the outermost rim of indeces (from the end)
@@ -295,22 +294,10 @@ void GoldenArtTask::update_() {
     APA102::Message<ledCount> message1;
     switch (mode.value) {
     case Mode::Value::clock: {
-	static Pulse const pulses[] {
-	    {12},
-	    {60},
-	    {60},
-	};
-
 	static SawtoothCurve const sawtoothCurves[] {
 	    {0.0f, 60.0f * 60.0f * 12.0f},	// 12 hour clock
 	    {0.0f, 60.0f * 60.0f},
 	    {0.0f, 60.0f},
-	};
-
-	static constexpr float scales[] {
-	    phi		/ 1.5f,		//  > 1.0
-	    sqrt2	/ 1.5f,		//  < 1.0
-	    1.5f	/ 1.5f,		// == 1.0
 	};
 
 	static constexpr uint8_t const * const rims[] {
@@ -323,10 +310,15 @@ void GoldenArtTask::update_() {
 	    1024,
 	    1024,
 	};
-	static constexpr size_t rimSizes[] {
-	    21,
-	    55,
-	    144,
+	static constexpr size_t rimIndexes[] {	// fibonacci indexes
+	     8,
+	    10,
+	    12,
+	};
+	static constexpr size_t rimSizes[] {	// fibonacci numbers
+	    fibonacci(rimIndexes[0]),
+	    fibonacci(rimIndexes[1]),
+	    fibonacci(rimIndexes[2]),
 	};
 
 	float const inRimWidths[] {
@@ -347,14 +339,14 @@ void GoldenArtTask::update_() {
 		/ static_cast<float>(millisecondsPerSecond)};
 
 	float const positions[] {
-	    pulses[0](sawtoothCurves[0](secondsSinceTwelveLocaltime)),
-	    pulses[1](sawtoothCurves[1](secondsSinceTwelveLocaltime)),
-	    pulses[2](sawtoothCurves[2](secondsSinceTwelveLocaltime)),
+	    sawtoothCurves[0](secondsSinceTwelveLocaltime),
+	    sawtoothCurves[1](secondsSinceTwelveLocaltime),
+	    sawtoothCurves[2](secondsSinceTwelveLocaltime),
 	};
 
-	auto * scale		{scales};
 	auto * rim		{rims};
 	auto * rimEnd		{rimEnds};
+	auto * rimIndex		{rimIndexes};
 	auto * rimSize		{rimSizes};
 	auto * inRimWidth	{inRimWidths};
 	auto * blend		{blends};
@@ -363,37 +355,36 @@ void GoldenArtTask::update_() {
 
 	    std::function<LED<>(float)> render = [](float){return LED<>();};
 	    if (*inRimWidth) {
-		auto const waveWidth = 2.0f / *rimSize;
+		Dial dial{*position};
+		HalfCurve half {0.0f, 1 & *rimIndex};
+		BellCurve<> bell {0.0f, *inRimWidth};
+		auto const waveWidth {2.0f / *rimSize};
 		switch (shape[i].value) {
 		case Shape::Value::bell: {
-			BellCurve<Dial> dial(*position, *inRimWidth);
-			render = [blend, dial](float place) {
-			    return (*blend)(dial(place));
-			};
-		    }
-		    break;
+		    render = [dial, half, bell, blend](float place) {
+			float const offset {dial(place)};
+			return (*blend)(half(offset) * bell(offset));
+		    };
+		} break;
 		case Shape::Value::wave: {
-			BellStandingWaveDial dial(*position,
-			    *inRimWidth,
-			    phaseIn(microsecondsSinceBoot,
-				microsecondsPerSecond * 2.0f
-				/ *scale / waveWidth),
-			    waveWidth);
-			render = [blend, dial](float place) {
-			    return (*blend)(dial(place));
-			};
-		    }
-		    break;
+		    BellStandingWaveDial wave{*position,
+			*inRimWidth,
+			phaseIn(microsecondsSinceBoot,
+			    microsecondsPerSecond * 2.0f / waveWidth),
+			waveWidth};
+		    render = [dial, half, wave, blend](float place) {
+			float const offset {dial(place)};
+			return (*blend)(half(offset) * wave(place));
+		    };
+		} break;
 		case Shape::Value::bloom: {
-			Dial dial(*position);
-			BumpCurve bump(0.0f, *inRimWidth);
-			BloomCurve bloom(0.0f, *inRimWidth,
+			BumpCurve bump{0.0f, *inRimWidth};
+			BloomCurve bloom{0.0f, *inRimWidth,
 			    phaseIn(microsecondsSinceBoot,
-				microsecondsPerSecond * 2.0f
-				/ *scale));
-			render = [blend, dial, bump, bloom](float place) {
+				microsecondsPerSecond * 2.0f)};
+			render = [dial, half, bump, bloom, blend](float place) {
 			    float const offset {dial(place)};
-			    return (*blend)(bump(offset) * bloom(offset));
+			    return (*blend)(half(offset) * bump(offset) * bloom(offset));
 			};
 		    }
 		    break;
@@ -411,9 +402,9 @@ void GoldenArtTask::update_() {
 		}
 	    }
 
-	    ++scale;
 	    ++rim;
 	    ++rimEnd;
+	    ++rimIndex;
 	    ++rimSize;
 	    ++inRimWidth;
 	    ++blend;
