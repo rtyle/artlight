@@ -50,14 +50,14 @@ float BellCurve<T>::operator()(float place) const {
 template float BellCurve<>::operator()(float) const;
 template float BellCurve<Dial>::operator()(float) const;
 
-HalfDial::HalfDial(float position, bool half_)
+HalfCurve::HalfCurve(float position, bool half_)
 :
-    Dial	{position},
+    Curve	{position},
     half	{half_}
 {}
 
-float HalfDial::operator()(float place) const {
-    float const offset {Dial::operator()(place)};
+float HalfCurve::operator()(float place) const {
+    float const offset {Curve::operator()(place)};
     return static_cast<float>(half ? offset >= 0 : offset <= 0);
 }
 

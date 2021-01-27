@@ -47,14 +47,14 @@ public:
     float operator()(float place) const override;
 };
 
-/// HalfDial is a Dial whose function object
+/// HalfCurve is a Curve whose function object
 /// returns static_cast<float>(half ? offset >= 0 : offset <= 0)
 /// where offset is the place relative to our position.
-class HalfDial : Dial {
+class HalfCurve : Curve {
 private:
     bool half;
 public:
-    HalfDial(float position, bool half = false);
+    HalfCurve(float position, bool half = false);
     float operator()(float place) const override;
 };
 
@@ -94,7 +94,6 @@ public:
     BellStandingWaveDial(
 	float position, float width, float wavePosition, float waveWidth);
     float operator()(float place) const override;
-
 };
 
 /// BloomCurve is a Curve whose function object is
