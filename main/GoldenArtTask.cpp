@@ -294,132 +294,113 @@ void GoldenArtTask::update_() {
     APA102::Message<ledCount> message1;
     switch (mode.value) {
 	case Mode::Value::clock: {
-	    static SawtoothCurve const sawtoothCurves[] {
-		{0.0f, 60.0f * 60.0f * 12.0f},	// 12 hour clock
-		{0.0f, 60.0f * 60.0f},
-		{0.0f, 60.0f},
-	    };
-
-	    static constexpr uint8_t const * const rims[] {
+	    static constexpr uint8_t const * const rim[] {
 		rim1024_21,
 		rim1024_55,
 		rim1024_144,
 	    };
-	    static constexpr size_t rimEnds[] {
-		1024,
-		1024,
-		1024,
+	    static constexpr unsigned rimEnd[] {
+		1024u,
+		1024u,
+		1024u,
 	    };
-	    static constexpr size_t rimIndexes[] {	// fibonacci indexes
-		 8,
-		10,
-		12,
+	    static constexpr unsigned rimIndex[] {	// fibonacci indexes
+		 8u,
+		10u,
+		12u,
 	    };
-	    static constexpr size_t rimSizes[] {	// fibonacci numbers
-		fibonacci(rimIndexes[0]),
-		fibonacci(rimIndexes[1]),
-		fibonacci(rimIndexes[2]),
-	    };
-
-	    float const inRimWidths[] {
-		static_cast<float>(width[0]) / rimSizes[0],
-		static_cast<float>(width[1]) / rimSizes[1],
-		static_cast<float>(width[2]) / rimSizes[2],
-	    };
-
-	    static LED<> const black{0, 0, 0};
-	    Blend<LED<>> const blends[] {
-		{black, color[0] / 4},
-		{black, color[1] / 4},
-		{black, color[2] / 4},
+	    static SawtoothCurve const sawtooth[] {
+		{0.0f, 60.0f * 60.0f * 12.0f},	// 12 hour clock
+		{0.0f, 60.0f * 60.0f},
+		{0.0f, 60.0f},
 	    };
 
 	    float const secondsSinceTwelveLocaltime {
 		smoothTime.millisecondsSinceTwelveLocaltime(microsecondsSinceBoot)
 		    / static_cast<float>(millisecondsPerSecond)};
 
-	    float const positions[] {
-		sawtoothCurves[0](secondsSinceTwelveLocaltime),
-		sawtoothCurves[1](secondsSinceTwelveLocaltime),
-		sawtoothCurves[2](secondsSinceTwelveLocaltime),
-	    };
-
-	    auto * rim		{rims};
-	    auto * rimEnd		{rimEnds};
-	    auto * rimIndex		{rimIndexes};
-	    auto * rimSize		{rimSizes};
-	    auto * inRimWidth	{inRimWidths};
-	    auto * blend		{blends};
-	    auto * position		{positions};
+	    auto * width_	{width};
+	    auto * color_	{color};
+	    auto * rim_		{rim};
+	    auto * rimEnd_	{rimEnd};
+	    auto * rimIndex_	{rimIndex};
+	    auto * sawtooth_	{sawtooth};
 	    for (auto i = 0u; i < 3; ++i) {
+		if (*width_) {
+		    static LED<> const black{0, 0, 0};
 
-		std::function<LED<>(float)> render = [](float){return LED<>();};
-		if (*inRimWidth) {
-		    Dial dial{*position};
-		    HalfCurve half {0.0f, 1 & *rimIndex};
-		    BellCurve<> bell {0.0f, *inRimWidth};
-		    auto const waveWidth {2.0f / *rimSize};
+		    auto position		{(*sawtooth_)(secondsSinceTwelveLocaltime)};
+		    auto rimSize		{fibonacci(*rimIndex_)};
+		    auto width__		{static_cast<float>(*width_) / rimSize};
+		    Blend<LED<>> const blend	{black, *color_ / 4};
+		    Dial const dial		{position};
+		    HalfCurve const half	{0.0f, 1 & *rimIndex_};
+		    BellCurve<> const bell	{0.0f, width__};
+
+		    std::function<LED<>(float)> render {[](float){return LED<>();}};
 		    switch (shape[i].value) {
 			case Shape::Value::bell: {
 			    render = [dial, half, bell, blend](float place) {
 				float const offset {dial(place)};
-				return (*blend)(half(offset) * bell(offset));
+				return blend(half(offset) * bell(offset));
 			    };
 			} break;
 			case Shape::Value::wave: {
-			    BellStandingWaveDial wave{*position,
-				*inRimWidth,
-				phaseIn(microsecondsSinceBoot,
-				    microsecondsPerSecond * 2.0f / waveWidth),
+			    float const wavePosition {phaseIn(microsecondsSinceBoot,
+				microsecondsPerSecond * rimSize)
+			    };
+			    float const waveWidth {2.0f / rimSize};
+			    BellStandingWaveDial wave{position,
+				width__,
+				wavePosition,
 				waveWidth};
 			    render = [dial, half, wave, blend](float place) {
 				float const offset {dial(place)};
-				return (*blend)(half(offset) * wave(place));
+				return blend(half(offset) * wave(place));
 			    };
 			} break;
 			case Shape::Value::bloom: {
-			    BumpCurve bump{0.0f, *inRimWidth};
-			    BloomCurve bloom{0.0f, *inRimWidth,
+			    BumpCurve bump{0.0f, width__};
+			    BloomCurve bloom{0.0f, width__,
 				phaseIn(microsecondsSinceBoot,
-				    microsecondsPerSecond * 2.0f)};
+				    microsecondsPerSecond << 1)};
 			    render = [dial, half, bump, bloom, blend](float place) {
 				float const offset {dial(place)};
-				return (*blend)(half(offset) * bump(offset) * bloom(offset));
+				return blend(half(offset) * bump(offset) * bloom(offset));
 			    };
 			} break;
 		    }
-		}
 
-		auto const * kp = *rim;
-		for (auto j = 0u; j < *rimSize; ++j) {
-		    auto const k {*kp++};
-		    auto const place {static_cast<float>(j) / *rimSize};
-		    LED<> addend = render(place);
-		    for (auto const & l: Path{*rimEnd - 1 - k, *rimSize}) {
-			uint32_t & encoding {message1.encodings[layout[l]]};
-			encoding = LED<>(encoding) + addend;
+		    auto const * kp {*rim_};
+		    for (auto j {0u}; j < rimSize; ++j) {
+			auto const k {*kp++};
+			auto const place {static_cast<float>(j) / rimSize};
+			LED<> addend = render(place);
+			for (auto const & l: Path{*rimEnd_ - 1u - k, rimSize}) {
+			    uint32_t & encoding {message1.encodings[layout[l]]};
+			    encoding = LED<>(encoding) + addend;
+			}
 		    }
 		}
 
-		++rim;
-		++rimEnd;
-		++rimIndex;
-		++rimSize;
-		++inRimWidth;
-		++blend;
-		++position;
+		++width_;
+		++color_;
+		++rim_;
+		++rimEnd_;
+		++rimIndex_;
+		++sawtooth_;
 	    }
 	    for (auto & e: message1.encodings) {
 		e &= ~0 << 5 | 1;	// scale by 1/31
 	    }
 	} break;
 	case Mode::Value::swirl: {
-	    constexpr auto levelEnd {64.0f};	// [0, levelEnd)
-	    constexpr auto radiusMax {1.5f};
-	    constexpr auto iBegin {7u};	// first (fibonacci(i)) swirl
-	    constexpr auto iCount {6u};	// number of swirls in cycle
-	    constexpr auto iSeconds {60u};	// covers one swirl in cycle
-	    constexpr auto zSeconds {8u};	// covers perlin noise period
+	    constexpr auto levelEnd	{64.0f};	// [0, levelEnd)
+	    constexpr auto radiusMax	{1.5f};
+	    constexpr auto iBegin	{7u};	// first (fibonacci(i)) swirl
+	    constexpr auto iCount	{6u};	// number of swirls in cycle
+	    constexpr auto iSeconds	{60u};	// covers one swirl in cycle
+	    constexpr auto zSeconds	{8u};	// covers perlin noise period
 
 	    float const z {((microsecondsSinceBoot / zSeconds) % perlinNoisePeriodMicroseconds)
 		/ static_cast<float>(microsecondsPerSecond)};
