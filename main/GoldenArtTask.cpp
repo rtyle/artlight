@@ -124,40 +124,43 @@ void GoldenArtTask::update_() {
     // see easyeda/projects/golden/golden.html.
     static constexpr uint8_t rim1024_0[fibonacci(0)] {
     };
-    static constexpr uint8_t rim1024_1[fibonacci(1) /* == fibonacci(2) */] {
+    static constexpr uint8_t rim1024_1[fibonacci(1)] {
         0,
     };
-    static constexpr uint8_t rim1024_2[fibonacci(3)] {
+    static constexpr uint8_t rim1024_2[fibonacci(2)] {
+	0,
+    };
+    static constexpr uint8_t rim1024_3[fibonacci(3)] {
         0, 1,
     };
-    static constexpr uint8_t rim1024_3[fibonacci(4)] {
+    static constexpr uint8_t rim1024_4[fibonacci(4)] {
         0, 2, 1,
     };
     static constexpr uint8_t rim1024_5[fibonacci(5)] {
         0, 2, 4, 1, 3,
     };
-    static constexpr uint8_t rim1024_8[fibonacci(6)] {
+    static constexpr uint8_t rim1024_6[fibonacci(6)] {
         0, 5, 2, 7, 4, 1, 6, 3,
     };
-    static constexpr uint8_t rim1024_13[fibonacci(7)] {
+    static constexpr uint8_t rim1024_7[fibonacci(7)] {
          0,  5, 10,  2,  7, 12,  4,  9,  1,  6, 11,  3,  8,
     };
-    static constexpr uint8_t rim1024_21[fibonacci(8)] {
+    static constexpr uint8_t rim1024_8[fibonacci(8)] {
          0, 13,  5, 18, 10,  2, 15,  7, 20, 12,  4, 17,  9,  1, 14,  6,
         19, 11,  3, 16,  8,
     };
-    static constexpr uint8_t rim1024_34[fibonacci(9)] {
+    static constexpr uint8_t rim1024_9[fibonacci(9)] {
          0, 13, 26,  5, 18, 31, 10, 23,  2, 15, 28,  7, 20, 33, 12, 25,
          4, 17, 30,  9, 22,  1, 14, 27,  6, 19, 32, 11, 24,  3, 16, 29,
          8, 21,
     };
-    static constexpr uint8_t rim1024_55[fibonacci(10)] {
+    static constexpr uint8_t rim1024_10[fibonacci(10)] {
          0, 34, 13, 47, 26,  5, 39, 18, 52, 31, 10, 44, 23,  2, 36, 15,
         49, 28,  7, 41, 20, 54, 33, 12, 46, 25,  4, 38, 17, 51, 30,  9,
         43, 22,  1, 35, 14, 48, 27,  6, 40, 19, 53, 32, 11, 45, 24,  3,
         37, 16, 50, 29,  8, 42, 21,
     };
-    static constexpr uint8_t rim1024_89[fibonacci(11)] {
+    static constexpr uint8_t rim1024_11[fibonacci(11)] {
          0, 34, 68, 13, 47, 81, 26, 60,  5, 39, 73, 18, 52, 86, 31, 65,
         10, 44, 78, 23, 57,  2, 36, 70, 15, 49, 83, 28, 62,  7, 41, 75,
         20, 54, 88, 33, 67, 12, 46, 80, 25, 59,  4, 38, 72, 17, 51, 85,
@@ -165,7 +168,7 @@ void GoldenArtTask::update_() {
         40, 74, 19, 53, 87, 32, 66, 11, 45, 79, 24, 58,  3, 37, 71, 16,
         50, 84, 29, 63,  8, 42, 76, 21, 55,
     };
-    static constexpr uint8_t rim1024_144[fibonacci(12)] {
+    static constexpr uint8_t rim1024_12[fibonacci(12)] {
           0,  89,  34, 123,  68,  13, 102,  47, 136,  81,  26, 115,  60,   5,  94,  39,
         128,  73,  18, 107,  52, 141,  86,  31, 120,  65,  10,  99,  44, 133,  78,  23,
         112,  57,   2,  91,  36, 125,  70,  15, 104,  49, 138,  83,  28, 117,  62,   7,
@@ -179,17 +182,17 @@ void GoldenArtTask::update_() {
     static constexpr uint8_t const * const rim1024[] {
         rim1024_0,
         rim1024_1,
-        rim1024_1,
         rim1024_2,
         rim1024_3,
+        rim1024_4,
         rim1024_5,
+        rim1024_6,
+        rim1024_7,
         rim1024_8,
-        rim1024_13,
-        rim1024_21,
-        rim1024_34,
-        rim1024_55,
-        rim1024_89,
-        rim1024_144,
+        rim1024_9,
+        rim1024_10,
+        rim1024_11,
+        rim1024_12,
     };
 
     // the natural rendering indeces need to be mapped to the path indeces
@@ -295,9 +298,9 @@ void GoldenArtTask::update_() {
     switch (mode.value) {
 	case Mode::Value::clock: {
 	    static constexpr uint8_t const * const rim[] {
-		rim1024_21,
-		rim1024_55,
-		rim1024_144,
+		rim1024_8,
+		rim1024_10,
+		rim1024_12,
 	    };
 	    static constexpr unsigned rimEnd[] {
 		1024u,
