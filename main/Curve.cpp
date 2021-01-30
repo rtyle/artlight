@@ -135,7 +135,8 @@ SawtoothCurve::SawtoothCurve(float position, float period_)
     : Curve(position), period(period_) {}
 
 float SawtoothCurve::operator()(float place) const {
-    float offset = std::abs(Curve::operator()(place));
+    float const offset {Curve::operator()(place)};
     float ignore;
-    return std::modf(offset / period, &ignore);
+    float const value {std::modf(offset / period, &ignore)};
+    return 0.0f > value ? 1.0f + value : value;
 }
