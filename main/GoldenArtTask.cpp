@@ -24,7 +24,6 @@ extern "C" uint64_t get_time_since_boot();
 using APA102::LED;
 using LEDI = APA102::LED<int>;
 
-constexpr float phi	{(1.0f + std::sqrt(5.0f)) / 2.0f};
 constexpr float pi	{std::acos(-1.0f)};
 constexpr float tau	{2.0f * pi};
 
@@ -312,10 +311,10 @@ void GoldenArtTask::update_() {
 		10u,
 		12u,
 	    };
-	    static SawtoothCurve const sawtooth[] {
-		{0.0f, 60.0f * 60.0f * 12.0f},	// 12 hour clock
-		{0.0f, 60.0f * 60.0f},
-		{0.0f, 60.0f},
+	    static SawtoothCurve const unit[] {	// [0, 1) in
+		{0.0f, 60.0f * 60.0f * 12.0f},	// day (12 hour)
+		{0.0f, 60.0f * 60.0f},		// hour
+		{0.0f, 60.0f},			// minute
 	    };
 
 	    float const secondsSinceTwelveLocaltime {
@@ -327,18 +326,18 @@ void GoldenArtTask::update_() {
 	    auto * rim_		{rim};
 	    auto * rimEnd_	{rimEnd};
 	    auto * rimIndex_	{rimIndex};
-	    auto * sawtooth_	{sawtooth};
+	    auto * unit_	{unit};
 	    for (auto i = 0u; i < 3; ++i) {
 		if (*width_) {
 		    static LED<> const black{0, 0, 0};
 
-		    auto position		{(*sawtooth_)(secondsSinceTwelveLocaltime)};
-		    auto rimSize		{fibonacci(*rimIndex_)};
-		    auto width__		{static_cast<float>(*width_) / rimSize};
-		    Blend<LED<>> const blend	{black, *color_ / 4};
-		    Dial const dial		{position};
-		    HalfCurve const half	{0.0f, 1 & *rimIndex_};
-		    BellCurve<> const bell	{0.0f, width__};
+		    auto	const position	{(*unit_)(secondsSinceTwelveLocaltime)};
+		    auto	const rimSize	{fibonacci(*rimIndex_)};
+		    auto	const width__	{static_cast<float>(*width_) / rimSize};
+		    Blend<LED<>>const blend	{black, *color_ / 4};
+		    Dial	const dial	{position};
+		    HalfCurve	const half	{0.0f, 1 & *rimIndex_};
+		    BellCurve<>	const bell	{0.0f, width__};
 
 		    std::function<LED<>(float)> render {[](float){return LED<>();}};
 		    switch (shape[i].value) {
@@ -349,18 +348,16 @@ void GoldenArtTask::update_() {
 			    };
 			} break;
 			case Shape::Value::wave: {
-			    float const wavePosition {phaseIn(microsecondsSinceBoot,
-				microsecondsPerSecond * rimSize)
+			    auto const phase {phaseIn(microsecondsSinceBoot,
+				2u * microsecondsPerSecond)};
+			    auto const waveWidth {2.0f / rimSize};
+			    auto const wavePosition {phase * waveWidth};
+			    WaveDial const wave {wavePosition, waveWidth};
+			    render = [dial, half, bell, wave, blend](float place) {
+				auto const offset {dial(place)};
+				return blend(half(offset) * bell(offset) * wave(place));
 			    };
-			    float const waveWidth {2.0f / rimSize};
-			    BellStandingWaveDial wave{position,
-				width__,
-				wavePosition,
-				waveWidth};
-			    render = [dial, half, wave, blend](float place) {
-				float const offset {dial(place)};
-				return blend(half(offset) * wave(place));
-			    };
+
 			} break;
 			case Shape::Value::bloom: {
 			    BumpCurve bump{0.0f, width__};
@@ -391,14 +388,14 @@ void GoldenArtTask::update_() {
 		++rim_;
 		++rimEnd_;
 		++rimIndex_;
-		++sawtooth_;
+		++unit_;
 	    }
 	    for (auto & e: message1.encodings) {
 		e &= ~0 << 5 | 1;	// scale by 1/31
 	    }
 	} break;
 	case Mode::Value::swirl: {
-	    constexpr auto levelEnd	{64.0f};	// [0, levelEnd)
+	    constexpr auto levelEnd	{64.0f};// [0, levelEnd)
 	    constexpr auto radiusMax	{1.5f};
 	    constexpr auto iBegin	{7u};	// first (fibonacci(i)) swirl
 	    constexpr auto iCount	{6u};	// number of swirls in cycle
