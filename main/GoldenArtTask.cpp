@@ -304,6 +304,10 @@ void GoldenArtTask::update_() {
 		smoothTime.millisecondsSinceTwelveLocaltime(microsecondsSinceBoot)
 		    / static_cast<float>(millisecondsPerSecond)};
 
+	    constexpr auto wavePeriod {2.0f};	// seconds
+	    float ignore;
+	    auto const wavePhase {std::modf(secondsSinceTwelveLocaltime / wavePeriod, &ignore)};
+
 	    auto * width_	{width};
 	    auto * color_	{color};
 	    auto * rim_		{rim};
@@ -329,16 +333,13 @@ void GoldenArtTask::update_() {
 			    };
 			} break;
 			case Shape::Value::wave: {
-			    auto const phase {phaseIn(microsecondsSinceBoot,
-				2u * microsecondsPerSecond)};
 			    auto const waveWidth {2.0f / rimSize};
-			    auto const wavePosition {phase * waveWidth};
+			    auto const wavePosition {position + wavePhase * waveWidth};
 			    WaveDial const wave {wavePosition, waveWidth};
 			    render = [dial, half, bell, wave, blend](float place) {
 				auto const offset {dial(place)};
 				return blend(half(offset) * bell(offset) * wave(place));
 			    };
-
 			} break;
 			case Shape::Value::bloom: {
 			    BumpCurve bump{0.0f, width__};
