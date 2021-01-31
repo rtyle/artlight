@@ -8,9 +8,7 @@
 #include <vector>
 
 #include <esp_log.h>
-#include <esp_heap_caps.h>
 
-#include "clip.h"
 #include "fromString.h"
 #include "Blend.h"
 #include "Contrast.h"
@@ -20,9 +18,6 @@
 #include "Timer.h"
 
 extern "C" uint64_t get_time_since_boot();
-
-using APA102::LED;
-using LEDI = APA102::LED<int>;
 
 constexpr float pi	{std::acos(-1.0f)};
 constexpr float tau	{2.0f * pi};
@@ -178,21 +173,6 @@ void GoldenArtTask::update_() {
          32, 121,  66,  11, 100,  45, 134,  79,  24, 113,  58,   3,  92,  37, 126,  71,
          16, 105,  50, 139,  84,  29, 118,  63,   8,  97,  42, 131,  76,  21, 110,  55,
     };
-    static constexpr uint8_t const * const rim1024[] {
-        rim1024_0,
-        rim1024_1,
-        rim1024_2,
-        rim1024_3,
-        rim1024_4,
-        rim1024_5,
-        rim1024_6,
-        rim1024_7,
-        rim1024_8,
-        rim1024_9,
-        rim1024_10,
-        rim1024_11,
-        rim1024_12,
-    };
 
     // the natural rendering indeces need to be mapped to the path indeces
     // that reflect the way the LEDs are actually wired (addressed).
@@ -285,7 +265,7 @@ void GoldenArtTask::update_() {
 	float const x {(microsecondsSinceBoot % perlinNoisePeriodMicroseconds)
 	    / static_cast<float>(microsecondsPerSecond)};
 	for (auto & e: message0.encodings) {
-	    e = LED<> {
+	    e = APA102::LED<> {
 		static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[0].noise0_1(x)), 0.0f)),
 		static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[1].noise0_1(x)), 0.0f)),
 		static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[2].noise0_1(x)), 0.0f))
@@ -296,20 +276,17 @@ void GoldenArtTask::update_() {
     APA102::Message<ledCount> message1;
     switch (mode.value) {
 	case Mode::Value::clock: {
-	    static constexpr uint8_t const * const rim[] {
-		rim1024_8,
-		rim1024_10,
-		rim1024_12,
+	    struct Rim {
+		unsigned const	end;
+		unsigned const	index;
+		uint8_t const *	sequence;
 	    };
-	    static constexpr unsigned rimEnd[] {
-		1024u,
-		1024u,
-		1024u,
-	    };
-	    static constexpr unsigned rimIndex[] {	// fibonacci indexes
-		 8u,
-		10u,
-		12u,
+	    static constexpr Rim rim[] {
+		#define RimArgs(end, index) {end, index, rim##end##_##index}
+		RimArgs(1024,  8),
+		RimArgs(1024, 10),
+		RimArgs(1024, 12),
+		#undef RimArgs
 	    };
 	    static SawtoothCurve const unit[] {	// [0, 1) in
 		{0.0f, 60.0f * 60.0f * 12.0f},	// day (12 hour)
@@ -324,19 +301,17 @@ void GoldenArtTask::update_() {
 	    auto * width_	{width};
 	    auto * color_	{color};
 	    auto * rim_		{rim};
-	    auto * rimEnd_	{rimEnd};
-	    auto * rimIndex_	{rimIndex};
 	    auto * unit_	{unit};
 	    for (auto i = 0u; i < 3; ++i) {
 		if (*width_) {
-		    static LED<> const black{0, 0, 0};
+		    static APA102::LED<> const black{0, 0, 0};
 
 		    auto	const position	{(*unit_)(secondsSinceTwelveLocaltime)};
-		    auto	const rimSize	{fibonacci(*rimIndex_)};
+		    auto	const rimSize	{fibonacci(rim_->index)};
 		    auto	const width__	{static_cast<float>(*width_) / rimSize};
 		    Blend<LED<>>const blend	{black, *color_ / 4};
 		    Dial	const dial	{position};
-		    HalfCurve	const half	{0.0f, 1 & *rimIndex_};
+		    HalfCurve	const half	{0.0f, 1 & rim_->index};
 		    BellCurve<>	const bell	{0.0f, width__};
 
 		    std::function<LED<>(float)> render {[](float){return LED<>();}};
@@ -371,14 +346,14 @@ void GoldenArtTask::update_() {
 			} break;
 		    }
 
-		    auto const * kp {*rim_};
+		    auto const * kp {rim_->sequence};
 		    for (auto j {0u}; j < rimSize; ++j) {
 			auto const k {*kp++};
 			auto const place {static_cast<float>(j) / rimSize};
-			LED<> addend = render(place);
-			for (auto const & l: Path{*rimEnd_ - 1u - k, rimSize}) {
+			APA102::LED<> addend = render(place);
+			for (auto const & l: Path{rim_->end - 1u - k, rimSize}) {
 			    uint32_t & encoding {message1.encodings[layout[l]]};
-			    encoding = LED<>(encoding) + addend;
+			    encoding = APA102::LED<>(encoding) + addend;
 			}
 		    }
 		}
@@ -386,8 +361,6 @@ void GoldenArtTask::update_() {
 		++width_;
 		++color_;
 		++rim_;
-		++rimEnd_;
-		++rimIndex_;
 		++unit_;
 	    }
 	    for (auto & e: message1.encodings) {
@@ -395,6 +368,22 @@ void GoldenArtTask::update_() {
 	    }
 	} break;
 	case Mode::Value::swirl: {
+	    static constexpr uint8_t const * const rim1024[] {
+	        rim1024_0,
+	        rim1024_1,
+	        rim1024_2,
+	        rim1024_3,
+	        rim1024_4,
+	        rim1024_5,
+	        rim1024_6,
+	        rim1024_7,
+	        rim1024_8,
+	        rim1024_9,
+	        rim1024_10,
+	        rim1024_11,
+	        rim1024_12,
+	    };
+
 	    constexpr auto levelEnd	{64.0f};// [0, levelEnd)
 	    constexpr auto radiusMax	{1.5f};
 	    constexpr auto iBegin	{7u};	// first (fibonacci(i)) swirl
@@ -427,7 +416,7 @@ void GoldenArtTask::update_() {
 		float const a {tau * j / n};
 		float const x {r * std::cos(a)};
 		float const y {r * std::sin(a)};
-		LED<> led {
+		APA102::LED<> led {
 		    static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[0].noise0_1(x, y, z)), 0.0f)),
 		    static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[1].noise0_1(x, y, z)), 0.0f)),
 		    static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[2].noise0_1(x, y, z)), 0.0f))
@@ -442,7 +431,7 @@ void GoldenArtTask::update_() {
 	    constexpr auto levelEnd {64.0f};	// [0, levelEnd)
 	    float const x {(microsecondsSinceBoot % perlinNoisePeriodMicroseconds)
 		/ static_cast<float>(microsecondsPerSecond)};
-	    LED<> led {
+	    APA102::LED<> led {
 		static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[0].noise0_1(x)), 0.0f)),
 		static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[1].noise0_1(x)), 0.0f)),
 		static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[2].noise0_1(x)), 0.0f))
