@@ -278,7 +278,7 @@ void GoldenArtTask::update_() {
 	case Mode::Value::clock: {
 	    struct Rim {
 		unsigned const	end;
-		unsigned const	index;
+		unsigned const	fibonacciIndex;
 		uint8_t const *	sequence;
 	    };
 	    static constexpr Rim rim[] {
@@ -307,11 +307,11 @@ void GoldenArtTask::update_() {
 		    static APA102::LED<> const black{0, 0, 0};
 
 		    auto	const position	{(*unit_)(secondsSinceTwelveLocaltime)};
-		    auto	const rimSize	{fibonacci(rim_->index)};
+		    auto	const rimSize	{fibonacci(rim_->fibonacciIndex)};
 		    auto	const width__	{static_cast<float>(*width_) / rimSize};
 		    Blend<LED<>>const blend	{black, *color_ / 4};
 		    Dial	const dial	{position};
-		    HalfCurve	const half	{0.0f, 1 & rim_->index};
+		    HalfCurve	const half	{0.0f, 1 & rim_->fibonacciIndex};
 		    BellCurve<>	const bell	{0.0f, width__};
 
 		    std::function<LED<>(float)> render {[](float){return LED<>();}};
