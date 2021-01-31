@@ -66,7 +66,6 @@ static size_t constexpr sum(size_t const (&a)[n]) {
 }
 
 void ClockArtTask::update_() {
-    static size_t constexpr dialCount	{3};
     static size_t constexpr ringCount	{2};
     static size_t constexpr sectorCount	{12};
 

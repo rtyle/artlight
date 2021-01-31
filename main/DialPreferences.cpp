@@ -18,17 +18,17 @@ char const * DialPreferences::Shape::toString() const {
     return string[value];
 }
 
-char const * const widthKey[] {
+static constexpr char const * const widthKey[DialPreferences::dialCount] {
     "aWidth",
     "bWidth",
     "cWidth",
 };
-char const * const colorKey[] {
+static constexpr char const * const colorKey[DialPreferences::dialCount] {
     "aColor",
     "bColor",
     "cColor",
 };
-char const * const shapeKey[] {
+static constexpr char const * const shapeKey[DialPreferences::dialCount] {
     "aShape",
     "bShape",
     "cShape",

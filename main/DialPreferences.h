@@ -13,6 +13,8 @@ private:
     asio::io_context & io_;
 
 public:
+    static constexpr size_t dialCount {3};
+
     struct Shape {
     private:
 	static char const * const string[];
@@ -28,13 +30,13 @@ public:
     void shapeObserved(size_t index, char const * value);
 
 protected:
-    float				width[3];
-    APA102::LED<>			color[3];
-    Shape				shape[3];
+    float				width[dialCount];
+    APA102::LED<>			color[dialCount];
+    Shape				shape[dialCount];
 
-    KeyValueBroker::Observer const	widthObserver[3];
-    KeyValueBroker::Observer const	colorObserver[3];
-    KeyValueBroker::Observer const	shapeObserver[3];
+    KeyValueBroker::Observer const	widthObserver[dialCount];
+    KeyValueBroker::Observer const	colorObserver[dialCount];
+    KeyValueBroker::Observer const	shapeObserver[dialCount];
 
     DialPreferences(
 	asio::io_context &	io,

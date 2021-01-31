@@ -287,17 +287,17 @@ void GoldenArtTask::update_() {
 		unsigned const	fibonacciIndex;
 		uint8_t const *	sequence;
 	    };
-	    static constexpr Rim rim[] {
+	    static constexpr Rim rim[dialCount] {
 		#define RimArgs(end, index) {end, index, rimName(end, index)}
 		RimArgs(rimEnd,  8),
 		RimArgs(rimEnd, 10),
 		RimArgs(rimEnd, 12),
 		#undef RimArgs
 	    };
-	    static SawtoothCurve const unit[] {	// [0, 1) in
-		{0.0f, 60.0f * 60.0f * 12.0f},	// day (12 hour)
-		{0.0f, 60.0f * 60.0f},		// hour
-		{0.0f, 60.0f},			// minute
+	    static SawtoothCurve const unit[dialCount] {	// [0, 1) in
+		{0.0f, 60.0f * 60.0f * 12.0f},	// day		(12 hour)
+		{0.0f, 60.0f * 60.0f},		// hour		(60 minute)
+		{0.0f, 60.0f},			// minute	(60 second)
 	    };
 
 	    float const secondsSinceTwelveLocaltime {
@@ -308,7 +308,7 @@ void GoldenArtTask::update_() {
 	    auto * color_	{color};
 	    auto * rim_		{rim};
 	    auto * unit_	{unit};
-	    for (auto i = 0u; i < 3; ++i) {
+	    for (auto i = 0u; i < dialCount; ++i) {
 		if (*width_) {
 		    static APA102::LED<> const black{0, 0, 0};
 
