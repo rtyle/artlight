@@ -334,7 +334,25 @@ void GoldenArtTask::update_() {
 			} break;
 			case Shape::Value::wave: {
 			    auto const waveWidth {2.0f / rimSize};
-			    auto const wavePosition {position + wavePhase * waveWidth};
+			    auto wavePosition {wavePhase * waveWidth};
+			    if (1 & rimSize) {
+				// for odd rimSizes, there is an ugly seam near
+				// wave(0.5) because the waves from either side
+				// meet in opposite phases.
+				// positioning the wave coincident with the dial
+				// will typically put this outside the width
+				// of the dial so no-one will notice.
+				// this does cause a change in the wave period
+				// but for a short one (a few seconds)
+				// on slow moving dials (hours, minutes)
+				// it is insignificant.
+				// unfortunately, on the seconds dial it is
+				// very significant.
+				// this can be avoided by using a rimSize of
+				// 144 (fibonacci(12)) for seconds; which is a
+				// good choice for resolution reasons.
+				wavePosition += position;
+			    }
 			    WaveDial const wave {wavePosition, waveWidth};
 			    render = [dial, half, bell, wave, blend](float place) {
 				auto const offset {dial(place)};
