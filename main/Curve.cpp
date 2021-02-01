@@ -28,6 +28,19 @@ float Dial::operator()(float place) const {
     return offset;
 }
 
+HalfDial::HalfDial(float position, bool flip_) : Curve(position), flip(flip_) {}
+
+float HalfDial::operator()(float place) const {
+    float offset = Curve::operator()(place);
+    float ignore;
+    if (offset < 0.0f) {
+	offset = 1.0f - std::modf(-offset, &ignore);
+    } else {
+	offset = std::modf(offset, &ignore);
+    }
+    return flip && offset ? -(1.0f - offset) : offset;
+}
+
 BumpCurve::BumpCurve(float position, float width_)
     : Curve(position), width(width_ / 2.0f) {}
 
@@ -50,17 +63,6 @@ float BellCurve<T>::operator()(float place) const {
 template float BellCurve<>::operator()(float) const;
 template float BellCurve<Dial>::operator()(float) const;
 
-HalfCurve::HalfCurve(float position, bool half_)
-:
-    Curve	{position},
-    half	{half_}
-{}
-
-float HalfCurve::operator()(float place) const {
-    float const offset {Curve::operator()(place)};
-    return static_cast<float>(half ? offset >= 0 : offset <= 0);
-}
-
 MesaDial::MesaDial(float position, float width_, unsigned order)
 :
     Dial		{position},
@@ -75,7 +77,6 @@ float MesaDial::operator()(float place) const {
 
 WaveDial::WaveDial(float position, float width_)
     : Dial(position), width(width_) {}
-
 
 float WaveDial::operator()(float place) const {
     return (1.0f + std::cos(tau * Dial::operator()(place) / width)) / 2.0f;

@@ -22,6 +22,19 @@ public:
     float operator()(float place) const override;
 };
 
+/// HalfDial is used to model the notion of curve at a position
+/// on a circular dial [0.0f, 1.0f).
+/// It is a function object that maps a place on the circle [0.0f, 1.0f)
+/// to the relative offset [0.0f, 1.0f) or, if flipped [0.0f, -1.0f)
+/// from its position.
+class HalfDial : public Curve {
+private:
+    bool const flip;
+public:
+    HalfDial(float position = 0.0f, bool flip = false);
+    float operator()(float place) const override;
+};
+
 /// BumpCurve is a Curve whose function object composes
 /// a modified 1 - x**2 function (one non-negative bump of width)
 /// after the Curve position offset.
@@ -44,17 +57,6 @@ private:
     float const twoSigmaSquared;
 public:
     BellCurve(float position = 0.0f, float width /* 4 * sigma */ = 1.0f);
-    float operator()(float place) const override;
-};
-
-/// HalfCurve is a Curve whose function object
-/// returns static_cast<float>(half ? offset >= 0 : offset <= 0)
-/// where offset is the place relative to our position.
-class HalfCurve : Curve {
-private:
-    bool half;
-public:
-    HalfCurve(float position, bool half = false);
     float operator()(float place) const override;
 };
 

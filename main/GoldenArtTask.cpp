@@ -318,45 +318,38 @@ void GoldenArtTask::update_() {
 
 		    auto	const position	{(*unit_)(secondsSinceTwelveLocaltime)};
 		    auto	const rimSize	{fibonacci(rim_->fibonacciIndex)};
-		    auto	const width__	{static_cast<float>(*width_) / rimSize};
+		    auto	const width__	{static_cast<float>(2u * *width_) / rimSize};
 		    Blend<LED<>>const blend	{black, *color_ / 4};
-		    Dial	const dial	{position};
-		    HalfCurve	const half	{0.0f, 1 & rim_->fibonacciIndex};
+		    HalfDial	const dial	{position, !(1 & rim_->fibonacciIndex)};
 		    BellCurve<>	const bell	{0.0f, width__};
 
 		    std::function<LED<>(float)> render {[](float){return LED<>();}};
 		    switch (shape[i].value) {
 			case Shape::Value::bell: {
-			    render = [dial, half, bell, blend](float place) {
+			    render = [dial, bell, blend](float place) {
 				float const offset {dial(place)};
-				return blend(half(offset) * bell(offset));
+				return blend(bell(offset));
 			    };
 			} break;
 			case Shape::Value::wave: {
 			    auto const waveWidth {2.0f / rimSize};
 			    auto wavePosition {wavePhase * waveWidth};
 			    if (1 & rimSize) {
-				// for odd rimSizes, there is an ugly seam near
-				// wave(0.5) because the waves from either side
-				// do not meet in phase.
-				// positioning the wave coincident with the dial
-				// will typically put this outside the width
-				// of the dial so no-one will notice.
-				// this does cause a change in the wave period
-				// but for a short one (a few seconds)
-				// on slow moving dials (hours, minutes)
-				// it is insignificant.
-				// unfortunately, on the seconds dial it is
-				// very significant.
-				// this can be avoided by using a rimSize of
-				// 144 (fibonacci(12)) for seconds; which is a
-				// good choice for resolution reasons.
-				wavePosition += position;
+				// for an odd rimSize, there is an ugly seam
+				// where the wrap-around wave meets itself
+				// because the sides will not be in phase.
+				// we can hide this seam in the far half of
+				// the dial by  shifting the wavePosition.
+				// the shift must be an integral multiple
+				// of waveWidth to preserve the wavePeriod.
+				wavePosition += waveWidth * (0
+				    + ((1 & rim_->fibonacciIndex) ? -1 : 1)
+				    + std::floor((position - 0.5f) / waveWidth));
 			    }
 			    WaveDial const wave {wavePosition, waveWidth};
-			    render = [dial, half, bell, wave, blend](float place) {
+			    render = [dial, bell, wave, blend](float place) {
 				auto const offset {dial(place)};
-				return blend(half(offset) * bell(offset) * wave(place));
+				return blend(bell(offset) * wave(place));
 			    };
 			} break;
 			case Shape::Value::bloom: {
@@ -364,9 +357,9 @@ void GoldenArtTask::update_() {
 			    BloomCurve bloom{0.0f, width__,
 				phaseIn(microsecondsSinceBoot,
 				    microsecondsPerSecond << 1)};
-			    render = [dial, half, bump, bloom, blend](float place) {
+			    render = [dial, bump, bloom, blend](float place) {
 				float const offset {dial(place)};
-				return blend(half(offset) * bump(offset) * bloom(offset));
+				return blend(bump(offset) * bloom(offset));
 			    };
 			} break;
 		    }
