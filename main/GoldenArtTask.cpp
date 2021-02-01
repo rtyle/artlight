@@ -338,7 +338,7 @@ void GoldenArtTask::update_() {
 			    if (1 & rimSize) {
 				// for odd rimSizes, there is an ugly seam near
 				// wave(0.5) because the waves from either side
-				// meet in opposite phases.
+				// do not meet in phase.
 				// positioning the wave coincident with the dial
 				// will typically put this outside the width
 				// of the dial so no-one will notice.
