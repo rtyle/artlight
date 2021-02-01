@@ -318,8 +318,6 @@ void GoldenArtTask::update_() {
 
 		    auto	const position	{(*unit_)(secondsSinceTwelveLocaltime)};
 		    auto	const rimSize	{fibonacci(rim_->fibonacciIndex)};
-		    unsigned	const rimIndex	{
-			static_cast<unsigned>(std::floor(position * rimSize + 0.5f))};
 		    auto	const width__	{static_cast<float>(2u * *width_) / rimSize};
 		    auto	const color__	{*color_ / 4};
 		    Blend<LED<>>const blend	{black, color__};
@@ -367,10 +365,12 @@ void GoldenArtTask::update_() {
 			} break;
 		    }
 
+		    auto const closest	{
+			static_cast<unsigned>(std::floor(position * rimSize + 0.5f))};
 		    auto const * kp {rim_->sequence};
 		    for (auto j {0u}; j < rimSize; ++j) {
 			auto const k {*kp++};
-			APA102::LED<> addend {j == rimIndex ? color__
+			APA102::LED<> addend {j == closest ? color__
 			    : render(static_cast<float>(j) / rimSize)};
 			for (auto const & l: Path{rim_->end - 1u - k, rimSize}) {
 			    uint32_t & encoding {message1.encodings[layout[l]]};
