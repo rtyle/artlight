@@ -365,8 +365,9 @@ void GoldenArtTask::update_() {
 			} break;
 		    }
 
-		    auto const closest	{
-			static_cast<unsigned>(std::floor(position * rimSize + 0.5f))};
+		    auto const closest	{static_cast<unsigned>(
+			std::floor(position * rimSize + 0.5f)
+		    ) % rimSize};
 		    auto const * kp {rim_->sequence};
 		    for (auto j {0u}; j < rimSize; ++j) {
 			auto const k {*kp++};
