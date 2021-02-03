@@ -123,6 +123,13 @@ void GoldenArtTask::update_() {
     #define rimName(end, index) rimName_(end, index)
     #define rimDecl(end, index) rimName_(end, index)[fibonacci(index)]
 
+    struct Rim {
+	unsigned const	end;
+	unsigned const	fibonacciIndex;
+	uint8_t const *	sequence;
+    };
+    #define RimArgs(end, index) {end, index, rimName(end, index)}
+
     static constexpr uint8_t rimDecl(rimEnd, 7) {
 	0,  5, 10,  2,  7, 12,  4,  9,  1,  6, 11,  3,  8,
     };
@@ -147,15 +154,15 @@ void GoldenArtTask::update_() {
     static constexpr uint8_t rimDecl( 57, 7) {
 	 7, 12,  4,  9,  1,  6, 11,  3,  8,  0,  5, 10,  2,
     };
-    static constexpr uint8_t const * rim7[] {
-	rimName(rimEnd, 7),
-	rimName(917, 7),
-	rimName(569, 7),
-	rimName(355, 7),
-	rimName(233, 7),
-	rimName(145, 7),
-	rimName( 91, 7),
-	rimName( 57, 7),
+    static constexpr Rim const rim7[] {
+	RimArgs(rimEnd, 7),
+	RimArgs(917, 7),
+	RimArgs(569, 7),
+	RimArgs(355, 7),
+	RimArgs(233, 7),
+	RimArgs(145, 7),
+	RimArgs( 91, 7),
+	RimArgs( 57, 7),
     };
 
     static constexpr uint8_t rimDecl(rimEnd, 8) {
@@ -186,14 +193,14 @@ void GoldenArtTask::update_() {
 	20, 12,  4, 17,  9,  1, 14,  6, 19, 11,  3, 16,  8,  0, 13,  5,
 	18, 10,  2, 15,  7,
     };
-    static constexpr uint8_t const * rim8[] {
-	rimName(rimEnd, 8),
-	rimName(917, 8),
-	rimName(582, 8),
-	rimName(361, 8),
-	rimName(225, 8),
-	rimName(141, 8),
-	rimName( 91, 8),
+    static constexpr Rim const rim8[] {
+	RimArgs(rimEnd, 8),
+	RimArgs(917, 8),
+	RimArgs(582, 8),
+	RimArgs(361, 8),
+	RimArgs(225, 8),
+	RimArgs(141, 8),
+	RimArgs( 91, 8),
     };
 
     static constexpr uint8_t rimDecl(rimEnd, 9) {
@@ -226,13 +233,13 @@ void GoldenArtTask::update_() {
 	19, 32, 11, 24,  3, 16, 29,  8, 21,  0, 13, 26,  5, 18, 31, 10,
 	23, 2,
     };
-    static constexpr uint8_t const * rim9[] {
-	rimName(rimEnd, 9),
-	rimName(917, 9),
-	rimName(569, 9),
-	rimName(355, 9),
-	rimName(225, 9),
-	rimName(141, 9),
+    static constexpr Rim const rim9[] {
+	RimArgs(rimEnd, 9),
+	RimArgs(917, 9),
+	RimArgs(569, 9),
+	RimArgs(355, 9),
+	RimArgs(225, 9),
+	RimArgs(141, 9),
     };
 
     static constexpr uint8_t rimDecl(rimEnd, 10) {
@@ -265,12 +272,12 @@ void GoldenArtTask::update_() {
 	32, 11, 45, 24,  3, 37, 16, 50, 29,  8, 42, 21,  0, 34, 13, 47,
 	26,  5, 39, 18, 52, 31, 10,
     };
-    static constexpr uint8_t const * rim10[] {
-	rimName(rimEnd, 10),
-	rimName(907, 10),
-	rimName(582, 10),
-	rimName(355, 10),
-	rimName(225, 10),
+    static constexpr Rim const rim10[] {
+	RimArgs(rimEnd, 10),
+	RimArgs(907, 10),
+	RimArgs(582, 10),
+	RimArgs(355, 10),
+	RimArgs(225, 10),
     };
 
     static constexpr uint8_t rimDecl(rimEnd, 11) {
@@ -305,11 +312,11 @@ void GoldenArtTask::update_() {
 	42, 76, 21, 55,  0, 34, 68, 13, 47, 81, 26, 60,  5, 39, 73, 18,
 	52, 86, 31, 65, 10, 44, 78, 23, 57,
     };
-    static constexpr uint8_t const * rim11[] {
-	rimName(rimEnd, 11),
-	rimName(907, 11),
-	rimName(569, 11),
-	rimName(361, 11),
+    static constexpr Rim const rim11[] {
+	RimArgs(rimEnd, 11),
+	RimArgs(907, 11),
+	RimArgs(569, 11),
+	RimArgs(361, 11),
     };
 
     static constexpr uint8_t rimDecl(rimEnd, 12) {
@@ -345,13 +352,13 @@ void GoldenArtTask::update_() {
 	111,  56,   1,  90,  35, 124,  69,  14, 103,  48, 137,  82,  27, 116,  61,   6,
 	 95,  40, 129,  74,  19, 108,  53, 142,  87,  32, 121,  66,  11, 100,  45, 134,
     };
-    static constexpr uint8_t const * rim12[] {
-	rimName(rimEnd, 12),
-	rimName(917, 12),
-	rimName(582, 12),
+    static constexpr Rim const rim12[] {
+	RimArgs(rimEnd, 12),
+	RimArgs(917, 12),
+	RimArgs(582, 12),
     };
 
-    static constexpr Array<uint8_t const * const> rim[] {
+    static constexpr Array<Rim const> rim[] {
 	rim12,
 	rim11,
 	rim10,
@@ -458,13 +465,6 @@ void GoldenArtTask::update_() {
 	    };
 	}
     }
-
-    struct Rim {
-	unsigned const	end;
-	unsigned const	fibonacciIndex;
-	uint8_t const *	sequence;
-    };
-    #define RimArgs(end, index) {end, index, rimName(end, index)}
 
     APA102::Message<ledCount> message1;
     switch (mode.value) {
