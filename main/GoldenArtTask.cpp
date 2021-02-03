@@ -122,26 +122,6 @@ void GoldenArtTask::update_() {
     #define rimName(end, index) rimName_(end, index)
     #define rimDecl(end, index) rimName_(end, index)[fibonacci(index)]
 
-    static constexpr uint8_t rimDecl(rimEnd, 0) {
-    };
-    static constexpr uint8_t rimDecl(rimEnd, 1) {
-        0,
-    };
-    static constexpr uint8_t rimDecl(rimEnd, 2) {
-	0,
-    };
-    static constexpr uint8_t rimDecl(rimEnd, 3) {
-        0, 1,
-    };
-    static constexpr uint8_t rimDecl(rimEnd, 4) {
-        0, 2, 1,
-    };
-    static constexpr uint8_t rimDecl(rimEnd, 5) {
-        0, 2, 4, 1, 3,
-    };
-    static constexpr uint8_t rimDecl(rimEnd, 6) {
-        0, 5, 2, 7, 4, 1, 6, 3,
-    };
     static constexpr uint8_t rimDecl(rimEnd, 7) {
          0,  5, 10,  2,  7, 12,  4,  9,  1,  6, 11,  3,  8,
     };
@@ -279,20 +259,20 @@ void GoldenArtTask::update_() {
 	}
     }
 
+    struct Rim {
+	unsigned const	end;
+	unsigned const	fibonacciIndex;
+	uint8_t const *	sequence;
+    };
+    #define RimArgs(end, index) {end, index, rimName(end, index)}
+
     APA102::Message<ledCount> message1;
     switch (mode.value) {
 	case Mode::Value::clock: {
-	    struct Rim {
-		unsigned const	end;
-		unsigned const	fibonacciIndex;
-		uint8_t const *	sequence;
-	    };
 	    static constexpr Rim rim[dialCount] {
-		#define RimArgs(end, index) {end, index, rimName(end, index)}
 		RimArgs(rimEnd,  8),
 		RimArgs(rimEnd, 10),
 		RimArgs(rimEnd, 12),
-		#undef RimArgs
 	    };
 	    static SawtoothCurve const unit[dialCount] {	// [0, 1) in
 		{0.0f, 60.0f * 60.0f * 12.0f},	// day		(12 hour)
@@ -390,26 +370,20 @@ void GoldenArtTask::update_() {
 	    }
 	} break;
 	case Mode::Value::swirl: {
-	    static constexpr uint8_t const * const rim[] {
-		rimName(rimEnd,  0),
-		rimName(rimEnd,  1),
-		rimName(rimEnd,  2),
-		rimName(rimEnd,  3),
-		rimName(rimEnd,  4),
-		rimName(rimEnd,  5),
-		rimName(rimEnd,  6),
-		rimName(rimEnd,  7),
-		rimName(rimEnd,  8),
-		rimName(rimEnd,  9),
-		rimName(rimEnd, 10),
-		rimName(rimEnd, 11),
-		rimName(rimEnd, 12),
+	    // ramp up and down by even offsets
+	    // so that there are fewer changes in direction
+	    static constexpr Rim rimCycle[] {
+		RimArgs(rimEnd,  7),
+		RimArgs(rimEnd,  9),
+		RimArgs(rimEnd, 11),
+		RimArgs(rimEnd, 12),
+		RimArgs(rimEnd, 10),
+		RimArgs(rimEnd,  8),
 	    };
+	    static constexpr auto rimCycleSize	{sizeof(rimCycle) / sizeof(*rimCycle)};
 
 	    constexpr auto levelEnd	{64.0f};// [0, levelEnd)
 	    constexpr auto radiusMax	{1.5f};
-	    constexpr auto iBegin	{7u};	// first (fibonacci(i)) swirl
-	    constexpr auto iCount	{6u};	// number of swirls in cycle
 	    constexpr auto iSeconds	{60u};	// covers one swirl in cycle
 	    constexpr auto zSeconds	{8u};	// covers perlin noise period
 
@@ -419,20 +393,13 @@ void GoldenArtTask::update_() {
 	    Contrast const radiusContrast {10.0f};
 	    float const r {radiusMax * radiusContrast(perlinNoise[3].noise0_1(z))};
 
-	    // ramp up by even offsets for first half, then ramp down by odds.
-	    // this results in each half having swirls going in the same direction.
-	    auto const iEven {2u * static_cast<unsigned>(
-		((microsecondsSinceBoot / iSeconds) % (iCount * microsecondsPerSecond))
+	    auto const rim {&rimCycle[static_cast<unsigned>(
+		((microsecondsSinceBoot / iSeconds) % (rimCycleSize * microsecondsPerSecond))
 		    / static_cast<float>(microsecondsPerSecond)
-	    )};
-	    auto const i {static_cast<unsigned>(iBegin +
-		(iCount > iEven
-		    ? iEven
-		    : 2 * iCount - iEven - 1)
-	    )};
-	    auto const n {fibonacci(i)};
+	    )]};
+	    auto const n {fibonacci(rim->fibonacciIndex)};
 
-	    auto kp {rim[i]};
+	    auto kp {rim->sequence};
 	    for (auto j = 0; j < n; ++j) {
 		auto k {*kp++};
 		float const a {tau * j / n};
@@ -444,7 +411,7 @@ void GoldenArtTask::update_() {
 		    static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[2].noise0_1(x, y, z)), 0.0f))
 		};
 		led.part.control = ~0 << 5 | 1;	// scale by 1/31
-		for (auto const & l: Path{static_cast<unsigned>(rimEnd) - 1u - k, n}) {
+		for (auto const & l: Path{rim->end - 1u - k, n}) {
 		    message1.encodings[layout[l]] = led;
 		}
 	    }
