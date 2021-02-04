@@ -6,13 +6,12 @@
 /// Given an array, the constructor can deduce its size and point to the data.
 template <typename T>
 struct Array {
-    template <std::size_t size__>
-    static constexpr std::size_t size_(T (&)[size__]) {return size__;}
-
     std::size_t const size;
     T * const data;
 
     template <std::size_t size_>
     constexpr Array(T (&data_)[size_]) : size{size_}, data{data_} {}
+
+    T & operator[](std::size_t i) const {return data[i];}
 };
 
