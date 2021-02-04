@@ -469,11 +469,6 @@ void GoldenArtTask::update_() {
     APA102::Message<ledCount> message1;
     switch (mode.value) {
 	case Mode::Value::clock: {
-	    static constexpr Rim rim[dialCount] {
-		RimArgs(rimEnd,  8),
-		RimArgs(rimEnd, 10),
-		RimArgs(rimEnd, 12),
-	    };
 	    static SawtoothCurve const unit[dialCount] {	// [0, 1) in
 		{0.0f, 60.0f * 60.0f * 12.0f},	// day		(12 hour)
 		{0.0f, 60.0f * 60.0f},		// hour		(60 minute)
@@ -489,19 +484,22 @@ void GoldenArtTask::update_() {
 	    auto const wavePhase {std::modf(secondsSinceTwelveLocaltime / wavePeriod, &ignore)};
 
 	    auto * width_	{width};
+	    auto * curl_	{curl};
+	    auto * length_	{length};
 	    auto * color_	{color};
-	    auto * rim_		{rim};
 	    auto * unit_	{unit};
 	    for (auto i = 0u; i < dialCount; ++i) {
 		if (*width_) {
 		    static APA102::LED<> const black{0, 0, 0};
 
+		    auto	const rim_	{rim[*curl_]};
+		    auto	const rim__	{&rim_.data[std::min(*length_, rim_.size - 1)]};
+		    auto	const rimSize	{fibonacci(rim__->fibonacciIndex)};
 		    auto	const position	{(*unit_)(secondsSinceTwelveLocaltime)};
-		    auto	const rimSize	{fibonacci(rim_->fibonacciIndex)};
 		    auto	const width__	{static_cast<float>(2u * *width_) / rimSize};
 		    auto	const color__	{*color_ / 4};
 		    Blend<LED<>>const blend	{black, color__};
-		    HalfDial	const dial	{position, !(1 & rim_->fibonacciIndex)};
+		    HalfDial	const dial	{position, !(1 & rim__->fibonacciIndex)};
 		    BellCurve<>	const bell	{0.0f, width__};
 
 		    std::function<LED<>(float)> render {[](float){return LED<>();}};
@@ -524,7 +522,7 @@ void GoldenArtTask::update_() {
 				// the shift must be an integral multiple
 				// of waveWidth to preserve the wavePeriod.
 				wavePosition += waveWidth * (0
-				    + ((1 & rim_->fibonacciIndex) ? -1 : 1)
+				    + ((1 & rim__->fibonacciIndex) ? -1 : 1)
 				    + std::floor((position - 0.5f) / waveWidth));
 			    }
 			    WaveDial const wave {wavePosition, waveWidth};
@@ -548,12 +546,12 @@ void GoldenArtTask::update_() {
 		    auto const closest	{static_cast<unsigned>(
 			std::floor(position * rimSize + 0.5f)
 		    ) % rimSize};
-		    auto const * kp {rim_->sequence};
+		    auto const * kp {rim__->sequence};
 		    for (auto j {0u}; j < rimSize; ++j) {
 			auto const k {*kp++};
 			APA102::LED<> addend {j == closest ? color__
 			    : render(static_cast<float>(j) / rimSize)};
-			for (auto const & l: Path{rim_->end - 1u - k, rimSize}) {
+			for (auto const & l: Path{rim__->end - 1u - k, rimSize}) {
 			    uint32_t & encoding {message1.encodings[layout[l]]};
 			    encoding = APA102::LED<>(encoding) + addend;
 			}
@@ -561,8 +559,9 @@ void GoldenArtTask::update_() {
 		}
 
 		++width_;
+		++curl_;
+		++length_;
 		++color_;
-		++rim_;
 		++unit_;
 	    }
 	    for (auto & e: message1.encodings) {
@@ -659,6 +658,34 @@ void GoldenArtTask::update() {
     updated = 0;
 }
 
+static constexpr char const * const curlKey[DialPreferences::dialCount] {
+    "aCurl",
+    "bCurl",
+    "cCurl",
+};
+static constexpr char const * const lengthKey[DialPreferences::dialCount] {
+    "aLength",
+    "bLength",
+    "cLength",
+};
+
+void GoldenArtTask::curlObserved(size_t index, char const * value_) {
+    unsigned value = fromString<unsigned>(value_);
+    if (value < 6) {
+	io.post([this, index, value](){
+	    curl[index] = value;
+	});
+    }
+}
+void GoldenArtTask::lengthObserved(size_t index, char const * value_) {
+    unsigned value = fromString<unsigned>(value_);
+    if (value < 8) {
+	io.post([this, index, value](){
+	    length[index] = value;
+	});
+    }
+}
+
 GoldenArtTask::GoldenArtTask(
     KeyValueBroker &	keyValueBroker)
 :
@@ -703,6 +730,24 @@ GoldenArtTask::GoldenArtTask(
 		mode = mode_;
 	    });
 	}),
+
+    curlObserver {
+	{keyValueBroker, curlKey[0], "4",
+	    [this](char const * value) {curlObserved(0, value);}},
+	{keyValueBroker, curlKey[1], "2",
+	    [this](char const * value) {curlObserved(1, value);}},
+	{keyValueBroker, curlKey[2], "0",
+	    [this](char const * value) {curlObserved(2, value);}},
+    },
+
+    lengthObserver {
+	{keyValueBroker, lengthKey[0], "2",
+	    [this](char const * value) {lengthObserved(0, value);}},
+	{keyValueBroker, lengthKey[1], "1",
+	    [this](char const * value) {lengthObserved(1, value);}},
+	{keyValueBroker, lengthKey[2], "0",
+	    [this](char const * value) {lengthObserved(2, value);}},
+    },
 
     updated(0)
 {

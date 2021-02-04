@@ -27,7 +27,17 @@ private:
     Mode				mode;
     KeyValueBroker::Observer const	modeObserver;
 
+    unsigned				curl[dialCount];
+    unsigned				length[dialCount];
+
+    KeyValueBroker::Observer const	curlObserver[dialCount];
+    KeyValueBroker::Observer const	lengthObserver[dialCount];
+
     unsigned updated;
+
+    void curlObserved(size_t index, char const * value);
+    void lengthObserved(size_t index, char const * value);
+
     void update_();
     void update();
 

@@ -201,6 +201,12 @@ ifelse(-1, regexp(ArtLightApplication, «clock\|cornhole\|golden»), , «dnl
 					<span class='tab0'>A</span>
 					<label for='aWidth'>Width</label>
 					<input type='range' id='aWidth' name='aWidth' required='true' min='0' max='64' step='1'/>
+ifelse(«golden», ArtLightApplication, «dnl
+					<label for='aCurl' title='increase curvature and decrease (fibonacci) number of spirals (resolution)'/>Curl</label>
+					<input type='range' id='aCurl' name='aCurl' required='true' min='0' max='5' step='1'/>
+					<label for='aLength' title='decrease length (amount restricted by curl)'>Length</label>
+					<input type='range' id='aLength' name='aLength' required='true' min='0' max='7' step='1'/>
+»)dnl
 					<label for='aColor'>Color</label>
 					<input type='text' class='spectrum' id='aColor' name='aColor' required='true' value='#ffffff'/>
 					<label for='aShape'>Shape</label>
@@ -214,6 +220,12 @@ ifelse(-1, regexp(ArtLightApplication, «clock\|cornhole\|golden»), , «dnl
 					<span class='tab0'>B</span>
 					<label for='bWidth'>Width</label>
 					<input type='range' id='bWidth' name='bWidth' required='true' min='0' max='64' step='1'/>
+ifelse(«golden», ArtLightApplication, «dnl
+					<label for='bCurl' title='increase curvature and decrease (fibonacci) number of spirals (resolution)'/>Curl</label>
+					<input type='range' id='bCurl' name='bCurl' required='true' min='0' max='5' step='1'/>
+					<label for='bLength' title='decrease length (amount restricted by curl)'>Length</label>
+					<input type='range' id='bLength' name='bLength' required='true' min='0' max='7' step='1'/>
+»)dnl
 					<label for='bColor'>Color</label>
 					<input type='text' class='spectrum' id='bColor' name='bColor' required='true' value='#ffffff'/>
 					<label for='bShape'>Shape</label>
@@ -227,6 +239,12 @@ ifelse(-1, regexp(ArtLightApplication, «clock\|cornhole\|golden»), , «dnl
 					<span class='tab0'>C</span>
 					<label for='cWidth'>Width</label>
 					<input type='range' id='cWidth' name='cWidth' required='true' min='0' max='64' step='1'/>
+ifelse(«golden», ArtLightApplication, «dnl
+					<label for='cCurl' title='increase curvature and decrease (fibonacci) number of spirals (resolution)'/>Curl</label>
+					<input type='range' id='cCurl' name='cCurl' required='true' min='0' max='5' step='1'/>
+					<label for='cLength' title='decrease length (amount restricted by curl)'>Length</label>
+					<input type='range' id='cLength' name='cLength' required='true' min='0' max='7' step='1'/>
+»)dnl
 					<label for='cColor'>Color</label>
 					<input type='text' class='spectrum' id='cColor' name='cColor' required='true' value='#ffffff'/>
 					<label for='cShape'>Shape</label>
