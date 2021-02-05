@@ -496,7 +496,7 @@ void GoldenArtTask::update_() {
 		    auto	const rim__	{&rim_.data[std::min(*length_, rim_.size - 1)]};
 		    auto	const rimSize	{fibonacci(rim__->fibonacciIndex)};
 		    auto	const position	{(*unit_)(secondsSinceTwelveLocaltime)};
-		    auto	const width__	{static_cast<float>(2u * *width_) / rimSize};
+		    auto	const width__	{2.0f * *width_ / 64.0f};
 		    auto	const color__	{*color_ / 4};
 		    Blend<LED<>>const blend	{black, color__};
 		    HalfDial	const dial	{position, !(1 & rim__->fibonacciIndex)};
