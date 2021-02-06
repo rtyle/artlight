@@ -395,7 +395,17 @@ void GoldenArtTask::update_() {
 	}
     }
 
+    // nominally, we will try to render in the range of [0, levelEnd)
+    // as there may be multiple (dialCount) additive renderings,
+    // we must leave headroom for this.
+    constexpr auto levelEndLog2	{10};
+    auto const levelEnd	{level * (1 << levelEndLog2)};
+
+    // render with a 12 bit resolution using 16 bit signed integers.
+    // these values can be clipped to 12 bit unsigned values later and
+    // encoded into 8 bits later.
     APA102::LED<int16_t> led[ledCount];
+
     switch (mode.value) {
 	case Mode::Value::clock: {
 	    static SawtoothCurve const unit[dialCount] {	// [0, 1) in
@@ -426,11 +436,12 @@ void GoldenArtTask::update_() {
 		    auto	const rimSize	{fibonacci(rim__->fibonacciIndex)};
 		    auto	const position	{(*unit_)(secondsSinceTwelveLocaltime)};
 		    auto	const width__	{2.0f * *width_ / 64.0f};
+		    constexpr auto shift {levelEndLog2 - 8};
 		    APA102::LED<int16_t>
 				const color__	{
-			static_cast<int16_t>(static_cast<int16_t>(color_->part.red)	<< 2),
-			static_cast<int16_t>(static_cast<int16_t>(color_->part.green)	<< 2),
-			static_cast<int16_t>(static_cast<int16_t>(color_->part.blue)	<< 2)
+			static_cast<int16_t>(level * (color_->part.red	<< shift)),
+			static_cast<int16_t>(level * (color_->part.green<< shift)),
+			static_cast<int16_t>(level * (color_->part.blue	<< shift))
 		    };
 		    Blend<APA102::LED<int16_t>>
 				const blend	{black, color__};
@@ -512,7 +523,6 @@ void GoldenArtTask::update_() {
 	    };
 	    static constexpr auto rimCycleSize	{sizeof(rimCycle) / sizeof(*rimCycle)};
 
-	    constexpr auto levelEnd	{1 << 10};	// [0, levelEnd)
 	    constexpr auto radiusMax	{1.5f};
 	    constexpr auto iSeconds	{60u};	// covers one swirl in cycle
 	    constexpr auto zSeconds	{8u};	// covers perlin noise period
@@ -546,7 +556,6 @@ void GoldenArtTask::update_() {
 	    }
 	} break;
 	default: {
-	    constexpr auto levelEnd {1 << 10};	// [0, levelEnd)
 	    float const x {(microsecondsSinceBoot % perlinNoisePeriodMicroseconds)
 		/ static_cast<float>(microsecondsPerSecond)};
 	    APA102::LED<int16_t> value {
