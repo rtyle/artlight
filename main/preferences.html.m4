@@ -341,7 +341,7 @@ ifelse(«golden», ArtLightApplication, «dnl
 			<fieldset>
 				<legend>Brightness</legend>
 				<div>
-					<label for='level' title='brightness level'>Level</label>
+					<label class='tab0' for='level' title='brightness level'>Level</label>
 					<input type='range' id='level' name='level' required='true' min='1' max='10'/>
 				</div>
 				<div>
@@ -349,7 +349,7 @@ ifelse(«golden», ArtLightApplication, «dnl
 					<input type='checkbox' id='dim'/>
 				</div>
 				<div>
-					<label for='gamma'>Gamma Correction</label>
+					<label class='tab0' for='gamma' title='gamma correction'>Gamma</label>
 					<input type='range' id='gamma' name='gamma' required='true' min='5' max='30'/>
 					<a href='https://en.wikipedia.org/wiki/Gamma_correction'>Help</a>
 				</div>
