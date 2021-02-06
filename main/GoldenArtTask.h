@@ -2,8 +2,11 @@
 
 #include "AsioTask.h"
 #include "DialPreferences.h"
+#include "I2C.h"
 #include "KeyValueBroker.h"
+#include "LuxSensor.h"
 #include "Pin.h"
+#include "SensorTask.h"
 #include "SPI.h"
 #include "TimePreferences.h"
 
@@ -14,6 +17,10 @@ private:
     Pin			tinyPicoLedPower;
     SPI::Bus const	spiBus[2];
     SPI::Device const	spiDevice[2];
+    I2C::Master const	i2cMaster;
+
+    SensorTask			sensorTask;
+    std::unique_ptr<LuxSensor>	luxSensor;
 
     struct Mode {
     private:
@@ -25,21 +32,21 @@ private:
 	char const * toString() const;
     };
     Mode				mode;
-    KeyValueBroker::Observer const	modeObserver;
-
     unsigned				curl[dialCount];
-    KeyValueBroker::Observer const	curlObserver[dialCount];
-
     unsigned				length[dialCount];
-    KeyValueBroker::Observer const	lengthObserver[dialCount];
-
+    float				black;
+    float				white;
     float				level;
-    KeyValueBroker::Observer const	levelObserver;
-
-    bool				dim;
-    KeyValueBroker::Observer const	dimObserver;
-
+    float				dim;
     float				gamma;
+
+    KeyValueBroker::Observer const	modeObserver;
+    KeyValueBroker::Observer const	curlObserver[dialCount];
+    KeyValueBroker::Observer const	lengthObserver[dialCount];
+    KeyValueBroker::Observer const	blackObserver;
+    KeyValueBroker::Observer const	whiteObserver;
+    KeyValueBroker::Observer const	levelObserver;
+    KeyValueBroker::Observer const	dimObserver;
     KeyValueBroker::Observer const	gammaObserver;
 
     unsigned updated;

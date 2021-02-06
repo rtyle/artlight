@@ -289,7 +289,7 @@ ifelse(«nixie», ArtLightApplication, «dnl
 				</div>
 »)dnl
 			</fieldset>
-ifelse(«nixie», ArtLightApplication, «dnl
+ifelse(-1, regexp(ArtLightApplication, «golden\|nixie»), , «dnl
 			<fieldset>
 				<legend>Sensor Control</legend>
 				<div>
@@ -299,6 +299,7 @@ ifelse(«nixie», ArtLightApplication, «dnl
 					<label for='white' title='lux values above this are considered white'>White Point</label>
 					<input type='range' id='white' name='white' required='true' min='0' max='10' step='1' title='2^0 ... 2^10'/>
 				</div>
+ifelse(«nixie», ArtLightApplication, «dnl
 				<div>
 					<span class='tab0'><span title='detected from optional motion sensor'>Motion</span> <span title='turn display on when motion detected'>On</span>/<span title='turn display off after time'>Off</span></span>
 					<label for='pirgain' title='detection amplification/sensitivity'>Gain</label>
@@ -308,6 +309,7 @@ ifelse(«nixie», ArtLightApplication, «dnl
 					<label for='pirtime' title='time display is on (0 => always)'>Time</label>
 					<input type='range' id='pirtime' name='pirtime' required='true' min='0' max='12' step='0' title='1 less than 2^0 ... 2^12 seconds'/>
 				</div>
+»)dnl
 			</fieldset>
 »)dnl
 ifelse(-1, regexp(ArtLightApplication, «clock\|cornhole»), , «dnl
@@ -341,12 +343,12 @@ ifelse(«golden», ArtLightApplication, «dnl
 			<fieldset>
 				<legend>Brightness</legend>
 				<div>
-					<label class='tab0' for='level' title='brightness level'>Level</label>
-					<input type='range' id='level' name='level' required='true' min='1' max='10'/>
+					<label class='tab0' for='level' title='undimmed level'>Level</label>
+					<input type='range' id='level' name='level' required='true' min='0' max='4096' step='64' title='off ... brightest'/>
 				</div>
 				<div>
-					<label class='tab0' for='dim' title='dim brightness level automatically as ambient light decreases'>Dim</label>
-					<input type='checkbox' id='dim'/>
+					<label class='tab0' for='dim' title='dimming of brightness as a function of ambient light sensed'/>Dimming</label>
+					<input type='range' id='dim' name='dim' required='true' min='0' max='4096' step='64' title='none ... full'/>
 				</div>
 				<div>
 					<label class='tab0' for='gamma' title='gamma correction'>Gamma</label>

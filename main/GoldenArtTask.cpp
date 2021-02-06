@@ -17,6 +17,7 @@
 #include "Curve.h"
 #include "PerlinNoise.hpp"
 #include "Timer.h"
+#include "TSL2591LuxSensor.h"
 
 extern "C" uint64_t get_time_since_boot();
 
@@ -99,6 +100,19 @@ private:
 
 static constexpr float phaseIn(uint64_t time, uint64_t period) {
     return (time % period) / static_cast<float>(period);
+}
+
+static float fade_(float high, float dim, float min, float from) {
+    if (1.0f <= from || 0.0f == dim || min > high) {
+	return high;		// snap high
+    } else {
+	if (0.0f == from && 1.0 == dim) {
+	    return 0.0f;	// snap off
+	} else {
+	    auto const low {std::max(min, high * (1.0f - dim))};
+	    return low + (high - low) * from;
+	}
+    }
 }
 
 void GoldenArtTask::update_() {
@@ -395,11 +409,19 @@ void GoldenArtTask::update_() {
 	}
     }
 
-    // nominally, we will try to render in the range of [0, levelEnd)
+    // clip lux blacks and whites for value to fade from
+    float lux {luxSensor ? luxSensor->getLux() : white};
+    if (black > lux) lux = 0.0f;
+    float const fadeFrom {lux < white ? lux / white : 1.0f};
+
+    float constexpr minLevel {4.0f / 256.0f}; // for close color
+    float const fade {fade_(level, dim, minLevel, fadeFrom)};
+
+    // nominally, we will try to render in the range of [0, levelEnd).
     // as there may be multiple (dialCount) additive renderings,
     // we must leave headroom for this.
     constexpr auto levelEndLog2	{10};
-    auto const levelEnd	{level * (1 << levelEndLog2)};
+    auto const levelEnd	{fade * (1 << levelEndLog2)};
 
     // render with a 12 bit resolution using 16 bit signed integers.
     // these values can be clipped to 12 bit unsigned values later and
@@ -439,9 +461,9 @@ void GoldenArtTask::update_() {
 		    constexpr auto shift {levelEndLog2 - 8};
 		    APA102::LED<int16_t>
 				const color__	{
-			static_cast<int16_t>(level * (color_->part.red	<< shift)),
-			static_cast<int16_t>(level * (color_->part.green<< shift)),
-			static_cast<int16_t>(level * (color_->part.blue	<< shift))
+			static_cast<int16_t>(fade * (color_->part.red	<< shift)),
+			static_cast<int16_t>(fade * (color_->part.green<< shift)),
+			static_cast<int16_t>(fade * (color_->part.blue	<< shift))
 		    };
 		    Blend<APA102::LED<int16_t>>
 				const blend	{black, color__};
@@ -747,7 +769,39 @@ GoldenArtTask::GoldenArtTask(
 	},
     },
 
-    mode {Mode::clock},
+    // internal pullups on silicon are rather high (~50k?)
+    // external 4.7k is still too high. external 1k works
+    i2cMaster {
+	I2C::Config()
+	    .sda_io_num_(GPIO_NUM_4) //.sda_pullup_en_(GPIO_PULLUP_ENABLE)
+	    .scl_io_num_(GPIO_NUM_5) //.scl_pullup_en_(GPIO_PULLUP_ENABLE)
+	    .master_clk_speed_(400000),	// I2C fast mode
+	I2C_NUM_0, 0
+    },
+
+    sensorTask	{},
+    luxSensor	{[this]() -> LuxSensor * {
+	    try {
+		return new TSL2591LuxSensor(sensorTask.io, &i2cMaster);
+	    } catch (esp_err_t & e) {
+		ESP_LOGE(name, "TSL2591 %s (0x%x): disabled", esp_err_to_name(e), e);
+		return nullptr;
+	    } catch (...) {
+		ESP_LOGE(name, "TSL2591 unknown error: disabled");
+		return nullptr;
+	    }
+	}()
+    },
+
+    mode	{Mode::clock},
+    curl	{4, 2, 0,},
+    length	{2, 1, 0,},
+    black	{1.0f / (1 << 10)},
+    white	{1.0f * (1 <<  4)},
+    level	{},
+    dim		{},
+    gamma	{20 / 10.f},
+
     modeObserver(keyValueBroker, "mode", mode.toString(),
 	[this](char const * value){
 	    Mode mode_(value);
@@ -755,8 +809,6 @@ GoldenArtTask::GoldenArtTask(
 		mode = mode_;
 	    });
 	}),
-
-    curl {4, 2, 0,},
     curlObserver {
 	{keyValueBroker, curlKey[0], "4",
 	    [this](char const * value) {curlObserved(0, value);}},
@@ -765,8 +817,6 @@ GoldenArtTask::GoldenArtTask(
 	{keyValueBroker, curlKey[2], "0",
 	    [this](char const * value) {curlObserved(2, value);}},
     },
-
-    length {2, 1, 0,},
     lengthObserver {
 	{keyValueBroker, lengthKey[0], "2",
 	    [this](char const * value) {lengthObserved(0, value);}},
@@ -775,28 +825,40 @@ GoldenArtTask::GoldenArtTask(
 	{keyValueBroker, lengthKey[2], "0",
 	    [this](char const * value) {lengthObserved(2, value);}},
     },
-
-    level {10 / 10.0f},
-    levelObserver(keyValueBroker, "level", "10",
-	[this](char const * value){
-	    unsigned const level_ = std::strtoul(value, nullptr, 10);
-	    if (1 <= level_ && level_ <= 10) {
-		io.post([this, level_](){
-		    level = level_ / 10.0f;
+    blackObserver {keyValueBroker, "black", "10",
+	[this](char const * value_) {
+	    unsigned const value {fromString<unsigned>(value_)};
+	    io.post([this, value](){
+		black = 1.0f / (1 << value);
+	    });
+	}
+    },
+    whiteObserver {keyValueBroker, "white", "4",
+	[this](char const * value_) {
+	    unsigned const value {fromString<unsigned>(value_)};
+	    io.post([this, value](){
+		white = 1.0f * (1 << value);
+	    });
+	}
+    },
+    levelObserver(keyValueBroker, "level", "2048",
+	[this](char const * value_){
+	    float value {std::min(1.0f, (0.5f + fromString<unsigned>(value_)) / 4096.0f)};
+	    if (0.0f <= value && value <= 1.0f) {
+		io.post([this, value](){
+		    level = value;
 		});
 	    }
 	}),
-
-    dim {false},
-    dimObserver(keyValueBroker, "dim", "0",
-	[this](char const * value){
-	    bool dim_ {std::strcmp("1", value)};
-	    io.post([this, dim_](){
-		dim = dim_;
-	    });
+    dimObserver(keyValueBroker, "dim", "4032",
+	[this](char const * value_){
+	    float value {std::min(1.0f, (0.5f + fromString<unsigned>(value_)) / 4096.0f)};
+	    if (0.0f <= value && value <= 1.0f) {
+		io.post([this, value](){
+		    dim = value;
+		});
+	    }
 	}),
-
-    gamma {20 / 10.f},
     gammaObserver(keyValueBroker, "gamma", "20",
 	[this](char const * value){
 	    unsigned const gamma_ = std::strtoul(value, nullptr, 10);
@@ -813,6 +875,8 @@ GoldenArtTask::GoldenArtTask(
 }
 
 void GoldenArtTask::run() {
+    sensorTask.start();
+
     // asio timers are not supported
     // adapt a FreeRTOS timer to post timeout to this task.
     Timer updateTimer(name, 4, true, [this](){
