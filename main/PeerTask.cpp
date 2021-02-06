@@ -15,7 +15,7 @@ void PeerTask::receive() {
 	[this](std::error_code error, std::size_t length){
 	    if (error) {
 		ESP_LOGE(name, "receive error: %s", error.message().c_str());
-	    } else {
+	    } else if (sendEndpoint.port()) {
 		if (!(2 < length && sizeof receiveMessage > length)) {
 		    ESP_LOGE(name, "receive bad length");
 		} else {
@@ -50,7 +50,7 @@ PeerTask::PeerTask(
 	    static unsigned short constexpr min = 1023;	  // privileged max
 	    static unsigned short constexpr max = 0xc000; // ephemeral min
 	    unsigned short port = fromString<unsigned short>(value);
-	    if (min < port && port < max) {
+	    if (0 == port || (min < port && port < max)) {
 		io.post([this, port](){
 		    ESP_LOGI(name, "port %d", static_cast<int>(port));
 		    peer.bind(asio::ip::udp::endpoint(asio::ip::udp::v4(), port));
@@ -62,7 +62,7 @@ PeerTask::PeerTask(
     generalObserver	(keyValueBroker,
 	[this](char const * key, char const * value, bool fromPeer) {
 	    // keys that start with an underscore are not for our peers
-	    if (!fromPeer && '_' != *key) {
+	    if (!fromPeer && '_' != *key && sendEndpoint.port()) {
 		size_t keySize = strlen(key) + 1;
 		size_t messageSize = keySize + strlen(value) + 1;
 		char * message = new char[messageSize];

@@ -365,7 +365,7 @@ ifelse(«golden», ArtLightApplication, «dnl
 				</div>
 				<div>
 					<label class='tab0' for='_port'>Port</label>
-					<input type='number' id='_port' name='_port' required='true' min='1024' max='49151' placeholder=''/>
+					<input type='number' id='_port' name='_port' required='true' min='0' max='49151' placeholder=''/>
 				</div>
 			</fieldset>
 			<fieldset>
