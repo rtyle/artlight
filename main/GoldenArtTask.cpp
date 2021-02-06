@@ -641,7 +641,6 @@ void GoldenArtTask::update_() {
 	};
 	for (auto & p: part) {
 	    constexpr int16_t max {0xfff};
-	    constexpr float gamma {2.2f};
 	    p = 0.5f + max * std::pow(static_cast<float>(p) / max, gamma);
 	}
 	message1.encodings[layout[i++]]
@@ -739,7 +738,7 @@ GoldenArtTask::GoldenArtTask(
 	},
     },
 
-    mode(Mode::clock),
+    mode {Mode::clock},
     modeObserver(keyValueBroker, "mode", mode.toString(),
 	[this](char const * value){
 	    Mode mode_(value);
@@ -748,6 +747,7 @@ GoldenArtTask::GoldenArtTask(
 	    });
 	}),
 
+    curl {4, 2, 0,},
     curlObserver {
 	{keyValueBroker, curlKey[0], "4",
 	    [this](char const * value) {curlObserved(0, value);}},
@@ -757,6 +757,7 @@ GoldenArtTask::GoldenArtTask(
 	    [this](char const * value) {curlObserved(2, value);}},
     },
 
+    length {2, 1, 0,},
     lengthObserver {
 	{keyValueBroker, lengthKey[0], "2",
 	    [this](char const * value) {lengthObserved(0, value);}},
@@ -766,7 +767,38 @@ GoldenArtTask::GoldenArtTask(
 	    [this](char const * value) {lengthObserved(2, value);}},
     },
 
-    updated(0)
+    level {10 / 10.0f},
+    levelObserver(keyValueBroker, "level", "10",
+	[this](char const * value){
+	    unsigned const level_ = std::strtoul(value, nullptr, 10);
+	    if (1 <= level_ && level_ <= 10) {
+		io.post([this, level_](){
+		    level = level_ / 10.0f;
+		});
+	    }
+	}),
+
+    dim {false},
+    dimObserver(keyValueBroker, "dim", "0",
+	[this](char const * value){
+	    bool dim_ {std::strcmp("1", value)};
+	    io.post([this, dim_](){
+		dim = dim_;
+	    });
+	}),
+
+    gamma {20 / 10.f},
+    gammaObserver(keyValueBroker, "gamma", "20",
+	[this](char const * value){
+	    unsigned const gamma_ = std::strtoul(value, nullptr, 10);
+	    if (5 <= gamma_ && gamma_ <= 30) {
+		io.post([this, gamma_](){
+		    gamma = gamma_ / 10.0f;
+		});
+	    }
+	}),
+
+    updated {0}
 {
     tinyPicoLedPower.set_level(0);	// high side switch, low (0) turns it on
 }

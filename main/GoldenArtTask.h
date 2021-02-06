@@ -28,10 +28,19 @@ private:
     KeyValueBroker::Observer const	modeObserver;
 
     unsigned				curl[dialCount];
-    unsigned				length[dialCount];
-
     KeyValueBroker::Observer const	curlObserver[dialCount];
+
+    unsigned				length[dialCount];
     KeyValueBroker::Observer const	lengthObserver[dialCount];
+
+    float				level;
+    KeyValueBroker::Observer const	levelObserver;
+
+    bool				dim;
+    KeyValueBroker::Observer const	dimObserver;
+
+    float				gamma;
+    KeyValueBroker::Observer const	gammaObserver;
 
     unsigned updated;
 

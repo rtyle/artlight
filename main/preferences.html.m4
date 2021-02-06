@@ -337,6 +337,24 @@ ifelse(-1, regexp(ArtLightApplication, «clock\|cornhole»), , «dnl
 				</div>
 			</fieldset>
 »)dnl
+ifelse(«golden», ArtLightApplication, «dnl
+			<fieldset>
+				<legend>Brightness</legend>
+				<div>
+					<label for='level' title='brightness level'>Level</label>
+					<input type='range' id='level' name='level' required='true' min='1' max='10'/>
+				</div>
+				<div>
+					<label class='tab0' for='dim' title='dim brightness level automatically as ambient light decreases'>Dim</label>
+					<input type='checkbox' id='dim'/>
+				</div>
+				<div>
+					<label for='gamma'>Gamma Correction</label>
+					<input type='range' id='gamma' name='gamma' required='true' min='5' max='30'/>
+					<a href='https://en.wikipedia.org/wiki/Gamma_correction'>Help</a>
+				</div>
+			</fieldset>
+»)dnl
 			<fieldset>
 				<legend>Network</legend>
 				<div>
