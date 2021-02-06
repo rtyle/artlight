@@ -466,7 +466,7 @@ void GoldenArtTask::update_() {
 	}
     }
 
-    APA102::Message<ledCount> message1;
+    APA102::LED<int16_t> led[ledCount];
     switch (mode.value) {
 	case Mode::Value::clock: {
 	    static SawtoothCurve const unit[dialCount] {	// [0, 1) in
@@ -490,19 +490,25 @@ void GoldenArtTask::update_() {
 	    auto * unit_	{unit};
 	    for (auto i = 0u; i < dialCount; ++i) {
 		if (*width_) {
-		    static APA102::LED<> const black{0, 0, 0};
+		    static APA102::LED<int16_t> const black{0, 0, 0};
 
 		    auto	const rim_	{rim[*curl_]};
 		    auto	const rim__	{&rim_.data[std::min(*length_, rim_.size - 1)]};
 		    auto	const rimSize	{fibonacci(rim__->fibonacciIndex)};
 		    auto	const position	{(*unit_)(secondsSinceTwelveLocaltime)};
 		    auto	const width__	{2.0f * *width_ / 64.0f};
-		    auto	const color__	{*color_ / 4};
-		    Blend<LED<>>const blend	{black, color__};
+		    APA102::LED<int16_t>
+				const color__	{
+			static_cast<int16_t>(static_cast<int16_t>(color_->part.red)	<< 2),
+			static_cast<int16_t>(static_cast<int16_t>(color_->part.green)	<< 2),
+			static_cast<int16_t>(static_cast<int16_t>(color_->part.blue)	<< 2)
+		    };
+		    Blend<APA102::LED<int16_t>>
+				const blend	{black, color__};
 		    HalfDial	const dial	{position, !(1 & rim__->fibonacciIndex)};
 		    BellCurve<>	const bell	{0.0f, width__};
 
-		    std::function<LED<>(float)> render {[](float){return LED<>();}};
+		    std::function<APA102::LED<int16_t>(float)> render {[](float){return APA102::LED<int16_t>();}};
 		    switch (shape[i].value) {
 			case Shape::Value::bell: {
 			    render = [dial, bell, blend](float place) {
@@ -549,11 +555,10 @@ void GoldenArtTask::update_() {
 		    auto const * kp {rim__->sequence};
 		    for (auto j {0u}; j < rimSize; ++j) {
 			auto const k {*kp++};
-			APA102::LED<> addend {j == closest ? color__
+			APA102::LED<int16_t> value {j == closest ? color__
 			    : render(static_cast<float>(j) / rimSize)};
 			for (auto const & l: Path{rim__->end - 1u - k, rimSize}) {
-			    uint32_t & encoding {message1.encodings[layout[l]]};
-			    encoding = APA102::LED<>(encoding) + addend;
+			    led[l] = led[l] + value;
 			}
 		    }
 		}
@@ -563,9 +568,6 @@ void GoldenArtTask::update_() {
 		++length_;
 		++color_;
 		++unit_;
-	    }
-	    for (auto & e: message1.encodings) {
-		e &= ~0 << 5 | 1;	// scale by 1/31
 	    }
 	} break;
 	case Mode::Value::swirl: {
@@ -581,7 +583,7 @@ void GoldenArtTask::update_() {
 	    };
 	    static constexpr auto rimCycleSize	{sizeof(rimCycle) / sizeof(*rimCycle)};
 
-	    constexpr auto levelEnd	{64.0f};// [0, levelEnd)
+	    constexpr auto levelEnd	{1 << 10};	// [0, levelEnd)
 	    constexpr auto radiusMax	{1.5f};
 	    constexpr auto iSeconds	{60u};	// covers one swirl in cycle
 	    constexpr auto zSeconds	{8u};	// covers perlin noise period
@@ -604,31 +606,46 @@ void GoldenArtTask::update_() {
 		float const a {tau * j / n};
 		float const x {r * std::cos(a)};
 		float const y {r * std::sin(a)};
-		APA102::LED<> led {
-		    static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[0].noise0_1(x, y, z)), 0.0f)),
-		    static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[1].noise0_1(x, y, z)), 0.0f)),
-		    static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[2].noise0_1(x, y, z)), 0.0f))
+		APA102::LED<int16_t> value {
+		    static_cast<int16_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[0].noise0_1(x, y, z)), 0.0f)),
+		    static_cast<int16_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[1].noise0_1(x, y, z)), 0.0f)),
+		    static_cast<int16_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[2].noise0_1(x, y, z)), 0.0f))
 		};
-		led.part.control = ~0 << 5 | 1;	// scale by 1/31
 		for (auto const & l: Path{rim->end - 1u - k, n}) {
-		    message1.encodings[layout[l]] = led;
+		    led[l] = value;
 		}
 	    }
 	} break;
 	default: {
-	    constexpr auto levelEnd {64.0f};	// [0, levelEnd)
+	    constexpr auto levelEnd {1 << 10};	// [0, levelEnd)
 	    float const x {(microsecondsSinceBoot % perlinNoisePeriodMicroseconds)
 		/ static_cast<float>(microsecondsPerSecond)};
-	    APA102::LED<> led {
-		static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[0].noise0_1(x)), 0.0f)),
-		static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[1].noise0_1(x)), 0.0f)),
-		static_cast<uint8_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[2].noise0_1(x)), 0.0f))
+	    APA102::LED<int16_t> value {
+		static_cast<int16_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[0].noise0_1(x)), 0.0f)),
+		static_cast<int16_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[1].noise0_1(x)), 0.0f)),
+		static_cast<int16_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[2].noise0_1(x)), 0.0f))
 	    };
-	    led.part.control = ~0 << 5 | 1;	// scale by 1/31
-	    for (auto & e: message1.encodings) {
-		e = led;
+	    for (auto & e: led) {
+		e = value;
 	    }
 	} break;
+    }
+
+    APA102::Message<ledCount> message1;
+    auto i = 0u;
+    for (auto & e: led) {
+	int16_t part[3] {
+	    e.part.red,
+	    e.part.green,
+	    e.part.blue,
+	};
+	for (auto & p: part) {
+	    constexpr int16_t max {0xfff};
+	    constexpr float gamma {2.2f};
+	    p = 0.5f + max * std::pow(static_cast<float>(p) / max, gamma);
+	}
+	message1.encodings[layout[i++]]
+	    = APA102::LED<int16_t>(part[0], part[1], part[2]);
     }
 
     // SPI::Transaction constructor queues the message.
