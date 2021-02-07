@@ -451,22 +451,19 @@ void GoldenArtTask::update_() {
 	    auto * unit_	{unit};
 	    for (auto i = 0u; i < dialCount; ++i) {
 		if (*width_) {
-		    static APA102::LED<int16_t> const black{0, 0, 0};
+		    static APA102::LED<int16_t> const black {};
+		    constexpr auto shift {levelEndLog2 - 8};
 
 		    auto	const rim_	{rim[*curl_]};
 		    auto	const rim__	{&rim_.data[std::min(*length_, rim_.size - 1)]};
 		    auto	const rimSize	{fibonacci(rim__->fibonacciIndex)};
 		    auto	const position	{(*unit_)(secondsSinceTwelveLocaltime)};
 		    auto	const width__	{2.0f * *width_ / 64.0f};
-		    constexpr auto shift {levelEndLog2 - 8};
-		    APA102::LED<int16_t>
-				const color__	{
-			static_cast<int16_t>(fade * (color_->part.red	<< shift)),
-			static_cast<int16_t>(fade * (color_->part.green<< shift)),
-			static_cast<int16_t>(fade * (color_->part.blue	<< shift))
-		    };
-		    Blend<APA102::LED<int16_t>>
-				const blend	{black, color__};
+
+		    APA102::LED<int16_t> const color__
+			{Blend<APA102::LED<int16_t>>(black,
+			    APA102::LED<int16_t>(*color_) * (1 << shift))(fade)};
+		    Blend<APA102::LED<int16_t>>	const blend {black, color__};
 		    HalfDial	const dial	{position, !(1 & rim__->fibonacciIndex)};
 		    BellCurve<>	const bell	{0.0f, width__};
 
@@ -662,22 +659,27 @@ void GoldenArtTask::update_() {
 	 918,  973,  884,  939,  994,  905,  960, 1015,  926,  981,  892,  947, 1002,  913,  968, 1023,
     };
 
+    // transfer APA102::LED<int16_t> renderings to message layout
+    // with gamma correction and scaled encodings.
     APA102::Message<ledCount> message1;
     auto i = 0u;
     for (auto & e: led) {
-	int16_t part[3] {
+	int16_t ps[3] {
 	    e.part.red,
 	    e.part.green,
 	    e.part.blue,
 	};
-	for (auto & p: part) {
+	for (auto & p: ps) {
 	    if (p) {
 		constexpr int16_t max {0xfff};
-		p = 0.5f + max * std::pow(static_cast<float>(p) / max, gamma);
+		auto out {static_cast<int16_t>(
+		    0.5f + max * std::pow(static_cast<float>(p) / max, gamma))};
+		if (!out) out = 1;
+		p = out;
 	    }
 	}
 	message1.encodings[layout[i++]]
-	    = APA102::LED<int16_t>(part[0], part[1], part[2]);
+	    = APA102::LED<int16_t>(ps[0], ps[1], ps[2]);
     }
 
     // SPI::Transaction constructor queues the message.

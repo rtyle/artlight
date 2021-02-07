@@ -1,8 +1,10 @@
 #pragma once
 
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <iomanip>
+#include <limits>
 #include <sstream>
 #include <string>
 
@@ -154,12 +156,7 @@ public:
 	return that < *this;
     }
 
-    template <typename F> LED operator * (F multiplier) const {
-	return LED(
-	    part.red	* multiplier,
-	    part.green	* multiplier,
-	    part.blue	* multiplier);
-    }
+    template <typename F> LED operator * (F multiplier) const;
 
     template <typename F> LED operator / (F divisor) const {
 	return LED(
@@ -230,6 +227,45 @@ public:
 	return stream.str();
     }
 };
+
+template <typename T> template <typename F>
+LED<T> LED<T>::operator * (F multiplier) const {
+    return LED<T>(
+	part.red	* multiplier,
+	part.green	* multiplier,
+	part.blue	* multiplier);
+}
+
+// int16_t specialization:
+// do not allow non-zero parts to be scaled to zero unless they all are.
+template <> template <typename F>
+LED<int16_t> LED<int16_t>::operator * (F multiplier) const {
+    if (0 < multiplier) {
+	int16_t const ps[] {
+	    part.red,
+	    part.green,
+	    part.blue,
+	};
+	int16_t min {std::numeric_limits<int16_t>::max()};
+	int16_t max {0};
+	for (auto & p: ps) {
+	    int16_t const v {0 > p ? static_cast<int16_t>(-p) : p};
+	    if (v) {
+		if (min > v) min = v;
+		if (max < v) max = v;
+	    }
+	}
+	if (min < max
+		&& 0 == static_cast<int16_t>(min * multiplier)
+		&& 0 != static_cast<int16_t>(max * multiplier)) {
+	    multiplier = static_cast<F>(1) / min;
+	}
+    }
+    return LED<int16_t> {
+	static_cast<int16_t>(part.red	* multiplier),
+	static_cast<int16_t>(part.green	* multiplier),
+	static_cast<int16_t>(part.blue	* multiplier)};
+}
 
 size_t constexpr messageBits(size_t size) {return 32 + size * 65 / 2 + 32;}
 

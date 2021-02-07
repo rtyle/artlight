@@ -45,45 +45,51 @@ template <typename T> LED<T>::operator uint32_t () const
 template LED<int>::operator uint32_t() const;
 template LED<unsigned>::operator uint32_t() const;
 
-// for encodings from LED<T> where T has more precision than uint8_t,
+// for encodings from LED<T> where T has more resolution than uint8_t,
 // we could get more precision using the low order 5 bits in part.control
 // as it scales all the values down (using PWM) by this number over 31.
 // implement LED<int16_t> this way.
-// whites will be clipped to 0xfff and blacks will be clipped to 0.
-// values will effectively be shifted right by 4 by scaling as much as possible
-// first before shifting (which is where precision is lost).
+// whites in will be clipped to 0xfff and blacks will be clipped to 0.
+// values out will effectively be shifted right by 4
+// by scaling as much as possible first
+// before shifting (which is where precision is lost).
 template <> LED<int16_t>::operator uint32_t () const {
-    constexpr int16_t	maxIn 		{0x0fff};
-    constexpr uint8_t	maxOut		{0xff};
-    constexpr unsigned	maxInClz	{__builtin_clz(maxIn)};
-    constexpr unsigned	maxOutClz	{__builtin_clz(maxOut)};
-    constexpr unsigned	shiftTotal	{maxOutClz - maxInClz};
-    int16_t color[3] {
+    constexpr int16_t	inMax 		{0x0fff};
+    constexpr uint8_t	outMax		{0xff};
+    constexpr unsigned	inMaxClz	{__builtin_clz(inMax)};
+    constexpr unsigned	outMaxClz	{__builtin_clz(outMax)};
+    constexpr unsigned	shiftTotal	{outMaxClz - inMaxClz};
+    int16_t ins[3] {
 	*(&part.control + 3),
 	*(&part.control + 2),
 	*(&part.control + 1),
     };
-    unsigned shiftPart {0};
-    for (auto & e: color) { if (e) {
-	if (e < 0) e = 0;		// clip blacks
+    unsigned shiftEach {0};
+    for (auto & in: ins) { if (in) {
+	if (in < 0) in = 0;		// clip blacks
 	else {
-	    unsigned shiftPart_ {0};
-	    if (e > maxIn) {
-		e = maxIn;		// clip whites
-		shiftPart_ = shiftTotal;
+	    unsigned shift {0};
+	    if (in > inMax) {
+		in = inMax;		// clip whites
+		shift = shiftTotal;
 	    } else {
-		shiftPart_ = maxOutClz - std::min(
-		    maxOutClz, static_cast<unsigned>(__builtin_clz(e)));
+		shift = outMaxClz - std::min(
+		    outMaxClz, static_cast<unsigned>(__builtin_clz(in)));
 	    }
-	    shiftPart = std::max(shiftPart, shiftPart_);
+	    if (shiftEach < shift) shiftEach = shift;
 	}
     }}
-    uint32_t encoding {0};
-    for (auto & e: color) {
-	encoding |= (e >> shiftPart);
-	encoding <<= 8;
+    uint32_t outs {0};
+    for (auto & in: ins) {
+	if (in) {
+	    // we got something in.
+	    uint32_t out {static_cast<uint32_t>(in >> shiftEach)};
+	    if (!out) out = 1;	// make sure something goes out
+	    outs |= out;
+	}
+	outs <<= 8;
     }
-    return encoding | 0b11100000 | (0b11111 >> (shiftTotal - shiftPart));
+    return outs | 0b11100000 | (0b11111 >> (shiftTotal - shiftEach));
 }
 
 }
