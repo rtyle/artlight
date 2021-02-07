@@ -428,6 +428,12 @@ void GoldenArtTask::update_() {
     // encoded into 8 bits later.
     APA102::LED<int16_t> led[ledCount];
 
+    float const secondsSinceTwelveLocaltime {
+	smoothTime.millisecondsSinceTwelveLocaltime(microsecondsSinceBoot)
+	    / static_cast<float>(millisecondsPerSecond)};
+
+    Rim const * rimSwirl {nullptr};	// otherwise, top of the hour celebration
+
     switch (mode.value) {
 	case Mode::Value::clock: {
 	    static SawtoothCurve const unit[dialCount] {	// [0, 1) in
@@ -435,10 +441,6 @@ void GoldenArtTask::update_() {
 		{0.0f, 60.0f * 60.0f},		// hour		(60 minute)
 		{0.0f, 60.0f},			// minute	(60 second)
 	    };
-
-	    float const secondsSinceTwelveLocaltime {
-		smoothTime.millisecondsSinceTwelveLocaltime(microsecondsSinceBoot)
-		    / static_cast<float>(millisecondsPerSecond)};
 
 	    constexpr auto wavePeriod {2.0f};	// seconds
 	    float ignore;
@@ -451,7 +453,8 @@ void GoldenArtTask::update_() {
 	    auto * unit_	{unit};
 	    for (auto i = 0u; i < dialCount; ++i) {
 		if (*width_) {
-		    static APA102::LED<int16_t> const black {};
+		    static APA102::LED<int16_t> const background {};
+		    static APA102::LED<int16_t> const etch {-4096, -4096, -4096};
 		    constexpr auto shift {levelEndLog2 - 8};
 
 		    auto	const rim_	{rim[*curl_]};
@@ -460,10 +463,17 @@ void GoldenArtTask::update_() {
 		    auto	const position	{(*unit_)(secondsSinceTwelveLocaltime)};
 		    auto	const width__	{2.0f * *width_ / 64.0f};
 
-		    APA102::LED<int16_t> const color__
-			{Blend<APA102::LED<int16_t>>(black,
-			    APA102::LED<int16_t>(*color_) * (1 << shift))(fade)};
-		    Blend<APA102::LED<int16_t>>	const blend {black, color__};
+		    APA102::LED<int16_t> color__
+			{APA102::LED<int16_t>(*color_) * (1 << shift)};
+		    APA102::LED<int16_t> const * foreground {&color__};
+		    if (0 == i && 0 == static_cast<int>(position * 12 * 60) % 60) {
+			rimSwirl = &rim_.data[0];
+			foreground = &etch;
+		    }
+
+		    APA102::LED<int16_t> const faded
+			{Blend<APA102::LED<int16_t>>(background, *foreground)(fade)};
+		    Blend<APA102::LED<int16_t>>	const blend {background, faded};
 		    HalfDial	const dial	{position, !(1 & rim__->fibonacciIndex)};
 		    BellCurve<>	const bell	{0.0f, width__};
 
@@ -514,7 +524,7 @@ void GoldenArtTask::update_() {
 		    auto const * kp {rim__->sequence};
 		    for (auto j {0u}; j < rimSize; ++j) {
 			auto const k {*kp++};
-			APA102::LED<int16_t> value {j == closest ? color__
+			APA102::LED<int16_t> value {j == closest ? faded
 			    : render(static_cast<float>(j) / rimSize)};
 			for (auto const & l: Path{rim__->end - 1u - k, rimSize}) {
 			    led[l] = led[l] + value;
@@ -522,13 +532,15 @@ void GoldenArtTask::update_() {
 		    }
 		}
 
+		if (rimSwirl) break;
+
 		++width_;
 		++curl_;
 		++length_;
 		++color_;
 		++unit_;
 	    }
-	} break;
+	} if (!rimSwirl) break;	// else, fall through
 	case Mode::Value::swirl: {
 	    // ramp up and down by even offsets
 	    // so that there are fewer changes in direction
@@ -552,7 +564,7 @@ void GoldenArtTask::update_() {
 	    Contrast const radiusContrast {10.0f};
 	    float const r {radiusMax * radiusContrast(perlinNoise[3].noise0_1(z))};
 
-	    auto const rim {&rimCycle[static_cast<unsigned>(
+	    auto const rim {rimSwirl ? rimSwirl : &rimCycle[static_cast<unsigned>(
 		((microsecondsSinceBoot / iSeconds) % (rimCycleSize * microsecondsPerSecond))
 		    / static_cast<float>(microsecondsPerSecond)
 	    )]};
@@ -570,7 +582,7 @@ void GoldenArtTask::update_() {
 		    static_cast<int16_t>(levelEnd * std::nextafter(levelContrast(perlinNoise[2].noise0_1(x, y, z)), 0.0f))
 		};
 		for (auto const & l: Path{rim->end - 1u - k, n}) {
-		    led[l] = value;
+		    led[l] = rimSwirl ? led[l] + value : value;
 		}
 	    }
 	} break;
