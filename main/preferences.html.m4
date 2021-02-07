@@ -293,7 +293,7 @@ ifelse(-1, regexp(ArtLightApplication, «golden\|nixie»), , «dnl
 			<fieldset>
 				<legend>Sensor Control</legend>
 				<div>
-					<span class='tab0'><span title='measure from optional light sensor'>Lux</span> <span title='dimming occurs for values between the black and white points'>Clipping</span></span>
+					<span class='tab0'><span title='measure from optional light sensor'>Lux</span> <span title='dimming changes to reflect lux changes between the black and white points'>Clipping</span></span>
 					<label for='black' title='lux values below this are considered black'>Black Point</label>
 					<input type='range' id='black' name='black' required='true' min='0' max='10' step='1' title='2^0 ... 2^-10'/>
 					<label for='white' title='lux values above this are considered white'>White Point</label>
