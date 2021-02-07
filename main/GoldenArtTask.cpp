@@ -671,8 +671,10 @@ void GoldenArtTask::update_() {
 	    e.part.blue,
 	};
 	for (auto & p: part) {
-	    constexpr int16_t max {0xfff};
-	    p = 0.5f + max * std::pow(static_cast<float>(p) / max, gamma);
+	    if (p) {
+		constexpr int16_t max {0xfff};
+		p = 0.5f + max * std::pow(static_cast<float>(p) / max, gamma);
+	    }
 	}
 	message1.encodings[layout[i++]]
 	    = APA102::LED<int16_t>(part[0], part[1], part[2]);
