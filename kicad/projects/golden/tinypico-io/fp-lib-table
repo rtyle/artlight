@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name snapeda)(type KiCad)(uri ${PWD}/../../../libraries/snapeda)(options "")(descr ""))
+)
