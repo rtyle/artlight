@@ -789,8 +789,8 @@ GoldenArtTask::GoldenArtTask(
     // external 4.7k is still too high. external 1k works
     i2cMaster {
 	I2C::Config()
-	    .sda_io_num_(GPIO_NUM_4) //.sda_pullup_en_(GPIO_PULLUP_ENABLE)
-	    .scl_io_num_(GPIO_NUM_5) //.scl_pullup_en_(GPIO_PULLUP_ENABLE)
+	    .sda_io_num_(GPIO_NUM_21) //.sda_pullup_en_(GPIO_PULLUP_ENABLE)
+	    .scl_io_num_(GPIO_NUM_22) //.scl_pullup_en_(GPIO_PULLUP_ENABLE)
 	    .master_clk_speed_(400000),	// I2C fast mode
 	I2C_NUM_0, 0
     },
