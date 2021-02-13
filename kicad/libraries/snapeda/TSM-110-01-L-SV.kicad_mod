@@ -1,5 +1,5 @@
 
-(module TSM-110-01-L-SV (layer F.Cu) (tedit 60219405)
+(module TSM-110-01-L-SV (layer F.Cu) (tedit 602811A7)
   (descr "translated Allegro footprint")
   (fp_text reference REF** (at -15.2185 -5.3135 0) (layer F.SilkS)
     (effects (font (size 1.5 1.5) (thickness 0.015)))

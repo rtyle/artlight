@@ -1,5 +1,5 @@
 
-(module JST_SM04B-SRSS-TB_LF__SN_ (layer F.Cu) (tedit 602180FB)
+(module JST_SM04B-SRSS-TB_LF__SN_ (layer F.Cu) (tedit 6028133F)
   (descr "")
   (fp_text reference REF** (at -0.545095 -1.767685 0) (layer F.SilkS)
     (effects (font (size 1.00117322835 1.00117322835) (thickness 0.015)))
