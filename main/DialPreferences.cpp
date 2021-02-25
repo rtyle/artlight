@@ -70,24 +70,24 @@ DialPreferences::DialPreferences(
     shape {
 	Shape::Value::bell,
 	Shape::Value::bell,
-	Shape::Value::bell,
+	Shape::Value::wave,
     },
 
     widthObserver {
-	{keyValueBroker, widthKey[0], "8",
+	{keyValueBroker, widthKey[0], "16",
 	    [this](char const * value) {widthObserved(0, value);}},
 	{keyValueBroker, widthKey[1], "8",
 	    [this](char const * value) {widthObserved(1, value);}},
-	{keyValueBroker, widthKey[2], "4",
+	{keyValueBroker, widthKey[2], "2",
 	    [this](char const * value) {widthObserved(2, value);}},
     },
 
     colorObserver {
-	{keyValueBroker, colorKey[0], "#ff0000",
+	{keyValueBroker, colorKey[0], "#60ffca",
 	    [this](char const * value) {colorObserved(0, value);}},
-	{keyValueBroker, colorKey[1], "#0000ff",
+	{keyValueBroker, colorKey[1], "#ca60ff",
 	    [this](char const * value) {colorObserved(1, value);}},
-	{keyValueBroker, colorKey[2], "#ffff00",
+	{keyValueBroker, colorKey[2], "#ffffff",
 	    [this](char const * value) {colorObserved(2, value);}},
     },
 

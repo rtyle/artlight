@@ -816,7 +816,7 @@ GoldenArtTask::GoldenArtTask(
     white	{1.0f * (1 <<  4)},
     level	{},
     dim		{},
-    gamma	{20 / 10.f},
+    gamma	{10 / 10.f},
 
     modeObserver(keyValueBroker, "mode", mode.toString(),
 	[this](char const * value){
@@ -875,7 +875,7 @@ GoldenArtTask::GoldenArtTask(
 		});
 	    }
 	}),
-    gammaObserver(keyValueBroker, "gamma", "20",
+    gammaObserver(keyValueBroker, "gamma", "10",
 	[this](char const * value){
 	    unsigned const gamma_ = std::strtoul(value, nullptr, 10);
 	    if (5 <= gamma_ && gamma_ <= 30) {
