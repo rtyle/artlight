@@ -736,6 +736,16 @@ NixieArtTask::NixieArtTask(
 void NixieArtTask::run() {
     sensorTask.start();
 
+    // after an NCH8200HV power supply failure,
+    // Yan Zeyuan <support@nixie.ai> said
+    //	We met some cases of the power module failure,
+    //	most of them caused by overload or current impact at the moment of power on,
+    //	so we suggest when we program the clock
+    //	please turn off all Nixie tubes when power on and
+    //	turn on the tubes after 500ms or a little longer.
+    // the tubes should be powered off now, wait 1000ms before powering them on.
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+
     // asio timers are not supported
     // adapt a FreeRTOS timer to post timeout to this task.
     Timer updateTimer(name, 4, true, [this](){
