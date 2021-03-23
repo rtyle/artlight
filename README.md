@@ -1,13 +1,31 @@
 # artlight
 This repository supports similar applications that artfully animate light.
 
-Currently, there is a cornhole, wall clock and nixie tube clock application supported by this repository.
+Currently, there is a cornhole, wall clock, nixie tube clock and golden clock application supported by this repository.
+
+Golden clock (LED sunflower): https://youtu.be/tHdfZooGRxo
 
 Nixie tube clock: https://youtu.be/5ZdNDDC60QM
 
 Wall clock: https://youtu.be/0ISKXnE9frU
 
 ## Parts
+
+### Golden Clock Parts
+
+* [5V 20W power supply](https://www.digikey.com/en/products/detail/cui-inc/SWI25-5-N-P5/7070092)
+* [Custom TinyPICO IO PCB](https://github.com/rtyle/artlight/tree/master/kicad/projects/golden/tinypico-io)
+* [TinyPICO ESP32 development board](https://www.adafruit.com/product/4335)
+* SMD 0.1" pin headers for mounting TinyPICO to TinyPICO IO PCB
+* 2 position JST PH connection header (bundled in TinyPICO ESP32 development board package) for +5V power
+* [3 position JST SH connection header](https://www.digikey.com/en/products/detail/jst-sales-america-inc/SM03B-SRSS-TB(LF)(SN)/926874) for LED SPI signals
+* [4 position JST SH connection header](https://www.digikey.com/en/products/detail/sparkfun-electronics/PRT-14417/7652746) for I2C interface with light sensor
+* [Custom LED PCB](https://github.com/rtyle/artlight/tree/master/easyeda/projects/golden)
+* 1024 [SK9822 5050 LEDs](https://www.amazon.com/gp/product/B07QXJSNLN)
+* [Barrel connector jack](https://www.digikey.com/product-detail/en/cui-devices/PJ-036AH-SMT-TR/CP-036AHPJCT-ND/1530994)
+* [3 position 0.1" horizontal connection header](https://www.digikey.com/en/products/detail/harwin-inc/M20-8890345/6565716) for LED SPI signals
+* [TSL2591 light sensor](https://www.digikey.com/en/products/detail/adafruit-industries-llc/1980/4990786)
+* Appropriate cables and connectors for wiring harness
 
 ### Nixie Tube Clock Parts
 
@@ -70,6 +88,12 @@ Additional parts for the cornhole application are
 
 The PCB components were soldered on their respective boards.
 When Huzzah32 is powered by USB cable, the 5V power jumper must first be removed.
+
+### Golden Clock Construction
+
+Solder LEDs and connectors to LED PCB.
+Solder TinyPICO and connectors to TinyPICO IO PCB.
+Build wire harness as necessary for mounting.
 
 ### Nixie Tube Clock Construction
 
@@ -154,6 +178,14 @@ The mDNS hostname of the board may be changed.
 Parameters may be set in order to accurately present time in the given time zone.
 Over-the-air software updates may also be performed.
 
+## Golden Clock Use
+
+It's "golden" because the LED layout that produces the spirals is based on the [golden ratio](https://en.wikipedia.org/wiki/Golden_ratio).
+
+A high quality power supply is required to power both the microcontroller and the LEDs.
+It may be necessary to use separate power supplies for these.
+If so, they must tolerate having their grounds tied together.
+
 ## Nixie Tube Clock Use
 
 The bottom dot of the colon pulses at 30 beats per minute (a second on and a second off).
@@ -235,6 +267,7 @@ Select application (choose one)
     application=clock
     application=cornhole
     application=nixie
+    application=golden
 
 Build application
 
