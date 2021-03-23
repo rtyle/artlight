@@ -183,6 +183,17 @@ Over-the-air software updates may also be performed.
 
 It's "golden" because the LED layout that produces the spirals is based on the [golden ratio](https://en.wikipedia.org/wiki/Golden_ratio).
 
+In clock mode, the length, width, curl, shape and color of each hand may be customized. During the first minute of each hour, the minute and second hands are suppressed and the hour hand is etched into a matching randomized swirling pattern.
+
+In swirl mode, the randomized swirling pattern cycles through six different minute-long phases, each aligned to a particular set of spirals.
+
+The number of spirals in each set are [fibonacci numbers](https://en.wikipedia.org/wiki/Fibonacci_number) (13, 21, 34, 55, 89, 144).
+The lower the number, the tighter (curlier) the spirals in the set.
+Of all the fibonacci numbers, these ones resolve best on a layout with this number of LEDs.
+By default, the sets with 21, 55 and 144 spirals are used to resolve the hour, minute and second hands because they all curve the same way and most all are sufficient to resolve the units of their dial.
+Unfortunately, 55 not quite enough resolution for 60 minutes but it looks better than the spiral set of 89 because that set curves the other way.
+In any case, you can choose what you like.
+
 A high quality power supply is required to power both the microcontroller and the LEDs.
 It may be necessary to use separate power supplies for these.
 If so, they must tolerate having their grounds tied together.
