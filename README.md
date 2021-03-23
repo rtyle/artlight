@@ -191,7 +191,7 @@ The number of spirals in each set are [fibonacci numbers](https://en.wikipedia.o
 The lower the number, the tighter (curlier) the spirals in the set.
 Of all the fibonacci numbers, these ones resolve best on a layout with this number of LEDs.
 By default, the sets with 21, 55 and 144 spirals are used to resolve the hour, minute and second hands because they all curve the same way and most all are sufficient to resolve the units of their dial.
-Unfortunately, 55 not quite enough resolution for 60 minutes but it looks better than the spiral set of 89 because that set curves the other way.
+Unfortunately, 55 is not quite enough resolution for 60 minutes but it looks better than the spiral set of 89 because that curves the other way.
 In any case, you can choose what you like.
 
 A high quality power supply is required to power both the microcontroller and the LEDs.
