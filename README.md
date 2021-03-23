@@ -26,6 +26,7 @@ Wall clock: https://youtu.be/0ISKXnE9frU
 * [3 position 0.1" horizontal connection header](https://www.digikey.com/en/products/detail/harwin-inc/M20-8890345/6565716) for LED SPI signals
 * [TSL2591 light sensor](https://www.digikey.com/en/products/detail/adafruit-industries-llc/1980/4990786)
 * Appropriate cables and connectors for wiring harness
+* [12" interior picture frame](https://www.etsy.com/listing/943351523/round-craft-frame-hump-profile-1-14)
 
 ### Nixie Tube Clock Parts
 
