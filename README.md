@@ -187,10 +187,10 @@ In clock mode, the length, width, curl, shape and color of each hand may be cust
 
 In swirl mode, the randomized swirling pattern cycles through six different minute-long phases, each aligned to a particular set of spirals.
 
-The number of spirals in each set are [fibonacci numbers](https://en.wikipedia.org/wiki/Fibonacci_number) (13, 21, 34, 55, 89, 144).
+The number of spirals in each set are [Fibonacci numbers](https://en.wikipedia.org/wiki/Fibonacci_number) (13, 21, 34, 55, 89, 144).
 The lower the number, the tighter (curlier) the spirals in the set.
-Of all the fibonacci numbers, these ones resolve best on a layout with this number of LEDs.
-By default, the sets with 21, 55 and 144 spirals are used to resolve the hour, minute and second hands because they all curve the same way and most all are sufficient to resolve the units of their dial.
+Of all the Fibonacci numbers, these ones resolve best on a layout with this number of LEDs.
+By default, the sets with 21, 55 and 144 spirals are used to resolve the hour, minute and second hands because they all curve the same way and most all are sufficient to resolve the units of their measure.
 Unfortunately, 55 is not quite enough resolution for 60 minutes but it looks better than the spiral set of 89 because that curves the other way.
 In any case, you can choose what you like.
 
