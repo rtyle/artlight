@@ -14,13 +14,11 @@ Wall clock: https://youtu.be/0ISKXnE9frU
 ### Golden Clock Parts
 
 * [5V 20W power supply](https://www.digikey.com/en/products/detail/cui-inc/SWI25-5-N-P5/7070092)
-* [Custom TinyPICO IO PCB](https://github.com/rtyle/artlight/tree/master/kicad/projects/golden/tinypico-io)
 * [TinyPICO ESP32 development board](https://www.adafruit.com/product/4335)
 * SMD 0.1" pin headers for mounting TinyPICO to TinyPICO IO PCB
 * 2 position JST PH connection header (bundled in TinyPICO ESP32 development board package) for +5V TinyPICO power
 * [3 position JST SH connection header](https://www.digikey.com/en/products/detail/jst-sales-america-inc/SM03B-SRSS-TB(LF)(SN)/926874) for LED SPI signals
 * [4 position JST SH connection header](https://www.digikey.com/en/products/detail/sparkfun-electronics/PRT-14417/7652746) for I2C interface with light sensor
-* [Custom LED PCB](https://github.com/rtyle/artlight/tree/master/easyeda/projects/golden)
 * 1024 [SK9822 5050 LEDs](https://www.amazon.com/gp/product/B07QXJSNLN)
 * [Barrel connector jack](https://www.digikey.com/product-detail/en/cui-devices/PJ-036AH-SMT-TR/CP-036AHPJCT-ND/1530994) for +5V LED power
 * [3 position 0.1" horizontal connection header](https://www.digikey.com/en/products/detail/harwin-inc/M20-8890345/6565716) for LED SPI signals
@@ -91,6 +89,10 @@ The PCB components were soldered on their respective boards.
 When Huzzah32 is powered by USB cable, the 5V power jumper must first be removed.
 
 ### Golden Clock Construction
+
+[LED PCB design files](https://github.com/rtyle/artlight/tree/master/easyeda/projects/golden)
+and
+[TinyPICO IO PCB design files](https://github.com/rtyle/artlight/tree/master/kicad/projects/golden/tinypico-io)
 
 Solder LEDs and connectors to LED PCB.
 Solder TinyPICO and connectors to TinyPICO IO PCB.
