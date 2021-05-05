@@ -6,10 +6,10 @@
 #include <set>
 #include <vector>
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/queue.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
 
-#include <driver/gpio.h>
+#include "driver/gpio.h"
 
 #include "Qio.h"
 

@@ -2,8 +2,8 @@
 
 #include <cstdlib>
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 /// A Task, once start'ed, creates a FreeRTOS task
 /// in which its virtual run method is invoked.
