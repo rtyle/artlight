@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <forward_list>
 
-#include <driver/ledc.h>
+#include "driver/ledc.h"
 
 /// The LEDC namespace provides wrappers for ESP-IDF LEDC functions.
 namespace LEDC {
