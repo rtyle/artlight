@@ -10,7 +10,7 @@ namespace Qio {
 IO::IO(size_t size)
 :
     queue(xQueueCreate(size, sizeof(void *))),
-    stopAction([this](){this->stopped = true;}),
+    stopAction([this](void){this->stopped = true;}),
     stopped(false)
 {}
 
