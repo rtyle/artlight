@@ -2,8 +2,8 @@
 
 #include <functional>
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/timers.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/timers.h"
 
 /// A Timer wraps a FreeRTOS Timer, that, once started, calls its expire
 /// function object on expiration.
