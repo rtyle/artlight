@@ -1,10 +1,10 @@
 #include <cassert>
 #include <cstring>
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/portmacro.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/portmacro.h"
 
-#include <esp_err.h>
+#include "esp_err.h"
 
 #include "SPI.h"
 

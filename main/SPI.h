@@ -1,7 +1,7 @@
 #pragma once
 
-#include <driver/spi_common.h>
-#include <driver/spi_master.h>
+#include "driver/spi_common.h"
+#include "driver/spi_master.h"
 
 namespace SPI {
 
