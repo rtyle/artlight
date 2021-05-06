@@ -3,9 +3,9 @@
 #include <cstdint>
 #include <cstdlib>
 
-#include <freertos/FreeRTOS.h>
+#include "freertos/FreeRTOS.h"
 
-#include <driver/i2c.h>
+#include "driver/i2c.h"
 
 namespace I2C {
 

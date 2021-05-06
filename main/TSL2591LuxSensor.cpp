@@ -8,7 +8,7 @@
 
 #include <machine/endian.h>
 
-#include <esp_log.h>
+#include "esp_log.h"
 
 // https://ams.com/tsl25911
 
@@ -171,7 +171,7 @@ struct IntegrationTime {
     unsigned	overflow;
 };
 
-static float constexpr normalIntegrationTime {400.0f};
+// static float constexpr normalIntegrationTime {400.0f};
 
 static std::array<IntegrationTime, 6> constexpr integrationTimes {{
     {0b000,	100.0f,	36863},
@@ -187,7 +187,7 @@ struct Gain {
     float	value;
 };
 
-static float constexpr normalGain {16.0f};
+// static float constexpr normalGain {16.0f};
 
 static std::array<Gain, 4> constexpr gains {{
     {0b00,	   1.0f},

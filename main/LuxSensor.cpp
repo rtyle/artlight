@@ -1,4 +1,4 @@
-#include <esp_log.h>
+#include "esp_log.h"
 
 #include "LuxSensor.h"
 
@@ -31,11 +31,11 @@ void LuxSensor::update() {
     bool up {true};
     try {
 	lux = readLux();
-    } catch (std::underflow_error e) {
+    } catch (std::underflow_error & e) {
 #if 0
 	ESP_LOGE(name, "underflow %s", e.what());
 #endif
-    } catch (std::overflow_error e) {
+    } catch (std::overflow_error & e) {
 #if 0
 	ESP_LOGE(name, "overflow %s", e.what());
 #endif
