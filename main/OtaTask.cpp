@@ -1,7 +1,8 @@
 #include <string>
 
-#include <esp_log.h>
-#include <esp_https_ota.h>
+#include "esp_log.h"
+#include "esp_http_client.h"
+#include "esp_https_ota.h"
 
 #include "OtaTask.h"
 
