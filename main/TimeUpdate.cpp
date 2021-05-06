@@ -1,11 +1,10 @@
 #include <cstring>
+#include <ctime>
 #include <sstream>
 
-#include <esp_log.h>
+#include "esp_log.h"
 
-#include <lwipopts.h>
-#include <lwip/apps/sntp.h>
-#include <lwip/apps/sntp_opts.h>
+#include "esp_sntp.h"
 
 #include "TimeUpdate.h"
 
