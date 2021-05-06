@@ -2,9 +2,9 @@
 #include <memory>
 #include <string>
 
-#include <esp_err.h>
-#include <esp_log.h>
-#include <esp_wifi.h>
+#include "esp_err.h"
+#include "esp_log.h"
+#include "esp_wifi.h"
 
 #include "ProvisionTask.h"
 
@@ -144,8 +144,13 @@ bool ProvisionTask::readRequest() {
 				ESP_LOGI(name, "readRequest GET /favicon.ico");
 				respond(responseFavicon, responseFaviconSize);
 				break;
+			#pragma GCC diagnostic push
+			#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+
 			    } // else, fall through ...
 			}
+			#pragma GCC diagnostic pop
+			// no break
 		    default:
 			// GET /*
 			ESP_LOGE(name, "readRequest GET /*");
@@ -168,7 +173,7 @@ bool ProvisionTask::readRequest() {
 			ESP_LOGI(name, "readRequest POST /");
 			wifi_config_t wifi_config;
 			ESP_ERROR_CHECK(esp_wifi_get_config(
-			    ESP_IF_WIFI_STA, &wifi_config));
+			    WIFI_IF_STA, &wifi_config));
 			char * t;
 			size_t z;
 
@@ -199,7 +204,7 @@ bool ProvisionTask::readRequest() {
 
 				    ESP_LOGI(name, "readRequest reconnect");
 				    ESP_ERROR_CHECK(esp_wifi_set_config(
-					ESP_IF_WIFI_STA, &wifi_config));
+					WIFI_IF_STA, &wifi_config));
 				    ESP_ERROR_CHECK(esp_wifi_connect());
 
 				    ++s;
