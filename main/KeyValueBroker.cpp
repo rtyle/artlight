@@ -1,7 +1,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include <esp_log.h>
+#include "esp_log.h"
 
 #include "KeyValueBroker.h"
 
@@ -63,7 +63,10 @@ static std::ostream & operator<<(
 	    switch (c) {
 	    case '\\':
 	    case '"':
+		#pragma GCC diagnostic push
+		#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 		stream << '\\';
+		#pragma GCC diagnostic pop
 		// no break
 	    default:
 		stream << c;
