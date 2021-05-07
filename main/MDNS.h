@@ -1,7 +1,5 @@
 #pragma once
 
-#include "esp_system.h"
-
 #include "KeyValueBroker.h"
 
 /// An MDNS instance is an RAII wrapper to the ESP-IDF mDNS API

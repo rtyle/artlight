@@ -5,8 +5,8 @@
 #include <mutex>
 #include <set>
 
-#include <esp_event_legacy.h>
-#include <esp_event_loop.h>
+#include "esp_event_legacy.h"
+#include "esp_event_loop.h"
 
 // the default event loop, created by
 //	esp_event_loop_init
