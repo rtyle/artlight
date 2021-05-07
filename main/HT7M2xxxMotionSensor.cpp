@@ -1,6 +1,6 @@
 #include <cinttypes>
 
-#include <esp_log.h>
+#include "esp_log.h"
 
 #include "HT7M2xxxMotionSensor.h"
 
