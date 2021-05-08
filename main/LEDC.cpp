@@ -31,11 +31,9 @@ Timer::Timer(
     ledc_mode_t		speed_mode_,
     ledc_timer_bit_t	duty_resolution,
     uint32_t		freq_hz
-    #ifdef ESP_IDF_VERSION
-    #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
+    #if __has_include ("esp_idf_version.h")	// >= 4
 	,
 	ledc_clk_cfg_t	clk_cfg
-    #endif
     #endif
     )
 :
@@ -58,10 +56,8 @@ Timer::Timer(
 	duty_resolution,
 	timer_num,
 	freq_hz,
-	#ifdef ESP_IDF_VERSION
-	#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
+	#if __has_include ("esp_idf_version.h")	// >= 4
 	    clk_cfg,
-	#endif
 	#endif
     };
     ESP_ERROR_CHECK(ledc_timer_config(&config));

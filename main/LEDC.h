@@ -33,11 +33,9 @@ public:
 	ledc_mode_t		speed_mode	= LEDC_HIGH_SPEED_MODE,
 	ledc_timer_bit_t	duty_resolution	= LEDC_TIMER_8_BIT,
 	uint32_t		freq_hz	= 0 /* max for duty_resolution */
-	#ifdef ESP_IDF_VERSION
-	#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
+	#if __has_include ("esp_idf_version.h")	// >= 4
 	    ,
 	    ledc_clk_cfg_t		clk_cfg	= LEDC_AUTO_CLK
-	#endif
 	#endif
     );
     ~Timer();
