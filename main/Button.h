@@ -63,5 +63,5 @@ public:
     /// Button class array class element.
     Button(Button const && move);
 
-    bool isDown();
+    bool isDown() const;
 };
