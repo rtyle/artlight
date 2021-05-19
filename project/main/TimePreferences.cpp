@@ -15,6 +15,7 @@ TimePreferences::TimePreferences(
 		std::string timezoneCopy(timezone);
 		io.post([timezoneCopy](){
 		    setenv("TZ", timezoneCopy.c_str(), true);
+		    tzset();
 		});
 	    }),
 
