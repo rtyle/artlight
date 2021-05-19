@@ -2,7 +2,7 @@ menu "artlight Configuration"
 
 config OTA_URL
     string "Over the Air (OTA) Software Update URL"
-    default "https://artlightserver:4433/artlight.bin"
+    default "https://artlightserver:4433/project.bin"
     help
         URL of the service that provides our software update.
 

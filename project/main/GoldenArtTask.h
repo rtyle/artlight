@@ -10,8 +10,6 @@
 #include "SPI.h"
 #include "TimePreferences.h"
 
-using APA102::LED;
-
 class GoldenArtTask: public AsioTask, TimePreferences, DialPreferences {
 private:
     Pin			tinyPicoLedPower;

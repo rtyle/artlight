@@ -1,6 +1,6 @@
 #include "esp_log.h"
 #include "esp_wifi.h"
-#include "tcpip_adapter.h"
+#include "esp_netif.h"
 
 #include "Wifi.h"
 
@@ -17,15 +17,14 @@ void Wifi::reconnect() {
 }
 
 Wifi::Wifi(char const * name_, TickType_t reconnectTimeout) :
-    name(name_),
-    reconnectTimer(name, reconnectTimeout, true, [this](){this->reconnect();}),
-    staStartObserver(SYSTEM_EVENT_STA_START,
-	    [this](system_event_t const * event)->esp_err_t{
+    name{name_},
+    reconnectTimer{name, reconnectTimeout, true, [this](){this->reconnect();}},
+    staStartHandler{nullptr, WIFI_EVENT, WIFI_EVENT_STA_START,
+	    [this](esp_event_base_t, int32_t, void *){
         reconnect();
-        return ESP_OK;
-    }),
-    staGotIpObserver(SYSTEM_EVENT_STA_GOT_IP,
-	    [this](system_event_t const * event)->esp_err_t{
+    }},
+    staGotIpHandler{nullptr, IP_EVENT, IP_EVENT_STA_GOT_IP,
+	    [this](esp_event_base_t, int32_t, void *){
 	// we will get here when esp_wifi_connect succeeds -
 	// whether this attempt was done when our one-shot
 	// reconnectTimer expired or not.
@@ -33,21 +32,20 @@ Wifi::Wifi(char const * name_, TickType_t reconnectTimeout) :
 	// if it is running and we can't stop it in time (it expires)
 	// there will be no harm in it invoking reconnect.
         reconnectTimer.stop();
-        return ESP_OK;
-    }),
-    staDisconnectedObserver(SYSTEM_EVENT_STA_DISCONNECTED,
-	    [this](system_event_t const * event)->esp_err_t{
+    }},
+    staDisconnectedHandler{nullptr, WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED,
+	    [this](esp_event_base_t, int32_t, void *){
 	reconnectTimer.start();
-	return ESP_OK;
-    })
+    }}
 {}
 
 void Wifi::start() {
     // initialization
     {
-	// create the Wi-Fi driver task
-	wifi_init_config_t wifi_init_config = WIFI_INIT_CONFIG_DEFAULT();
-	ESP_ERROR_CHECK(esp_wifi_init(&wifi_init_config));
+	esp_netif_create_default_wifi_sta();
+	esp_netif_create_default_wifi_ap();
+	InitConfig initConfig{};
+	ESP_ERROR_CHECK(esp_wifi_init(&initConfig));
     }
 
     // configuration
@@ -58,13 +56,13 @@ void Wifi::start() {
 	// to expect/allow for separate/non-volatile-storage provisioning:
 	// the ssid must not be the wildcard value (zero length)
 	// in order for a connection to be attempted
-	// and failure to be reported (SYSTEM_EVENT_STA_DISCONNECTED)
+	// and failure to be reported (WIFI_EVENT_STA_DISCONNECTED)
 	wifi_config_t wifi_config;
-	ESP_ERROR_CHECK(esp_wifi_get_config(ESP_IF_WIFI_STA, &wifi_config));
+	ESP_ERROR_CHECK(esp_wifi_get_config(WIFI_IF_STA, &wifi_config));
 	if (!*wifi_config.sta.ssid) {
 	    std::strncpy(reinterpret_cast<char *>(wifi_config.sta.ssid),
 		"-", sizeof wifi_config.sta.ssid);
-	    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
+	    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
 	}
     }
 

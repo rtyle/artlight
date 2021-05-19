@@ -15,6 +15,7 @@ void PeerTask::receive() {
 	[this](std::error_code error, std::size_t length){
 	    if (error) {
 		ESP_LOGE(name, "receive error: %s", error.message().c_str());
+		if (asio::error::not_connected == error) return;
 	    } else if (sendEndpoint.port()) {
 		if (!(2 < length && sizeof receiveMessage > length)) {
 		    ESP_LOGE(name, "receive bad length");

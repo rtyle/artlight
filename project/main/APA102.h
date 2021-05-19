@@ -267,9 +267,9 @@ LED<int16_t> LED<int16_t>::operator * (F multiplier) const {
 	static_cast<int16_t>(part.blue	* multiplier)};
 }
 
-size_t constexpr messageBits(size_t size) {return 32 + size * 65 / 2 + 32;}
+std::size_t constexpr messageBits(std::size_t size) {return 32 + size * 65 / 2 + 32;}
 
-template<size_t size>
+template<std::size_t size>
 struct Message {
 private:
     uint32_t	start;
@@ -290,7 +290,7 @@ public:
 	    e = LED<>();
 	}
     }
-    size_t length() const {return messageBits(size);}
+    std::size_t length() const {return messageBits(size);}
     void gamma();
 };
 

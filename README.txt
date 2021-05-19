@@ -1,144 +1,209 @@
-# espressif
+# git
 
-	# give $USER access to /dev/ttyUSB0 and relogin
+	git clone git@github.com:rtyle/artlight.git
+
+	cd artlight
+
+# esp-idf
+
+	# give $USER access to /dev/ttyUSB* and relogin
 	# this is needed to allow for USB communication with esp32
 	sudo usermod -a -G dialout $USER
 
-	mkdir ~/esp
+	# toolchain prerequisites
+	# https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/linux-setup.html
 
-	# toolchain
-	# https://docs.espressif.com/projects/esp-idf/en/latest/get-started/linux-setup.html
+		sudo dnf install git wget flex bison gperf python3 python3-pip python3-setuptools cmake ninja-build ccache dfu-util libusbx
 
-		sudo dnf install gcc git wget make ncurses-devel flex bison gperf python python3-pyserial python3-future python3-cryptography python3-pyparsing
-		cd ~/esp
-		wget https://dl.espressif.com/dl/xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
-		tar xzf xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
+	# esp-idf
+	# https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/index.html#get-started-get-esp-idf
 
-		# this doesn't work
-		# some of the IDF makefiles don't use CONFIG_TOOLPREFIX
-		# but use xtensa-esp32-elf- directly
+		# install esp-idf as a submodule under project
+		git submodule add https://github.com/espressif/esp-idf.git
 
-			dnf install gcc-c++-xtensa-linux-gnu
-			vi sdkconfig
-				#CONFIG_TOOLPREFIX="xtensa-esp32-elf-"
-				CONFIG_TOOLPREFIX="xtensa-linux-gnu-"
+		# update now (and/or later)
+
+			(
+				cd esp-idf
+				git fetch
+				git checkout v4.3-beta3
+				git submodule update --init --recursive
+			)
+
+# esp-idf-tools
+
+	# install tools required by esp-idf in esp-idf-tools
+	IDF_TOOLS_PATH=esp-idf-tools esp-idf/install.sh
+
+	install /dev/stdin esp-idf-export.sh <<EOF
+export IDF_TOOLS_PATH=$(realpath esp-idf-tools); . esp-idf/export.sh
+EOF
+
+	# (re)establish this environment for idf.py and eclipse actions
+
+		. esp-idf-export.sh
+
+	echo esp-idf-tools > .gitignore
 
 # eclipse
 
-	dnf install eclipse-cdt
+	sudo dnf install eclipse eclipse-cdt eclipse-mpc
+
+	# fedora 34 packaged eclipse does not work with espressif/idf-eclipse-plugin
+	# https://github.com/espressif/idf-eclipse-plugin/issues/260
+	# download from eclipse.org
+
+		curl https://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release/2021-03/R/eclipse-cpp-2021-03-R-linux-gtk-x86_64.tar.gz | tar xzf -
+		mv eclipse ~/eclipse-2021-03
+
+	# get rid of old eclipse artifacts
+
+		rm -rf ~/.{eclipse,p2}
 
 # https://docs.espressif.com/projects/esp-idf/en/latest/get-started/eclipse-setup.html
 
-	eclipse
+	echo .metadata >> .gitignore
 
-		#! set workspace to ~/eclipse
+	(. esp-idf-export.sh; ~/eclipse-2021-03/eclipse >/dev/null 2>&1 &)
 
-		# Project Explorer: New: Project...: C++: Makefile Project with Existing Code
+		#! set workspace to here
 
-			Existing Code Location: $HOME/eclipse/<project>
-			Toolchain for Indexer Settings: Cross GCC
+		Help: Install New Software...: Add...: 
 
-		<project>: Properties: C/C++ Build: Environment: Add...
-			Add to all configurations:	Name:		Value:
-#			X				BATCH_BUILD	1
-			X				IDF_PATH	${ProjDirPath}/esp-idf
-			X				PATH		<orig>:${HOME}/esp/xtensa-esp32-elf/bin
+			# espressif/idf-eclipse-plugin
 
-			# BATCH_BUILD=1 is a flag to the makefiles to inhibit interactive behavior
-			# instead, we run these targets in an interactive gnome-terminal (below)
+				Name:		espressif/idf-eclipse-plugin latest
+				Location:	https://dl.espressif.com/dl/idf-eclipse-plugin/updates/latest/
 
-		<project>: Properties: C/C++ General:
-			Preprocessor Include Paths, Macros etc.: Providers:
-				CDT Cross GCC Built-in Compiler Settings:
-					Command to get compiler specs:
-						xtensa-esp32-elf-gcc ${FLAGS} -std=c++11 -E -P -v -dD "${INPUTS}"
-				CDT GCC Build Output Parser:
-					Compiler command pattern:
-						xtensa-esp32-elf-(gcc|g\+\+|c\+\+|cc|cpp|clang)
-			Indexer
-				X Enable project specific settings
-					0 Allow heuristic resolution of includes
-				
-		<project>: Properties: C/C++ Build:
-			Behavior:
-				X Enable parallel build
-			
-		# create conventional build targets
-		# some need to be run in a "real" terminal (e.g. gnome-terminal)
-		<project>: Build Targets: Create...
-			Build Command:				Target name:
-						make -j8	all
-						make -j8	clean
-			gnome-terminal --	make -j8	menuconfig
-			gnome-terminal --	make -j8	flash
-			gnome-terminal --	make -j8	monitor
-			gnome-terminal --	make -j8	flash monitor
+				Add
 
-		#! build menuconfig
-		#! build all
-		#! build flash monitor
+				X Espressif IDF
 
-	# make knows where to find include files (and build) but eclipse does not
+				Install anyway
+				Restart Now
 
-		<project>: Properties: C/C++ General:
-			Paths and Symbols: Includes
-				Includes
-					GNU C
-					GNU C++
-						${IDF_PATH}/components/asio/asio/asio/include
-						${IDF_PATH}/components/asio/port/include
-						${IDF_PATH}/components/driver/include
-						${IDF_PATH}/components/esp32/include
-						${IDF_PATH}/components/esp_event/include
-						${IDF_PATH}/components/esp_http_client/include
-						${IDF_PATH}/components/esp_http_server/include
-						${IDF_PATH}/components/esp_https_ota/include
-						${IDF_PATH}/components/esp_ringbuf/include
-						${IDF_PATH}/components/freertos/include
-						${IDF_PATH}/components/heap/include
-						${IDF_PATH}/components/log/include
-						${IDF_PATH}/components/lwip/include/apps
-						${IDF_PATH}/components/lwip/port/esp32/include
-						${IDF_PATH}/components/lwip/lwip/src/include
-						${IDF_PATH}/components/newlib/platform_include
-						${IDF_PATH}/components/nvs_flash/include
-						${IDF_PATH}/components/nghttp/port/include
-						${IDF_PATH}/components/openssl/include
-						${IDF_PATH}/components/soc/esp32/include
-						${IDF_PATH}/components/soc/include
-						${IDF_PATH}/components/spi_flash/include
-						${IDF_PATH}/components/tcpip_adapter/include
-						${IDF_PATH}/components/vfs/include
-						${ProjDirPath}/build/include
+		File: New: Project...
 
-				#Symbols
-					GNU C
-					GNU C++
-						ESP_PLATFORM
+			Wizard: Espressif: Espressif IDF Project
+			Project name: project
 
-				Export Settings...
-					includePaths.xml
+		Project Explorer: <project>
 
-					#! vi includePaths.xml
+			toolbar: Launch Target
+				Name:		esp32
+				IDF Target:	esp32
+				Serial Port:	/dev/ttyUSB1
 
-				Import Settings...
-					includePaths.xml
+			toolbar: Build
 
-# ESP IoT Development Framework as git submodule to current git project
-# https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html
+			toolbar: Open a Terminal
+				Choose terminal:	ESP-IDF Serial Monitor
+					this doesn't work
+				Choose terminal:	Serial Terminal
 
-	git submodule add https://github.com/espressif/esp-idf.git
+			toolbar: Launch in 'Run' mode
 
-	# update later
+		<project>: Run As: Run Configurations...
+			ESP-IDF Application
+				project
+					Common
+						Display in favorites menu
+							0 Debug
+							X Run
+					Apply
+					Close
 
-		git fetch
-		git checkout v3.3.2
-		git submodule update --init --recursive
+		<project>: Debug As: Debug Configurations...
+			ESP-IDF GDB OpenOCD Debugging
+				New Configuration
+					Name:	project debugger
+					Debugger
+						OpenOCD Setup
+							Executable path:	openocd
+							Config options:		-f board/esp32-wrover-kit-3.3v.cfg
+						GDB Client Setup
+							Actual executable:	xtensa-esp32-elf-gdb
+					Startup
+						Initialization Commands
+							0 Enable ARM semihosting
+					Common
+						Display in favorites menu
+							X Debug
+							0 Run
+					Apply
+					Close
 
-# make from command line
+		Project Explorer: <project>
 
-	PATH=$PATH:$HOME/esp/xtensa-esp32-elf/bin IDF_PATH=esp-idf make all
+			toolbar: Launch Configuration: project debugger
+			toolbar: Launch Mode: Debug
+			toolbar: Launch in 'Debug' mode
+
+				# auto change to debug perspective
+				# find code stopped at app_main entry point
+
+		exit eclipse
+
+	rm -rf project/build
+	rm project/sdkconfig*
+
+	echo build	>> project/.gitignore
+	echo sdkconfig	>> project/.gitignore
+	echo *.old	>> project/.gitignore
+	echo *.swp	>> project/.gitignore
+
+	git add README.txt .gitignore project
+	git commit -m 'idf-eclipse-plugin'
+
+eclipse preferences
+
+	General: Editors: Text Editors
+		Displayed tab width:	8
+		X Show print margin
+		X Show line numbers
+		X Show whitespace characters
+
+	C/C++: Code Style: Formatter
+		Active profile:	K&R [built-in]: Edit...
+			Profile Name: K&R [built-in] sw=4 ts=8
+				Tab policy:		Mixed
+				Indentation size:	4
+				Tab size:		8
+
+	exit eclipse
+
+	git add README.txt
+	git commit -m 'eclipse preferences'
+
+configuring build type and
+flashing from command line
+	
+	# pick one
+	application=clock
+	application=cornhole
+	application=nixie
+	application=golden
+
+	# clean
+	(cd project; ArtlightApplication=$application idf.py fullclean)
+
+	# reconfigure for build type
+	(cd project; ArtlightApplication=$application idf.py reconfigure -DCMAKE_BUILD_TYPE=Release)
+	(cd project; ArtlightApplication=$application idf.py reconfigure -DCMAKE_BUILD_TYPE=Debug)
+
+	# build
+	(cd project; idf.py build)
+
+	# identify serial port to connected device
+	port=/dev/ttyUSB0
+
+	# prepare connected device and deploy application
+	(cd project; idf.py -p $port erase_flash erase_otadata)
+	(cd project; idf.py -p $port flash)
+
+	# monitor serial output from device
+	(cd project; idf.py -p $port monitor)
 
 # OTA service
 
-	(cd build; openssl s_server -WWW -key ../certificates/ota_ca_key.pem -cert ../certificates/ota_ca_cert.pem)
+	(cd project/build; openssl s_server -WWW -key ../certificates/ota_ca_key.pem -cert ../certificates/ota_ca_cert.pem)

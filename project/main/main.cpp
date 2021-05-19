@@ -67,6 +67,7 @@ public:
 		provisionResponseFavicon1 - provisionResponseFavicon0,
 		main.keyValueBroker)
 	{
+	    ESP_LOGI(main.name, "Disconnected");
 	    provisionTask.start();
 	}
 	~Disconnected() {
@@ -96,6 +97,7 @@ public:
 	    peerTask(main.keyValueBroker),
 	    webSocketTask(main.keyValueBroker)
 	{
+	    ESP_LOGI(main.name, "Connected");
 	    otaTask.start();
 	    peerTask.start();
 	    webSocketTask.start();
@@ -106,8 +108,9 @@ public:
     };
     std::unique_ptr<Connected> connected;
 
-    Event::Observer staGotIpObserver;
-    Event::Observer staDisconnectedObserver;
+    Event::Loop eventLoopDefault;
+    Event::Handler staGotIpHandler;
+    Event::Handler staDisconnectedHandler;
 
     Wifi wifi;
 
@@ -115,17 +118,19 @@ public:
 
     Main()
     :
-	AsioTask(),	// this task
+	AsioTask{},	// this task
 
-	work(io),
+	work{io},
 
-	keyValueBroker("keyValueBroker"),
+	keyValueBroker{"keyValueBroker"},
 
-	disconnected(nullptr),
-	connected(nullptr),
+	disconnected{nullptr},
+	connected{nullptr},
 
-	staGotIpObserver(SYSTEM_EVENT_STA_GOT_IP,
-		[this](system_event_t const * event)->esp_err_t{
+	eventLoopDefault{},
+
+	staGotIpHandler{nullptr, IP_EVENT, IP_EVENT_STA_GOT_IP,
+		[this](esp_event_base_t, int32_t, void *){
 	    // we will get here after every successful esp_wifi_connect attempt
 	    // *and* whenever our IP address has changed (new DHCP lease).
 	    io.post([this](){
@@ -133,11 +138,10 @@ public:
 		// we must always reset our connected object
 		connected.reset(new Connected(*this));
 	    });
-	    return ESP_OK;
-	}),
+	}},
 
-	staDisconnectedObserver(SYSTEM_EVENT_STA_DISCONNECTED,
-		[this](system_event_t const * event)->esp_err_t{
+	staDisconnectedHandler{nullptr, WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED,
+		[this](esp_event_base_t, int32_t, void *){
 	    // we will get here after every failed esp_wifi_connect attempt
 	    io.post([this](){
 		connected.reset(nullptr);
@@ -147,17 +151,16 @@ public:
 		    disconnected.reset(new Disconnected(*this));
 		}
 	    });
-	    return ESP_OK;
-	}),
+	}},
 
-	wifi("WIFI"),
+	wifi{"WIFI"},
 
-	artTask(keyValueBroker)
+	artTask{keyValueBroker}
     {
 	std::setlocale(LC_ALL, "en_US.utf8");
 
 	// create LwIP task
-	tcpip_adapter_init();
+	esp_netif_init();
 
 	wifi.start();
 

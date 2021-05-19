@@ -12,9 +12,9 @@ class Wifi {
 private:
     char const *	name;
     Timer		reconnectTimer;
-    Event::Observer	staStartObserver;
-    Event::Observer	staGotIpObserver;
-    Event::Observer	staDisconnectedObserver;
+    Event::Handler	staStartHandler;
+    Event::Handler	staGotIpHandler;
+    Event::Handler	staDisconnectedHandler;
 
     void reconnect();
 
@@ -37,15 +37,19 @@ public:
 	setter(tx_buf_type)
 	setter(static_tx_buf_num)
 	setter(dynamic_tx_buf_num)
+	setter(cache_tx_buf_num)
 	setter(csi_enable)
 	setter(ampdu_rx_enable)
 	setter(ampdu_tx_enable)
+	setter(amsdu_tx_enable)
 	setter(nvs_enable)
 	setter(nano_enable)
-	setter(tx_ba_win)
 	setter(rx_ba_win)
 	setter(wifi_task_core_id)
 	setter(beacon_max_len)
+	setter(mgmt_sbuf_num)
+	setter(feature_caps)
+	setter(sta_disconnected_pm)
 	setter(magic)
 	#undef setter
     };

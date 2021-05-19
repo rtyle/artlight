@@ -32,12 +32,8 @@ public:
     Timer(
 	ledc_mode_t		speed_mode	= LEDC_HIGH_SPEED_MODE,
 	ledc_timer_bit_t	duty_resolution	= LEDC_TIMER_8_BIT,
-	uint32_t		freq_hz	= 0 /* max for duty_resolution */
-	#if __has_include ("esp_idf_version.h")	// >= 4
-	    ,
-	    ledc_clk_cfg_t		clk_cfg	= LEDC_AUTO_CLK
-	#endif
-    );
+	uint32_t		freq_hz	= 0, /* max for duty_resolution */
+	ledc_clk_cfg_t		clk_cfg	= LEDC_AUTO_CLK);
     ~Timer();
     void set_freq(uint32_t freq_hz);
     uint32_t get_freq();

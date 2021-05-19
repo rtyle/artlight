@@ -2,11 +2,7 @@
 #include <streambuf>
 
 #include "esp_log.h"
-#if __has_include("sha/sha_dma.h")
-    #include "sha/sha_dma.h"
-#elif __has_include("hwcrypto/sha.h")
-    #include "hwcrypto/sha.h"
-#endif
+#include "sha/sha_dma.h"
 #include "mbedtls/base64.h"
 
 #include "Filter.h"

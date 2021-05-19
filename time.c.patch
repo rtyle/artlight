@@ -1,0 +1,13 @@
+diff --git a/components/newlib/time.c b/components/newlib/time.c
+index a021d15ee..cc42d886a 100644
+--- a/components/newlib/time.c
++++ b/components/newlib/time.c
+@@ -98,7 +98,7 @@ static uint64_t adjust_boot_time(void)
+ 
+ 
+ // Get the adjusted boot time.
+-static uint64_t get_adjusted_boot_time(void)
++/* static */ uint64_t get_adjusted_boot_time(void)
+ {
+     _lock_acquire(&s_time_lock);
+     uint64_t adjust_time = adjust_boot_time();

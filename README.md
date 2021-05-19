@@ -253,54 +253,48 @@ A break in the ring's IR beam sensors will cause a short "fireworks" animation t
 These projects were built on a Fedora Linux platform.
 Your mileage may vary elsewhere.
 
-Get toolchain
-
-    sudo dnf install gcc git wget make ncurses-devel flex bison gperf python python3-pyserial python3-future python3-cryptography python3-pyparsing
-    mkdir -p $HOME/esp
-    (
-      cd $HOME/esp
-      wget https\://dl.espressif.com/dl/xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
-      tar xzf xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
-    )
-    
 Get artlight source code with it's dependencies
 
     git clone http://github.com/rtyle/artlight.git
     cd artlight
     git submodule update --init --recursive
+    (cd esp-idf; git apply ../time.c.patch)
   
 [Create certificates](https://github.com/rtyle/artlight/blob/master/README.certificates.txt)
 
-artlightMake shortcut
+Install tools required by esp-idf in esp-idf-tools.
 
-    artlightMake() { PATH=$PATH:$HOME/esp/xtensa-esp32-elf/bin IDF_PATH=esp-idf make ArtLightApplication=$application $* ; }
-    artlightMake help
+    IDF_TOOLS_PATH=esp-idf-tools esp-idf/install.sh
 
-Select application (choose one)
+(Re)establish build environment.
+
+    . esp-idf-export.sh
+
+Select application (choose one).
 
     application=clock
     application=cornhole
-    application=nixie
     application=golden
+    application=nixie
 
-Build application
+Build application.
 
-    artlightMake clean
-    artlightMake all
+    (cd project; ArtlightApplication=$application idf.py fullclean reconfigure build)
 
-Grant user access to USB serial devices then **relogin** to get access
+Grant user access to USB serial devices then **relogin** to get access.
 
     sudo usermod -a -G dialout $USER
 
-Prepare /dev/ttyUSB0 (default) connected device
+Identify serial port to connected device.
+For example,
 
-     artlightMake erase_flash
-     artlightMake erase_otadata
+    port=/dev/ttyUSB0
 
-Deploy application to /dev/ttyUSB0 (default) connected device
+Prepare connected device and deploy application.
 
-    artlightMake flash
+    (cd project; idf.py -p $port erase_flash erase_otadata)
+    (cd project; idf.py -p $port flash)
 
-Monitor device
+Monitor serial output from device.
 
-    artlightMake monitor
+    (cd project; idf.py -p $port monitor)

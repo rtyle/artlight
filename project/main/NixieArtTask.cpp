@@ -3,6 +3,9 @@
 #include <numeric>
 
 #include "esp_log.h"
+extern "C" {
+#include "esp_time_impl.h"
+}
 
 #define APA102_RBG
 #include "APA102.h"
@@ -14,13 +17,10 @@
 #include "Timer.h"
 #include "fromString.h"
 
-extern "C" uint64_t get_time_since_boot();
-
 using APA102::LED;
 using LEDI = APA102::LED<int>;
 
 static unsigned constexpr millisecondsPerSecond	{1000u};
-static unsigned constexpr microsecondsPerSecond	{1000000u};
 
 static SawtoothCurve inNearSecondOf	{0.0f,  1.0f * 60.0f / 61.0f};
 static SawtoothCurve inSecondOf		{0.0f,  1.0f};
@@ -236,7 +236,7 @@ void NixieArtTask::update_() {
 	    e = colors[side] * fadeLeds[side];
 	}
 
-	uint64_t const microsecondsSinceBoot {get_time_since_boot()};
+	uint64_t const microsecondsSinceBoot {esp_time_impl_get_time_since_boot()};
 
 	std::function<float(unsigned)> placeValues[pca9685s.size()] {
 	    [](unsigned) {return 0.0f;},
@@ -714,7 +714,7 @@ NixieArtTask::NixieArtTask(
 	    Mode mode_(value);
 	    io.post([this, mode_](){
 		mode = mode_;
-		microsecondsSinceBootOfModeChange = get_time_since_boot();
+		microsecondsSinceBootOfModeChange = esp_time_impl_get_time_since_boot();
 	    });
 	}),
 

@@ -1,3 +1,4 @@
+#include "esp_err.h"
 #include "esp_log.h"
 
 #include "LEDC.h"
@@ -30,12 +31,8 @@ std::forward_list<ledc_timer_t> Timer::free[] {
 Timer::Timer(
     ledc_mode_t		speed_mode_,
     ledc_timer_bit_t	duty_resolution,
-    uint32_t		freq_hz
-    #if __has_include ("esp_idf_version.h")	// >= 4
-	,
-	ledc_clk_cfg_t	clk_cfg
-    #endif
-    )
+    uint32_t		freq_hz,
+    ledc_clk_cfg_t	clk_cfg)
 :
     speed_mode	(speed_mode_),
     timer_num	(
@@ -56,9 +53,7 @@ Timer::Timer(
 	duty_resolution,
 	timer_num,
 	freq_hz,
-	#if __has_include ("esp_idf_version.h")	// >= 4
-	    clk_cfg,
-	#endif
+	clk_cfg,
     };
     ESP_ERROR_CHECK(ledc_timer_config(&config));
     ESP_LOGI("LEDC::Timer", "speed_mode %d, duty_resolution %d, timer_num %d, "

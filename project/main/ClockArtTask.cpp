@@ -2,6 +2,9 @@
 #include <sstream>
 
 #include "esp_log.h"
+extern "C" {
+#include "esp_time_impl.h"
+}
 #include "esp_heap_caps.h"
 
 #include "clip.h"
@@ -13,8 +16,6 @@
 #include "PerlinNoise.hpp"
 #include "Pulse.h"
 #include "Timer.h"
-
-extern "C" uint64_t get_time_since_boot();
 
 using APA102::LED;
 using LEDI = APA102::LED<int>;
@@ -85,7 +86,7 @@ void ClockArtTask::update_() {
 	sum(ring1SectorSize)
     };
 
-    uint64_t const microsecondsSinceBoot {get_time_since_boot()};
+    uint64_t const microsecondsSinceBoot {esp_time_impl_get_time_since_boot()};
 
     static LEDI const black {0, 0, 0};
     Blend<LEDI> const blend[dialCount] {

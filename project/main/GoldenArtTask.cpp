@@ -8,6 +8,9 @@
 #include <vector>
 
 #include "esp_log.h"
+extern "C" {
+#include "esp_time_impl.h"
+}
 
 #include "fromString.h"
 #include "Array.h"
@@ -18,8 +21,6 @@
 #include "PerlinNoise.hpp"
 #include "Timer.h"
 #include "TSL2591LuxSensor.h"
-
-extern "C" uint64_t get_time_since_boot();
 
 constexpr float pi	{std::acos(-1.0f)};
 constexpr float tau	{2.0f * pi};
@@ -391,7 +392,7 @@ void GoldenArtTask::update_() {
     // Perlin noise at an integral grid point is 0 (0.5 for noise0_1).
     // To avoid this, cut between them.
 
-    uint64_t const microsecondsSinceBoot {get_time_since_boot()};
+    uint64_t const microsecondsSinceBoot {esp_time_impl_get_time_since_boot()};
 
     Contrast const levelContrast {20.0f};
 
@@ -541,6 +542,7 @@ void GoldenArtTask::update_() {
 		++unit_;
 	    }
 	} if (!rimSwirl) break;	// else, fall through
+	// no break
 	case Mode::Value::swirl: {
 	    // ramp up and down by even offsets
 	    // so that there are fewer changes in direction
@@ -818,13 +820,13 @@ GoldenArtTask::GoldenArtTask(
     dim		{},
     gamma	{10 / 10.f},
 
-    modeObserver(keyValueBroker, "mode", mode.toString(),
+    modeObserver{keyValueBroker, "mode", mode.toString(),
 	[this](char const * value){
 	    Mode mode_(value);
 	    io.post([this, mode_](){
 		mode = mode_;
 	    });
-	}),
+	}},
     curlObserver {
 	{keyValueBroker, curlKey[0], "4",
 	    [this](char const * value) {curlObserved(0, value);}},
@@ -857,7 +859,7 @@ GoldenArtTask::GoldenArtTask(
 	    });
 	}
     },
-    levelObserver(keyValueBroker, "level", "2048",
+    levelObserver{keyValueBroker, "level", "2048",
 	[this](char const * value_){
 	    float value {std::min(1.0f, (0.5f + fromString<unsigned>(value_)) / 4096.0f)};
 	    if (0.0f <= value && value <= 1.0f) {
@@ -865,8 +867,8 @@ GoldenArtTask::GoldenArtTask(
 		    level = value;
 		});
 	    }
-	}),
-    dimObserver(keyValueBroker, "dim", "4032",
+	}},
+    dimObserver{keyValueBroker, "dim", "4032",
 	[this](char const * value_){
 	    float value {std::min(1.0f, (0.5f + fromString<unsigned>(value_)) / 4096.0f)};
 	    if (0.0f <= value && value <= 1.0f) {
@@ -874,8 +876,8 @@ GoldenArtTask::GoldenArtTask(
 		    dim = value;
 		});
 	    }
-	}),
-    gammaObserver(keyValueBroker, "gamma", "10",
+	}},
+    gammaObserver{keyValueBroker, "gamma", "10",
 	[this](char const * value){
 	    unsigned const gamma_ = std::strtoul(value, nullptr, 10);
 	    if (5 <= gamma_ && gamma_ <= 30) {
@@ -883,7 +885,7 @@ GoldenArtTask::GoldenArtTask(
 		    gamma = gamma_ / 10.0f;
 		});
 	    }
-	}),
+	}},
 
     updated {0}
 {
