@@ -253,7 +253,7 @@ A break in the ring's IR beam sensors will cause a short "fireworks" animation t
 These projects were built on a Fedora Linux platform.
 Your mileage may vary elsewhere.
 
-Get artlight source code with it's dependencies
+Get artlight source code with its dependencies
 
     git clone http://github.com/rtyle/artlight.git
     cd artlight
