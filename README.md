@@ -260,7 +260,7 @@ Get artlight source code with its dependencies
     git submodule update --init --recursive
     (cd esp-idf; git apply ../time.c.patch)
   
-[Create certificates](https://github.com/rtyle/artlight/blob/master/README.certificates.txt)
+[Create certificates](https://github.com/rtyle/artlight/blob/master/project/README.certificates.txt)
 
 Install tools required by esp-idf in esp-idf-tools.
 
